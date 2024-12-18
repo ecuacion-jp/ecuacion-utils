@@ -173,16 +173,19 @@ public abstract class PoiStringTableReader {
     new BeanValidationUtil().validateThenThrow(obj);
   }
 
-  /** validation checkのみの目的で使用するclass. */
+  /** 
+   * validation checkのみの目的で使用するclass. fieldはspotbug対策のためだけにpublic化。
+   * 
+   */
   private static class Numbers {
     @Min(0)
-    private int tableStartRowNumber;
+    public int tableStartRowNumber;
     @Min(1)
-    private Integer tableRowSize;
+    public Integer tableRowSize;
     @Min(0)
-    private int tableStartColumnNumber;
+    public int tableStartColumnNumber;
     @Min(1)
-    private int tableStartColumnSize;
+    public int tableStartColumnSize;
 
     public Numbers(int tableStartRowNumber, Integer tableRowSize, int tableStartColumnNumber,
         int tableStartColumnSize) {

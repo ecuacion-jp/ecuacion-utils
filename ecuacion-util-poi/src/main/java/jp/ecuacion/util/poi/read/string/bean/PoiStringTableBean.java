@@ -15,6 +15,8 @@
  */
 package jp.ecuacion.util.poi.read.string.bean;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -25,33 +27,72 @@ import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.LogUtil;
 
+/**
+ * Stores values obtained from excel tables with {@code PoiStringFixedTableToBeanReader}.
+ */
 public abstract class PoiStringTableBean {
 
   private DetailLogger detailLog = new DetailLogger(this);
 
-  /** bean内の複数field間の整合性をチェック。 */
-  public abstract void dataConsistencyCheck() throws AppException;
-  
   /**
-   * Excelからrowを読み込んだlist内の値を、指定の順に変数に設定する。 例えば、戻り値がnew String[] {"field1", null, "field2"} の場合、
-   * field1 = list.get(0); field2 = list.get(2); のように設定されるイメージ。
-   * listから値を取得しない列がある場合（excelの読み込み対象列にskipがある場合にこうなる）、nullで設定する。
+   * Validates the inter-fields data.
    * 
-   * <p>
-   * 厳密には、constructorの引数に設定されるlistは、excelから読み込んだそのままのlistである必要はない。
-   * 例えば、excel一覧上に分類項目と明細項目があり、読み込んだ結果分類と迷彩を別オブジェクトとして親子関係で保持する場合などは、
-   * listをそれぞれのオブジェクトに必要な項目に絞り、getFieldNameArrary()もそれに応じた変数のみ設定することで読み込み可能。
-   * ただ、skip箇所はnullと明示的に記載しexcelの列と整合がとれた記載の方がわかりやすいと思われる。
-   * </p>
+   * <p>Validations for each field needs to be done by bean vaildation.
+   *     This method covers selective-requirement, or other inter-fields validations.
    */
+  public abstract void dataConsistencyCheck() throws AppException;
+
+  /**
+   * Returns {@code String} array of field names in the bean.
+   * 
+   * <p>For example, the table in an excel file is this.</p>
+   * <table border="1" style="border-collapse: collapse">
+   * <tr>
+   * <th>name</th>
+   * <th>age</th>
+   * <th>phone number</th>
+   * </tr>
+   * <tr>
+   * <td>John</td>
+   * <td>30</td>
+   * <td>(+01)123456789</td>
+   * </tr>
+   * <tr>
+   * <td>Ken</td>
+   * <td>40</td>
+   * <td>(+81)987654321</td>
+   * </tr>
+   * <caption>table 1</caption>
+   * </table>
+   * 
+   * <p>If you want to read all data from table 1 and put into a bean, 
+   *     you need to create a bean extends this class, 
+   *     define fields {@code name, age, and phoneNumber}, 
+   *     override this method and return the following array.</p>
+   * 
+   * <code>new String[] {"name", "age", "phoneNumber"}</code>
+   * 
+   * <p>the value in the first column (name) is put into 
+   *     the field with the first element in the array (name).</p>
+   *     
+   * <p>If you don't need data in "age" column, you can set null like </p>
+   * <code>new String[] {"name", null, "phoneNumber"}</code>
+   */
+  @Nonnull
   protected abstract String[] getFieldNameArray();
 
-  /**
-   * 通常は使用を想定されていないが、イレギュラーなconstructorを作成したい場合に使用。
-   */
-  public PoiStringTableBean() {}
+  // /**
+  // * 通常は使用を想定されていないが、イレギュラーなconstructorを作成したい場合に使用。
+  // */
+  // public PoiStringTableBean() {}
 
-  public PoiStringTableBean(List<String> colList) {
+  /**
+   * Constructs a new instance with the list of strings 
+   *     which consists of data of a line from the excel table.
+   *     
+   * @param colList the list of strings which consists of data of a line from the excel table
+   */
+  public PoiStringTableBean(@Nonnull List<String> colList) {
     String[] fieldNameArray = getFieldNameArray();
 
     // colListの件数とfieldNameArraryの件数が異なる場合はエラー
@@ -110,43 +151,51 @@ public abstract class PoiStringTableBean {
     }
   }
 
-  /** nullを空文字に変換するためのutility method. */
-  protected String nullToEmpty(String value) {
+  /** Returns {@code empty} if the argument value is null or returns the argument value. */
+  @Nonnull
+  protected String nullToEmpty(@Nullable String value) {
     return value == null ? "" : value;
   }
 
-  /** 空文字をnullに変換するためのutility method. */
-  protected String emptyToNull(String value) {
-    return value.equals("") ? null : value;
+  /** Returns {@code null} if the argument value is empty or returns the argument value. */
+  @Nullable
+  protected String emptyToNull(@Nullable String value) {
+    return value == null || value.equals("") ? null : value;
   }
 
-  /** getterでIntegerに変換するためのutility method. */
-  protected Integer toInteger(String value) {
+  /** Returns {@code Integer} datatype of the argument string. */
+  @Nullable
+  protected Integer toInteger(@Nullable String value) {
     return value == null || value.equals("") ? null : Integer.valueOf(value);
   }
 
-  /** getterでLongに変換するためのutility method. */
-  protected Long toLong(String value) {
+  /** Returns {@code Long} datatype of the argument string. */
+  @Nullable
+  protected Long toLong(@Nullable String value) {
     return value == null || value.equals("") ? null : Long.valueOf(value);
   }
 
-  /** getterでFloatに変換するためのutility method. */
-  protected Float toFloat(String value) {
+  /** Returns {@code Float} datatype of the argument string. */
+  @Nullable
+  protected Float toFloat(@Nullable String value) {
     return value == null || value.equals("") ? null : Float.valueOf(value);
   }
 
-  /** getterでDoubleに変換するためのutility method. */
-  protected Double toDouble(String value) {
+  /** Returns {@code Double} datatype of the argument string. */
+  @Nullable
+  protected Double toDouble(@Nullable String value) {
     return value == null || value.equals("") ? null : Double.valueOf(value);
   }
 
-  /** getterでBigIntegerに変換するためのutility method. */
-  protected BigInteger toBigInteger(String value) {
+  /** Returns {@code BigInteger} datatype of the argument string. */
+  @Nullable
+  protected BigInteger toBigInteger(@Nullable String value) {
     return value == null || value.equals("") ? null : new BigInteger(value);
   }
 
-  /** getterでBigDecimalに変換するためのutility method. */
-  protected BigDecimal toBigDecimal(String value) {
+  /** Returns {@code BigDecimal} datatype of the argument string. */
+  @Nullable
+  protected BigDecimal toBigDecimal(@Nullable String value) {
     return value == null || value.equals("") ? null : new BigDecimal(value);
   }
 }

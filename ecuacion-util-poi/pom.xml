@@ -26,9 +26,31 @@
 		<version>3.0.0</version>
 		<relativePath>..</relativePath>
 	</parent>
+	
 	<build>
+		<plugins>
+		
+			<!-- wagon to upload javadoc.jar -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+			</plugin>
 
+			<!-- checkstyle -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+			
+			<!-- spotbugs -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+			</plugin>
+
+		</plugins>
 	</build>
+
 	<dependencies>
 		
 		<!-- jakarta ee -->

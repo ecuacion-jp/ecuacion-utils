@@ -27,24 +27,47 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
 /**
- * 事前にtableの位置、列数、headerがわかっているtableを読み込むためのReader。 指定された行・列位置から、指定された列数分を読み込むのみ。全項目が空欄の場合は終了とみなす。
- * tableにheaderはなくても良い。
+ * Reads tables with known number of columns, known header labels 
+ * and known start position of the table.
+ * 
+ * <p>The header line is required.
+ *     This class reads the table at the designated position and designated lines and columns.<br>
+ *     Finish reading if all the columns are empty in a line.</p>
  */
 public abstract class PoiStringFixedTableReader extends PoiStringTableReader {
 
-
+  /** 
+   * Defines the header labels in the excel table. 
+   * 
+   * <p>It can be like {@code new String[] {"first name", "last name", "age"}}.</p>
+   */
   protected abstract String[] getHeaderLabels();
 
+  /**
+   * Constructs a new instance. the obtained value 
+   *     from an empty cell is {@code null}.
+   * 
+   * <p>In most cases {@code null} is recommended 
+   *     because {@code Bean Validation} annotations (like {@code Max}) 
+   *     returns valid for {@code null}, but invalid for {@code ""}.</p>
+   */
   public PoiStringFixedTableReader() {
     super();
   }
 
+  /**
+   * Constructs a new instance with the obtained value from an empty cell.
+   * 
+   * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
+   */
   public PoiStringFixedTableReader(NoDataString noDataString) {
     super(noDataString);
   }
 
   /**
-   * headerは固定のため、header行は除いてデータ行のみのListを返す。
+   * Gets table data list in the form of {@code List<List<String>>}.
+   * 
+   * <p>header line is not included.</p>
    *
    * @see jp.ecuacion.util.poi.read.string.reader.internal.PoiStringTableReader
    */
@@ -98,11 +121,13 @@ public abstract class PoiStringFixedTableReader extends PoiStringTableReader {
   }
 
   /**
-   * 固定のtableであれば、間に空行があるtableは極めて想像しにくいので、空行があればそこで読み込み終了の前提とする。 （@Overrideして固定値を設定することは一応許している）
+   * Obtains table row size.
+   * 
+   * <p>固定のtableであれば、間に空行があるtableは極めて想像しにくいので、空行があればそこで読み込み終了の前提とする。 
+   *     （@Overrideして固定値を設定することは一応許している）
    */
   @Override
   protected Integer getTableRowSize() {
-    // TODO Auto-generated method stub
     return null;
   }
 

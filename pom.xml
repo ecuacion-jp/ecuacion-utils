@@ -31,4 +31,8 @@
 	<properties>
 		<app.version>3.0.0</app.version>
 	</properties>
+	
+	<modules>
+		<module>ecuacion-util-poi</module>
+	</modules>
 </project>
