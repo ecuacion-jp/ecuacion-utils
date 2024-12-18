@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.poi.enums;
 
 /**
- * Has the value {@code java} gets when the value of a cell in an excel file is empty.
- * 
- * <p>{@code NULL} means null, {@code EMPTY} means "".</p>
+ * Provides enums used by {@code ecuacion-util-poi} classes.
  */
-public enum NoDataString {
-  NULL, EMPTY;
-}
+package jp.ecuacion.util.poi.enums;

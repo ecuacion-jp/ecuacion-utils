@@ -29,7 +29,7 @@ import org.apache.poi.ss.usermodel.Sheet;
  * 
  * <p>The header line is not necessary. 
  *     This class reads the table at the designated position and designated lines and columns.<br>
- *     Finish reading if all the columns are empty in one line.
+ *     Finish reading if all the columns are empty in one line.</p>
  */
 public abstract class PoiStringFreeTableReader extends PoiStringTableReader {
 

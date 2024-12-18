@@ -27,19 +27,42 @@ import jp.ecuacion.util.poi.read.string.bean.PoiStringTableBean;
 import org.apache.poi.EncryptedDocumentException;
 
 /**
- * excel側のtableを、その構造を気にせず1つのbeanにそのまま格納する場合はこちらを使用可能。 readメソッドが用意されているためより便利。
+ * Stores the excel table data into a bean.
  */
 public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBean>
     extends PoiStringFixedTableReader {
 
+  /**
+   * Constructs a new instance. the obtained value 
+   *     from an empty cell is {@code null}.
+   * 
+   * <p>In most cases {@code null} is recommended 
+   *     because {@code Bean Validation} annotations (like {@code Max}) 
+   *     returns valid for {@code null}, but invalid for {@code ""}.</p>
+   */
   public PoiStringFixedTableToBeanReader() {
     super();
   }
 
+  /**
+   * Constructs a new instance with the obtained value from an empty cell.
+   * 
+   * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
+   */
   public PoiStringFixedTableToBeanReader(NoDataString noDataString) {
     super(noDataString);
   }
 
+  /**
+   * Obtains excel table in the form of {@code List<PoiStringTableBean>}
+   *     and validate obtained values..
+   * 
+   * @param filePath excelPath
+   * @return the list of {@code PoiStringTableBean}.
+   * @throws AppException AppException
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
   public List<T> read(String filePath)
       throws AppException, EncryptedDocumentException, IOException {
     List<T> rtnList = excelTableToBeanList(filePath);
@@ -58,8 +81,13 @@ public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBe
   }
 
   /** 
-   * 本機能を使用した他appでのtestにおいて、readerのうちexcel読み込み部分のみを置き換えたい場合に本メソッドをoverrideする目的でメソッド分け。
-   * 実際にexcelを読み込むテストは準備負荷が高いため、本メソッドを置き換えることで極力実excelファイルの読み込みを避けたテストを行うこと。
+   * Obtains excel table in the form of {@code List<PoiStringTableBean>}.
+   * 
+   * <p>Since {@code read} method contains validation function, 
+   * you may want to test the validations.
+   * Although you don't want to prepare excel files to test each case.<br>
+   * When that's the case, you can skip the preparation of excel files 
+   * by overriding this method and return list you want to test.</p>
    */
   protected List<T> excelTableToBeanList(String filePath) throws AppException, IOException {
     List<List<String>> lines = getTableValues(filePath);
@@ -88,14 +116,5 @@ public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBe
       }
     }
     return rtnList;
-  }
-
-  /** 
-   * 固定のテーブルなので、空行があっても読み込みを継続することは極めて考えにくいことから空行で終了とする。
-   * 本メソッドをoverrideすることにより空行があっても読み込みを継続し固定の行数を読むことは可能。
-   */
-  @Override
-  protected Integer getTableRowSize() {
-    return null;
   }
 }

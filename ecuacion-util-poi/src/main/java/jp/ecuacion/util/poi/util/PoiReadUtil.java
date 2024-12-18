@@ -58,9 +58,10 @@ public class PoiReadUtil {
   public PoiReadUtil(NoDataString noDataString) {
     this.noDataString = (noDataString == NoDataString.EMPTY) ? EMPTY_STRING : null;
   }
-  
+
   /** 
-   * Returns proper {@code noDataString} value when the argument value is {@null} or {@code ""}.
+   * Returns proper {@code noDataString} value when the argument value is 
+   *     {@code null} or {@code ""}.
    * 
    * @param value value, may be {@code null}.
    * @return value with appropreate {@code noDataString}.
