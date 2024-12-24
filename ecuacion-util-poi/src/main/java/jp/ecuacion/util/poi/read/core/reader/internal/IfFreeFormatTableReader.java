@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.poi.enums;
+package jp.ecuacion.util.poi.read.core.reader.internal;
 
-/**
- * Has the selections which {@code java} gets when the value of a cell in an excel file is empty.
- * 
- * <p>{@code NULL} means null, {@code EMPTY} means "".<br>
- * <b>{@code NULL} is recommended</b> 
- *     because usually values obtained from an excel file are validated 
- *     with {@code bean validation}, 
- *     and it consider {@code null} as valid, but {@code empty("") as invalid.} </p>
- */
-public enum NoDataString {
-  
-  /**
-   * means {@code null}. <b>Recommended.</b>
-   */
-  NULL, 
-  
-  /**
-   * means {@code empty ("")}. <b>NOT Recommended.</b>
-   */
-  EMPTY;
+import java.util.List;
+import jp.ecuacion.util.poi.read.core.reader.IfAbstractFormatTableReader;
+
+public interface IfFreeFormatTableReader<T> extends IfAbstractFormatTableReader<T> {
+
+
+  @Override
+  public default void validateAndUpdate(List<List<T>> tableData) {
+    // no validations for the argument excel data.
+  }
+
+  public default String getHeaderLabelToDecideTableStartRowNumber() {
+    return null;
+  }
 }

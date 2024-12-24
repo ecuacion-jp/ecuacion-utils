@@ -17,19 +17,21 @@ package jp.ecuacion.util.poi.read.string.reader;
 
 import java.io.IOException;
 import java.util.List;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
+import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.enums.NoDataString;
 import org.apache.poi.EncryptedDocumentException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class PoiStringFreeTableReaderTest {
+public class StringFreeTableReaderTest {
 
   @Test
   public void tableRowSizeNullTest() throws EncryptedDocumentException, AppException, IOException {
 
-    String excelPath = "src/test/resources/PoiStringFreeTableReaderTest.xlsx";
-    List<List<String>> rowList = new Reader(6, NoDataString.NULL).getTableValues(excelPath);
+    String excelPath = "src/test/resources/StringFreeTableReaderTest.xlsx";
+    List<List<String>> rowList = new Reader(6, NoDataString.NULL).getAndValidateTableValues(excelPath);
 
     Assertions.assertNotNull(rowList);
     Assertions.assertEquals(6, rowList.size());
@@ -61,19 +63,10 @@ public class PoiStringFreeTableReaderTest {
     Assertions.assertEquals(0, rowList.get(5).size());
   }
 
-  private static class Reader extends PoiStringFreeTableReader {
+  private static class Reader extends StringFreeTableReader {
 
-    public Reader(NoDataString noDataString) {
-      super(3, 2, 3, noDataString);
-    }
-
-    public Reader(Integer tableRowSize, NoDataString noDataString) {
-      super(3, tableRowSize, 2, 3, noDataString);
-    }
-
-    @Override
-    protected String getSheetName() {
-      return "Sheet1";
+    public Reader(Integer tableRowSize, @RequireNonnull NoDataString noDataString) {
+      super("Sheet1", 3, 2, tableRowSize, 4, ObjectsUtil.paramRequireNonNull(noDataString));
     }
   }
 }

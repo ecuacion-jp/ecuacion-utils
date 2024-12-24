@@ -15,11 +15,13 @@
  */
 package jp.ecuacion.util.poi.util;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.enums.NoDataString;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -29,10 +31,6 @@ import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
 
 /**
  * Provides poi-related utility methods.
- * 
- * <p>{@code NoDataString} : the value which {@code PoiReadUtil} returns 
- *     when the value is obtained from the cell with no input.<br>
- *     {@code NULL} or {@code EMPTY} are available.</p>
  */
 public class PoiReadUtil {
 
@@ -44,29 +42,38 @@ public class PoiReadUtil {
   private String noDataString;
 
   /**
-   * Constructs a new instance with {@code noDataString = null}.
+   * Constructs a new instance with {@code NoDataString = NULL}.
+   * 
+   * <p>{@code NoDataString = NULL} is recommended. 
+   *     See {@link jp.ecuacion.util.poi.enums.NoDataString}.</p>
    */
   public PoiReadUtil() {
     this.noDataString = null;
   }
 
   /**
-   * Constructs a new instance with designated {@code noDataString}.
+   * Constructs a new instance with designated {@code NoDataString}.
    * 
+   * <p>{@code NoDataString = NULL} is recommended. 
+   *     See {@link jp.ecuacion.util.poi.enums.NoDataString}.</p>
+   *     
    * @param noDataString noDataString
    */
-  public PoiReadUtil(NoDataString noDataString) {
+  public PoiReadUtil(@Nonnull NoDataString noDataString) {
+    ObjectsUtil.paramRequireNonNull(noDataString);
+
     this.noDataString = (noDataString == NoDataString.EMPTY) ? EMPTY_STRING : null;
   }
 
   /** 
-   * Returns proper {@code noDataString} value when the argument value is 
-   *     {@code null} or {@code ""}.
+   * Returns proper {@code NoDataString} value if the argument value is 
+   *     {@code null} or {@code ""}, otherwize returns the argument value.
    * 
    * @param value value, may be {@code null}.
-   * @return value with appropreate {@code noDataString}.
+   * @return the argument value or the empty string designated by {@code noDataString} 
+   *     when the argument value is empty.
    */
-  public String getNoDataStringIfNoData(@Nullable String value) {
+  public @Nullable String getNoDataStringIfNoData(@Nullable String value) {
     if (value == null || value.equals("")) {
       return noDataString;
 
@@ -76,14 +83,13 @@ public class PoiReadUtil {
   }
 
   /**
-   * Returns {@code String} format cell value in an excel file 
+   * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
    * 
    * @param cell the cell of the excel file
    * @return the string which expresses the value of the cell.
    */
-  public String getStringFromCell(Cell cell) {
-
+  public @Nullable String getStringFromCell(@Nullable Cell cell) {
     String cellTypeString = null;
     if (cell == null) {
       cellTypeString = "(cell is null)";
@@ -96,12 +102,19 @@ public class PoiReadUtil {
     detailLog.debug("cellType: " + cellTypeString);
 
     String value = internalGetStringFromCell(cell);
+
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
     return value;
   }
 
-  private String internalGetStringFromCell(Cell cell) {
+  /**
+   * Returns the value of the cell.
+   * 
+   * @param cell cell, may be {@code null}.
+   * @return the string value of the cell, may be {@code null}.
+   */
+  private @Nullable String internalGetStringFromCell(@Nullable Cell cell) {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -110,12 +123,36 @@ public class PoiReadUtil {
 
     CellType cellType = cell.getCellType();
 
+    if (cellType == CellType.FORMULA) {
+      return internalGetStringFromCellOtherThanFormulaCellType(cell,
+          cell.getCachedFormulaResultType());
+
+    } else {
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType());
+    }
+  }
+
+  /**
+   * Returns the value of the argument cell in {@code String} format.
+   * 
+   * <p>Usually the second argument {@code cellType} is equal to {@code cell.getCellType()} 
+   *     with the 1st argument {@code cell}.<br>
+   *     But when the cellType of the 1st argument {@code cell} is {@code formula}, 
+   *     the 2nd argumenet is {@code cell.getCachedFormulaResultType()},
+   *     the resulting cellType of the formula cell.</p>
+   * 
+   * @param cell cell
+   * @param cellType cellType
+   * @return String value of the cell, may be null when the value in the cell is empty.
+   */
+  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
+      @Nonnull Cell cell, @Nullable CellType cellType) {
+
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
       return noDataString;
-    }
 
-    if (cellType == CellType.STRING) {
+    } else if (cellType == CellType.STRING) {
       // 文字列形式
       return getNoDataStringIfNoData(cell.getStringCellValue());
 
@@ -178,10 +215,6 @@ public class PoiReadUtil {
 
         return fmtVal;
       }
-
-    } else if (cellType == CellType.FORMULA) {
-      // 関数形式
-      return getNoDataStringIfNoData(cell.getStringCellValue());
 
     } else {
       throw new RuntimeException("cellの型が当てはまりません。");

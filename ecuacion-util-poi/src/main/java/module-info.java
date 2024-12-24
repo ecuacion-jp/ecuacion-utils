@@ -20,10 +20,14 @@
 
 module jp.ecuacion.util.poi {
   exports jp.ecuacion.util.poi.read.string.reader.internal;
-  exports jp.ecuacion.util.poi.util;
-  exports jp.ecuacion.util.poi.read.string.bean;
   exports jp.ecuacion.util.poi.enums;
+  exports jp.ecuacion.util.poi.util;
+  exports jp.ecuacion.util.poi.read.cell.reader;
+  exports jp.ecuacion.util.poi.read.core.reader;
+  exports jp.ecuacion.util.poi.read.string.bean;
   exports jp.ecuacion.util.poi.read.string.reader;
+  
+//  opens jp.ecuacion.util.poi.read.core.reader;
 
   requires jakarta.annotation;
   requires jakarta.validation;
