@@ -23,14 +23,15 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.LogUtil;
 
 /**
- * Stores values obtained from excel tables with {@code PoiStringFixedTableToBeanReader}.
+ * Stores values obtained from excel tables with {@code StringFixedTableToBeanReader}.
  */
-public abstract class PoiStringTableBean {
+public abstract class StringTableBean {
 
   private DetailLogger detailLog = new DetailLogger(this);
 
@@ -92,7 +93,7 @@ public abstract class PoiStringTableBean {
    *     
    * @param colList the list of strings which consists of data of a line from the excel table
    */
-  public PoiStringTableBean(@Nonnull List<String> colList) {
+  public StringTableBean(@RequireNonnull List<String> colList) {
     String[] fieldNameArray = getFieldNameArray();
 
     // colListの件数とfieldNameArraryの件数が異なる場合はエラー

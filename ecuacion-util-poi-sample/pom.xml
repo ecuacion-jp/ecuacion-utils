@@ -18,7 +18,7 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>ecuacion-util-poi</artifactId>
+	<artifactId>ecuacion-util-poi-sample</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>jp.ecuacion.util</groupId>
@@ -26,48 +26,6 @@
 		<version>3.0.1</version>
 		<relativePath>..</relativePath>
 	</parent>
-	
-	<build>
-		<plugins>
-
-			<!-- maven-source-plugin (outputs a jar of source) -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-			</plugin>
-
-			<!-- maven-javadoc-plugin (outputs a jar of javadocs) -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-			</plugin>
-
-			<!-- wagon to upload javadoc.jar -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>wagon-maven-plugin</artifactId>
-			</plugin>
-
-			<!-- mycila license-maven-plugin -->
-			<plugin>
-				<groupId>com.mycila</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-			</plugin>
-
-			<!-- checkstyle -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-			</plugin>
-			
-			<!-- spotbugs -->
-			<plugin>
-				<groupId>com.github.spotbugs</groupId>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-			</plugin>
-
-		</plugins>
-	</build>
 
 	<dependencies>
 		
@@ -75,59 +33,36 @@
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.mail</groupId>
 			<artifactId>jakarta.mail-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.annotation</groupId>
 			<artifactId>jakarta.annotation-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		 <dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>jakarta.el</artifactId>
-			<scope>test</scope>
 		</dependency>
 
-		<!-- ecuacion-lib -->
+		<!-- ecuacion-util -->
 		<dependency>
-			<groupId>jp.ecuacion.lib</groupId>
-			<artifactId>ecuacion-lib-core</artifactId>
+			<groupId>jp.ecuacion.util</groupId>
+			<artifactId>ecuacion-util-poi</artifactId>
 		</dependency>
 
 		<!-- others -->
-
-		<!-- poi -->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-		</dependency>
 
 		<!-- logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- unit test -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

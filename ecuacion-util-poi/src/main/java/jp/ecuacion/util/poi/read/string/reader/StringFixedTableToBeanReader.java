@@ -15,22 +15,24 @@
  */
 package jp.ecuacion.util.poi.read.string.reader;
 
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.BeanValidationUtil;
 import jp.ecuacion.util.poi.enums.NoDataString;
-import jp.ecuacion.util.poi.read.string.bean.PoiStringTableBean;
+import jp.ecuacion.util.poi.read.string.bean.StringTableBean;
 import org.apache.poi.EncryptedDocumentException;
 
 /**
  * Stores the excel table data into a bean.
  */
-public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBean>
-    extends PoiStringFixedTableReader {
+public class StringFixedTableToBeanReader<T extends StringTableBean>
+    extends StringFixedTableReader {
 
   /**
    * Constructs a new instance. the obtained value 
@@ -40,8 +42,9 @@ public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBe
    *     because {@code Bean Validation} annotations (like {@code Max}) 
    *     returns valid for {@code null}, but invalid for {@code ""}.</p>
    */
-  public PoiStringFixedTableToBeanReader() {
-    super();
+  public StringFixedTableToBeanReader(@RequireNonnull String sheetName, String[] headerLabels,
+      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize) {
+    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
   }
 
   /**
@@ -49,8 +52,11 @@ public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBe
    * 
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
-  public PoiStringFixedTableToBeanReader(NoDataString noDataString) {
-    super(noDataString);
+  public StringFixedTableToBeanReader(@RequireNonnull String sheetName, String[] headerLabels,
+      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
+      @Nonnull NoDataString noDataString) {
+    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
+        noDataString);
   }
 
   /**
@@ -90,7 +96,7 @@ public abstract class PoiStringFixedTableToBeanReader<T extends PoiStringTableBe
    * by overriding this method and return list you want to test.</p>
    */
   protected List<T> excelTableToBeanList(String filePath) throws AppException, IOException {
-    List<List<String>> lines = getTableValues(filePath);
+    List<List<String>> lines = getAndValidateTableValues(filePath);
 
     List<T> rtnList = new ArrayList<>();
     for (List<String> line : lines) {
