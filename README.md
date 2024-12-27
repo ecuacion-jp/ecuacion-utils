@@ -11,4 +11,4 @@ This library is dependent to `ecuacion-lib`.
 
 ## Introduction
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` of the page.
+Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.

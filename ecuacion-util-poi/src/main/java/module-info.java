@@ -15,19 +15,23 @@
  */
 
 /**
- * Provides excel-related utility methods.
+ * Provides excel-related {@code apache POI} utility classes.
  */
-
 module jp.ecuacion.util.poi {
-  exports jp.ecuacion.util.poi.read.string.reader.internal;
-  exports jp.ecuacion.util.poi.util;
-  exports jp.ecuacion.util.poi.read.string.bean;
-  exports jp.ecuacion.util.poi.enums;
-  exports jp.ecuacion.util.poi.read.string.reader;
+  exports jp.ecuacion.util.poi.excel.table.reader.string.internal;
+  exports jp.ecuacion.util.poi.excel.enums;
+  exports jp.ecuacion.util.poi.excel.util;
+  exports jp.ecuacion.util.poi.excel.table.reader.cell;
+  exports jp.ecuacion.util.poi.excel.table.reader.core;
+  exports jp.ecuacion.util.poi.excel.table.reader.string.bean;
+  exports jp.ecuacion.util.poi.excel.table.reader.string;
+  exports jp.ecuacion.util.poi.excel.table.writer.cell;
+  exports jp.ecuacion.util.poi.excel.table.writer.core;
 
   requires jakarta.annotation;
   requires jakarta.validation;
   requires jp.ecuacion.lib.core;
   requires org.apache.commons.lang3;
   requires transitive org.apache.poi.poi;
+  requires org.apache.poi.ooxml;
 }
