@@ -19,44 +19,64 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.poi.excel.table.reader.core.IfExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
 /**
- * Stores properties an excel table has.
+ * Stores properties in an excel table.
  * 
  * @param <T> See {@link IfExcelTable}.
  */
 public abstract class ExcelTable<T> implements IfExcelTable<T> {
 
+  /**
+   * Is the sheet name of the excel file.
+   */
   @NotNull
   @Nonnull
   protected String sheetName;
+
+  /**
+   * Is the row number from which the table starts.
+   * 
+   * <p>The minimum value is {@code 1}, 
+   *     which means the table starts at the first line of the excel sheet.</p>
+   *     
+   * <p>{@code 0} or the number smaller than that is not acceptable.<br>
+   *     {@code null} is acceptable, which means {@code tableStartRowNumber} is 
+   *     decided by the far left header value of the table.</p>
+   *     
+   * <p>The header value is obtained from 
+   *     {@link IfExcelTable#getFarLeftHeaderLabel()}.</p>
+   */
+  @Nullable
   @Min(1)
   protected Integer tableStartRowNumber;
+
+  /**
+   * Is the column number from which the table starts.
+   * 
+   * <p>The minimum value is {@code 1}, 
+   *     which means the table starts at the far left column of the excel sheet.</p>
+   * 
+   * <p>{@code 0} or the number smaller than that is not acceptable.<br>
+   *     {@code null} is not acceptable.<br>
+   *     (Its data type is primitive {@code int}, so it can't have {@code null} anyway.)
+   */
   @Min(1)
   protected int tableStartColumnNumber;
-  
+
   /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
    * 
-   * @param sheetName the sheet name of the excel file
-   * @param tableStartRowNumber the row number from which the table starts. 
-   *     It starts with {@code 1}. <br>
-   *     {@code 0} or the number smaller than that is not acceptable.<br>
-   *     {@code null} is acceptable, which means {@code tableStartRowNumber} is 
-   *     decided by the far left header value of the table.
-   *     The header value is obtained from 
-   *     {@link IfExcelTable#getFarLeftHeaderLabel()}.
-   * @param tableStartColumnNumber the column number from which the table starts.
-   *     It starts with {@code 1}. <br>
-   *     {@code 0} or the number smaller than that is not acceptable.<br>
-   *     {@code null} is not acceptable. 
-   *     (Its data type is primitive {@code int}, so it can't have {@code null} anyway.)
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
+   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
    */
   public ExcelTable(@RequireNonnull String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
@@ -65,15 +85,17 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
 
-  /**
-   * See {@link IfExcelTable#getSheetName()}.
-   */
   public @Nonnull String getSheetName() {
     return ObjectsUtil.returnRequireNonNull(sheetName);
   }
 
   /**
-   * Returns the row number the table starts.
+   * Returns the row number at which the table starts.
+   * 
+   * <p>The minimum value of {@code tableStartRowNumber} is zero
+   *     bacause the top-left of the excel sheet is (1, 1) in R1C1 format, 
+   *     but since apache poi specifies the the top-left of the excel sheet is (0, 0),
+   *     this method returns the poi-based row number.</p>
    * 
    * <p>When {@code tableStartRowNumber} is set to {@code null}, 
    *     this method will find the string designated with 
@@ -87,7 +109,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     ObjectsUtil.paramRequireNonNull(sheet);
 
     if (tableStartRowNumber != null) {
-      return tableStartRowNumber - 1;
+      return Objects.requireNonNull(tableStartRowNumber) - 1;
     }
 
     // 以下、tableStartRowNumberを動的に決める必要がある場合の処理
@@ -125,6 +147,11 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
   /**
    * Returns tableStartColumnNumber.
    * 
+   * <p>The minimum value of {@code tableStartColumnNumber} is zero
+   *     bacause the top-left of the excel sheet is (1, 1) in R1C1 format, 
+   *     but since apache poi specifies the the top-left of the excel sheet is (0, 0),
+   *     this method returns the poi-based row number.</p>
+   *     
    * @return the column number the table starts
    */
   protected int getPoiBasisDeterminedTableStartColumnNumber() {
