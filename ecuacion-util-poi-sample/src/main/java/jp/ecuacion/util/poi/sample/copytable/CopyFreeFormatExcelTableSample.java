@@ -20,11 +20,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
-import jp.ecuacion.util.poi.excel.table.reader.cell.CellFreeFormatExcelTableReader;
-import jp.ecuacion.util.poi.excel.table.writer.cell.CellFreeFormatExcelTableWriter;
+import jp.ecuacion.util.poi.excel.table.reader.concrete.CellFreeExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.writer.concrete.CellFreeExcelTableWriter;
 import org.apache.poi.ss.usermodel.Cell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CopyFreeFormatExcelTableSample {
 
@@ -35,7 +36,9 @@ public class CopyFreeFormatExcelTableSample {
 
   public static void main(String[] args) throws Exception {
     
-    System.out.println("Procedure start: " + LocalDateTime.now());
+    Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
+    
+    logger.debug("Procedure start.");
     
     // read
     List<List<Cell>> dataList = read();
@@ -43,10 +46,10 @@ public class CopyFreeFormatExcelTableSample {
     // write
     write(dataList);
 
-    System.out.println("A new excel file created and table data copied to: " + destPath.toString());
+    logger.debug("A new excel file created and table data copied to: " + destPath.toString());
 
-    System.out.println("Procedure finsh: " + LocalDateTime.now());
-}
+    logger.debug("Procedure finshed.");
+  }
 
   private static List<List<Cell>> read() throws Exception {
 
@@ -55,7 +58,7 @@ public class CopyFreeFormatExcelTableSample {
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
-    return new CellFreeFormatExcelTableReader("Member", HEADER_START_ROW, START_COL, null, null)
+    return new CellFreeExcelTableReader("Member", HEADER_START_ROW, START_COL, null, null)
         .read(sourcePath.toString());
   }
 
@@ -69,7 +72,7 @@ public class CopyFreeFormatExcelTableSample {
     }
 
     // Write the table data.
-    new CellFreeFormatExcelTableWriter("Sheet1", HEADER_START_ROW, START_COL).write(
+    new CellFreeExcelTableWriter("Sheet1", HEADER_START_ROW, START_COL).write(
         null, destPath.toAbsolutePath().toString(), dataList);
   }
 }

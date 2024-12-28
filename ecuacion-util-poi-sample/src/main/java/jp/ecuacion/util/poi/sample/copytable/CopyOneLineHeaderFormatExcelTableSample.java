@@ -20,11 +20,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
-import jp.ecuacion.util.poi.excel.table.reader.cell.CellOneLineHeaderFormatExcelTableReader;
-import jp.ecuacion.util.poi.excel.table.writer.cell.CellOneLineHeaderFormatExcelTableWriter;
+import jp.ecuacion.util.poi.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.writer.concrete.CellOneLineHeaderExcelTableWriter;
 import org.apache.poi.ss.usermodel.Cell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CopyOneLineHeaderFormatExcelTableSample {
 
@@ -37,8 +38,10 @@ public class CopyOneLineHeaderFormatExcelTableSample {
   private static Path destPath;
 
   public static void main(String[] args) throws Exception {
-
-    System.out.println("Procedure start: " + LocalDateTime.now());
+    
+    Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
+    
+    logger.debug("Procedure start.");
 
     // read
     List<List<Cell>> dataList = read();
@@ -46,12 +49,11 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     // write
     write(dataList);
 
-    System.out.println("A new excel file created and table data copied to: " + destPath.toString());
+    logger.debug("A new excel file created and table data copied to: " + destPath.toString());
 
-    System.out.println("Procedure finsh: " + LocalDateTime.now());
+    logger.debug("Procedure finshed.");
   }
 
-  @SuppressWarnings("null")
   private static List<List<Cell>> read() throws Exception {
 
     // Get the path of the excel file.
@@ -59,11 +61,10 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
-    return new CellOneLineHeaderFormatExcelTableReader("Member", headerLabels, HEADER_START_ROW, START_COL, 3)
+    return new CellOneLineHeaderExcelTableReader("Member", headerLabels, HEADER_START_ROW, START_COL, 3)
         .read(sourcePath.toString());
   }
 
-  @SuppressWarnings("null")
   private static void write(List<List<Cell>> dataList) throws Exception {
 
     // Create a new file from a template excel file and write the table data to it.
@@ -80,7 +81,7 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     }
 
     // Write the table data.
-    new CellOneLineHeaderFormatExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL).write(
+    new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL).write(
         templatePath.toString(), destPath.toString(), dataList);
   }
 }
