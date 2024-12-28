@@ -21,7 +21,7 @@ import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
-import jp.ecuacion.util.poi.excel.table.reader.string.StringFreeFormatExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.reader.concrete.StringFreeExcelTableReader;
 import org.apache.poi.EncryptedDocumentException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ public class StringDynamicTableReaderTest {
     Assertions.assertEquals(0, rowList.get(5).size());
   }
 
-  private static class Reader extends StringFreeFormatExcelTableReader {
+  private static class Reader extends StringFreeExcelTableReader {
 
     public Reader(Integer tableRowSize, @RequireNonnull NoDataString noDataString) {
       super("Sheet1", 3, 2, tableRowSize, 4, ObjectsUtil.paramRequireNonNull(noDataString));

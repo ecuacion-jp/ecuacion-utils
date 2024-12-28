@@ -9,6 +9,10 @@ This library is dependent to `ecuacion-lib`.
 
 - JDK 21 or above.
 
+## Documentation
+
+- [javadoc](https://javadoc.ecuacion.jp/apidocs/ecuacion-util-poi/jp.ecuacion.util.poi/module-summary.html)
+
 ## Introduction
 
 Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.  
@@ -41,6 +45,10 @@ Following features read values of cells in excels and change into `String` datat
 
 ```java
 public class SampleTableReader extends PoiStringFixedTableReader {
+
+  public SampleTableReader() {
+    
+  }
 
   @Override
   protected String getSheetName() {

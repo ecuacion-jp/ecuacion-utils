@@ -18,22 +18,22 @@ package jp.ecuacion.util.poi.excel.table;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
-import jp.ecuacion.util.poi.excel.table.reader.core.ExcelTableReader;
 
 /**
- * features the format of the table.
+ * Provides the methods the extending interfaces use.
  * 
- * @param <T> Object type obtained from the excel data. 
- *     For example, it would be {@code String} 
+ * @param <T> The data type obtained from the excel table. 
+ *     For example it would be {@code String} 
  *     if you want {@code String} data from each cell in the table.
  */
 public interface IfExcelTable<T> {
 
   /**
-   * Returns the excel sheet name the {@code TableReader} reads.
+   * Returns the excel sheet name the {@code TableReader} and the {@code TableWriter} access.
    * 
-   * @return the sheet name
+   * @return the sheet name of the excel file
    */
   @Nonnull
   public abstract String getSheetName();
@@ -41,30 +41,37 @@ public interface IfExcelTable<T> {
   /**
    * Returns the value of the far left header cell to specify the position of the table.
    * 
-   * <p>Return value is used when {@code tableStartRowNumber} is {@code null}.<br>
-   * See {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}</p>
+   * <p>The method is called when {@code tableStartRowNumber} is {@code null}.<br>
+   * See {@link ExcelTable#tableStartRowNumber}</p>
    * 
-   * @return header label, may be {@code null} when the table don't have a header. 
-   *     In that case, {@code Exception} is thrown if {@code tableStartRowNumber} is {@code null}.
+   * <p>When the table doesn't have a header, 
+   *     an {@code exception} is thrown if {@code tableStartRowNumber} is {@code null}.<br>
+   *     So always set non-null {@code tableStartRowNumber} value 
+   *     when the table doesn't have a header.</p>
+   * 
+   * @return far left header label
    */
-  @Nullable
+  @Nonnull
   public String getFarLeftHeaderLabel();
 
   /**
-   * Validate and Update the argument list, which is the table data obtained from an excel file.
+   * Validates the excel table header.
    * 
-   * <p>When the table you want to read is in a fixed format, 
-   * this will validate header labels and remove the header line from the data because it's obvious
-   *     and reduce the task to remove it by each caller methods.
+   * <p>If the table doesn't have a header, nothing needs to be done in this method.</p>
    *
+   * @param headerData string header data 
    * @throws BizLogicAppException BizLogicAppException
    */
-  public void validateHeader(@Nullable List<List<String>> headerData)
+  public void validateHeader(@RequireNonnull List<List<String>> headerData)
       throws BizLogicAppException;
 
   /**
-   * Is Used to get Header Label String from the argument cell data.
+   * Is used to get the header label string from the argument cell data.
+   * 
+   * @param cellData data obtained from the cell
+   * @return {@code String} value obtained from the {@code cellData}
    */
   @Nullable
   public String getStringValue(@Nullable T cellData);
+  
 }
