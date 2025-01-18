@@ -1,24 +1,20 @@
 /*
  * Copyright © 2012 ecuacion.jp (info@ecuacion.jp)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import jakarta.annotation.Nonnull;
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
@@ -34,6 +30,8 @@ import org.apache.poi.EncryptedDocumentException;
 public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
     extends StringOneLineHeaderExcelTableReader {
 
+  private Class<?> beanClass;
+
   /**
    * Constructs a new instance. the obtained value 
    *     from an empty cell is {@code null}.
@@ -41,23 +39,38 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * <p>In most cases {@code null} is recommended 
    *     because {@code Bean Validation} annotations (like {@code Max}) 
    *     returns valid for {@code null}, but invalid for {@code ""}.</p>
+   *     
+   * @param beanClass the class of the generic parameter {@code T} is hard to obtain 
+   *     especially the constructor of this class is called directly with setting a 
+   *     class instead of T, like {@code List<Foo> list = 
+   *     new StringOneLineHeaderExcelTableToBeanReader<Foo>(...)}.<br>
+   *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    */
-  public StringOneLineHeaderExcelTableToBeanReader(@RequireNonnull String sheetName,
-      @RequireNonnull String[] headerLabels, Integer tableStartRowNumber,
-      int tableStartColumnNumber, Integer tableRowSize) {
+  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass,
+      @RequireNonnull String sheetName, @RequireNonnull String[] headerLabels,
+      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
+      @SuppressWarnings("unchecked") T... parameterClass) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
+    this.beanClass = beanClass;
   }
 
   /**
    * Constructs a new instance with the obtained value from an empty cell.
    * 
+   * @param beanClass the class of the generic parameter {@code T} is hard to obtain 
+   *     especially the constructor of this class is called directly with setting a 
+   *     class instead of T, like {@code List<Foo> list = 
+   *     new StringOneLineHeaderExcelTableToBeanReader<Foo>(...)}.<br>
+   *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
-  public StringOneLineHeaderExcelTableToBeanReader(@RequireNonnull String sheetName,
-      @RequireNonnull String[] headerLabels, Integer tableStartRowNumber,
-      int tableStartColumnNumber, Integer tableRowSize, @Nonnull NoDataString noDataString) {
+  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass,
+      @RequireNonnull String sheetName, @RequireNonnull String[] headerLabels,
+      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
+      @Nonnull NoDataString noDataString) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         noDataString);
+    this.beanClass = beanClass;
   }
 
   /**
@@ -102,19 +115,15 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     List<T> rtnList = new ArrayList<>();
     for (List<String> line : lines) {
 
-      // new T() したいので、それを実現するためreflectionをこねくり回す
-      // https://nagise.hatenablog.jp/entry/20131121/1385046248
       try {
-        // 実行時の型が取れる。ここではHogeDaoなど
-        Class<?> clazz = this.getClass();
-        // ここではBaseDao<Hoge>がとれる
-        Type type = clazz.getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) type;
-        // BaseDaoの型変数に対するバインドされた型がとれる
-        Type[] actualTypeArguments = pt.getActualTypeArguments();
+        // Type type = this.getClass().getGenericSuperclass();
+        // ParameterizedType pt = (ParameterizedType) type;
+        // Type[] actualTypeArguments = pt.getActualTypeArguments();
+        // @SuppressWarnings("unchecked")
+        // Class<T> entityClass = (Class<T>) actualTypeArguments[0];
+
         @SuppressWarnings("unchecked")
-        Class<T> entityClass = (Class<T>) actualTypeArguments[0];
-        T bean = (T) entityClass.getConstructor(List.class).newInstance(line);
+        T bean = (T) beanClass.getConstructor(List.class).newInstance(line);
 
         rtnList.add(bean);
 
