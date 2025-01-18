@@ -21,15 +21,15 @@
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>4.0.1</version>
+	<version>4.0.2</version>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependency-jakartaee</artifactId>
-		<version>14.0.8</version>
+		<version>14.0.9</version>
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependency-jakartaee</relativePath>
 	</parent>
 	<properties>
-		<ecuacion-utils.version>4.0.1</ecuacion-utils.version>
+		<ecuacion-utils.version>4.0.2</ecuacion-utils.version>
 	</properties>
 	
 	<dependencyManagement>
