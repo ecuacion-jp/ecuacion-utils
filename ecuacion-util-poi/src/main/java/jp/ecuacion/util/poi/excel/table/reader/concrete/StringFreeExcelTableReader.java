@@ -20,7 +20,6 @@ import jakarta.annotation.Nullable;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
-import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeStringExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
 
 /**
@@ -33,8 +32,8 @@ import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
  *     This class reads the table at the designated position and designated lines and columns.<br>
  *     Finish reading if all the columns are empty in one line.</p>
  */
-public class StringFreeExcelTableReader extends ExcelTableReader<String>
-    implements IfFormatFreeExcelTableReader<String>, IfDataTypeStringExcelTableReader {
+public class StringFreeExcelTableReader extends StringExcelTableReader
+    implements IfFormatFreeExcelTableReader<String> {
 
   private NoDataString noDataString;
 
@@ -72,5 +71,15 @@ public class StringFreeExcelTableReader extends ExcelTableReader<String>
   @Override
   public NoDataString getNoDataString() {
     return noDataString;
+  }
+
+  @Override
+  public StringFreeExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringFreeExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
+  }
+
+  @Override
+  public StringFreeExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
+    return (StringFreeExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
   }
 }

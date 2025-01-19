@@ -1,17 +1,15 @@
 /*
  * Copyright © 2012 ecuacion.jp (info@ecuacion.jp)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
@@ -21,7 +19,6 @@ import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
-import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeStringExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatOneLineHeaderExcelTableReader;
 
 /**
@@ -34,8 +31,8 @@ import jp.ecuacion.util.poi.excel.table.reader.IfFormatOneLineHeaderExcelTableRe
  *     This class reads the table at the designated position and designated lines and columns.<br>
  *     Finish reading if all the columns are empty in a line.</p>
  */
-public class StringOneLineHeaderExcelTableReader extends ExcelTableReader<String>
-    implements IfFormatOneLineHeaderExcelTableReader<String>, IfDataTypeStringExcelTableReader {
+public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
+    implements IfFormatOneLineHeaderExcelTableReader<String> {
 
   @Nonnull
   private String[] headerLabels;
@@ -100,5 +97,17 @@ public class StringOneLineHeaderExcelTableReader extends ExcelTableReader<String
   @Override
   public NoDataString getNoDataString() {
     return noDataString;
+  }
+
+  @Override
+  public StringOneLineHeaderExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
+  }
+
+  @Override
+  public StringOneLineHeaderExcelTableReader columnDateTimeFormat(int columnNumber,
+      String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableReader) super.columnDateTimeFormat(columnNumber,
+        dateTimeFormat);
   }
 }

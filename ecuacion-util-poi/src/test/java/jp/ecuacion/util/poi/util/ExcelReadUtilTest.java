@@ -63,6 +63,8 @@ public class ExcelReadUtilTest {
     assertEquals("12345.12346",reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("36548", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     row++; row++; //（テストなし）×2
+    assertEquals("0.5242592593", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("36548.52426", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("あいう", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("1", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
 
@@ -79,6 +81,8 @@ public class ExcelReadUtilTest {
     assertEquals("12345.1234567", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("36548", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     row++; row++; //（テストなし）×2
+    assertEquals("1", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("36549", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("あいう", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("1", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
 
@@ -87,17 +91,21 @@ public class ExcelReadUtilTest {
     dataCol = 11;
     assertEquals(null, reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals(null, reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("1900/5/2", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("1900/5/2", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("1900-05-02", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("1900-05-02", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     row++; //（テストなし）
-    assertEquals("5881510/8/3", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("3382032/1/27", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("1933/10/18", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("2000/1/23", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("[$-409]23\\-000\\-00;@", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("2000\"年\"0\"月\";@", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("+3002035-06-10", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("+3382032-01-27", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("1933-10-18", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("2000-01-23", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("2000-01-23", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("2000-01-23", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("12:34:56",
+        reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol), "HH:mm:ss"));
+    assertEquals("2000/1/23 12:34:56",
+        reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol), "yyyy/M/dd HH:mm:ss"));
     assertEquals("あいう", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
-    assertEquals("1900/1/1", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("1900-01-01", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
 
     // 表示形式：文字列
     row = START_ROW;
@@ -113,6 +121,8 @@ public class ExcelReadUtilTest {
     assertEquals("2000/1/23", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("23-Jan-00", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("2000年1月", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("12:34:56", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
+    assertEquals("2000/1/23 12:34:56", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("あいう", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
     assertEquals("=$A$1", reader.getStringFromCell(sheet.getRow(row++).getCell(dataCol)));
   }

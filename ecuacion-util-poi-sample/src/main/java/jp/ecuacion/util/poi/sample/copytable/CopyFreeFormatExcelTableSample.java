@@ -38,7 +38,7 @@ public class CopyFreeFormatExcelTableSample {
     
     Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
     
-    logger.debug("Procedure start.");
+    logger.info("Procedure started.");
     
     // read
     List<List<Cell>> dataList = read();
@@ -46,9 +46,9 @@ public class CopyFreeFormatExcelTableSample {
     // write
     write(dataList);
 
-    logger.debug("A new excel file created and table data copied to: " + destPath.toString());
+    logger.info("A new excel file created and table data copied to: " + destPath.toString());
 
-    logger.debug("Procedure finshed.");
+    logger.info("Procedure finshed.");
   }
 
   private static List<List<Cell>> read() throws Exception {

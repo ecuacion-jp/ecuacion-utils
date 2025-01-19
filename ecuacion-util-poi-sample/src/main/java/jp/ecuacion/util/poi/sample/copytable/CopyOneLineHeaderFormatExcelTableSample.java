@@ -38,10 +38,10 @@ public class CopyOneLineHeaderFormatExcelTableSample {
   private static Path destPath;
 
   public static void main(String[] args) throws Exception {
-    
-    Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
-    
-    logger.debug("Procedure start.");
+
+    Logger logger = LoggerFactory.getLogger(CopyOneLineHeaderFormatExcelTableSample.class);
+
+    logger.info("Procedure started.");
 
     // read
     List<List<Cell>> dataList = read();
@@ -49,20 +49,21 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     // write
     write(dataList);
 
-    logger.debug("A new excel file created and table data copied to: " + destPath.toString());
+    logger.info("A new excel file created and table data copied to: " + destPath.toString());
 
-    logger.debug("Procedure finshed.");
+    logger.info("Procedure finshed.");
   }
 
   private static List<List<Cell>> read() throws Exception {
 
     // Get the path of the excel file.
-    URL sourceUrl = CopyOneLineHeaderFormatExcelTableSample.class.getClassLoader().getResource("sample.xlsx");
+    URL sourceUrl =
+        CopyOneLineHeaderFormatExcelTableSample.class.getClassLoader().getResource("sample.xlsx");
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
-    return new CellOneLineHeaderExcelTableReader("Member", headerLabels, HEADER_START_ROW, START_COL, 3)
-        .read(sourcePath.toString());
+    return new CellOneLineHeaderExcelTableReader("Member", headerLabels, HEADER_START_ROW,
+        START_COL, 3).read(sourcePath.toString());
   }
 
   private static void write(List<List<Cell>> dataList) throws Exception {
@@ -81,7 +82,7 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     }
 
     // Write the table data.
-    new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL).write(
-        templatePath.toString(), destPath.toString(), dataList);
+    new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL)
+        .write(templatePath.toString(), destPath.toString(), dataList);
   }
 }

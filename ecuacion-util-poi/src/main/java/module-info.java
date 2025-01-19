@@ -27,6 +27,9 @@ module jp.ecuacion.util.poi {
   exports jp.ecuacion.util.poi.excel.table.writer.concrete;
   exports jp.ecuacion.util.poi.excel.util;
 
+  opens jp.ecuacion.util.poi.excel.table;
+  opens jp.ecuacion.util.poi.excel.table.reader;
+  
   requires jakarta.annotation;
   requires jakarta.validation;
   requires jp.ecuacion.lib.core;

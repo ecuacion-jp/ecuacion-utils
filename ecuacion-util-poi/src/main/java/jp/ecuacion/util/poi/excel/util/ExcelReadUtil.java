@@ -1,30 +1,26 @@
 /*
  * Copyright © 2012 ecuacion.jp (info@ecuacion.jp)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package jp.ecuacion.util.poi.excel.util;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.text.Format;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
@@ -40,6 +36,8 @@ public class ExcelReadUtil {
   private static final String EMPTY_STRING = "";
 
   private String noDataString;
+
+  private String defaultDateTimeFormat = "yyyy-MM-dd";
 
   /**
    * Constructs a new instance with {@code NoDataString = NULL}.
@@ -65,6 +63,15 @@ public class ExcelReadUtil {
     this.noDataString = (noDataString == NoDataString.EMPTY_STRING) ? EMPTY_STRING : null;
   }
 
+  /**
+   * Sets defaultDateTimeFormat.
+   * 
+   * @param dateTimeFormat dateTimeFormat
+   */
+  public void setDefaultDateTimeFormat(String dateTimeFormat) {
+    this.defaultDateTimeFormat = dateTimeFormat;
+  }
+
   /** 
    * Returns proper {@code NoDataString} value if the argument value is 
    *     {@code null} or {@code ""}, otherwize returns the argument value.
@@ -83,13 +90,30 @@ public class ExcelReadUtil {
   }
 
   /**
+  * Returns {@code String} format cell value
+  * in spite of the format or value kind of the cell.
+  *
+  * @param cell the cell of the excel file
+  * @return the string which expresses the value of the cell.
+  */
+  public @Nullable String getStringFromCell(@Nullable Cell cell) {
+    return getStringFromCell(cell, defaultDateTimeFormat);
+  }
+
+  /**
    * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
    * 
    * @param cell the cell of the excel file
+   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) {
+  public @Nullable String getStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
+    if (dateTimeFormat == null) {
+      dateTimeFormat = defaultDateTimeFormat;
+    }
+
     String cellTypeString = null;
     if (cell == null) {
       cellTypeString = "(cell is null)";
@@ -101,7 +125,7 @@ public class ExcelReadUtil {
     detailLog.debug("-----");
     detailLog.debug("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell);
+    String value = internalGetStringFromCell(cell, dateTimeFormat);
 
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
@@ -112,9 +136,10 @@ public class ExcelReadUtil {
    * Returns the value of the cell.
    * 
    * @param cell cell, may be {@code null}.
+   * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    */
-  private @Nullable String internalGetStringFromCell(@Nullable Cell cell) {
+  private @Nullable String internalGetStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -125,10 +150,11 @@ public class ExcelReadUtil {
 
     if (cellType == CellType.FORMULA) {
       return internalGetStringFromCellOtherThanFormulaCellType(cell,
-          cell.getCachedFormulaResultType());
+          cell.getCachedFormulaResultType(), dateTimeFormat);
 
     } else {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType());
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
+          dateTimeFormat);
     }
   }
 
@@ -143,10 +169,11 @@ public class ExcelReadUtil {
    * 
    * @param cell cell
    * @param cellType cellType
+   * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
    */
-  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
-      @Nonnull Cell cell, @Nullable CellType cellType) {
+  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
+      @Nullable CellType cellType, String dateTimeFormat) {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -164,30 +191,8 @@ public class ExcelReadUtil {
       // fmtにより細かい表示形式の判別が可能
       detailLog.debug("Format: " + fmt.getClass().getSimpleName());
       if (fmt instanceof ExcelStyleDateFormatter) {
-        // 表示形式：日付
-        CellStyle style = cell.getCellStyle();
-
-        // 日付の場合のformatは、poi内ではindex番号で管理されており、style.getDataFormat()で取得可能。
-        // それに対する実際のformat文字列（yyyy/M/dなど）はgetDataFormatString()で取得。
-        // index == 14は、excel（日本語版？）上では「yyyy/M/d」だが、poi内では「m/d/yy」になっている。。。のでOS言語で判断・・
-        String dateFormatString = null;
-        detailLog.debug("dataFormat (index) : " + style.getDataFormat());
-        if (style.getDataFormat() == 14) {
-          Locale locale = Locale.getDefault();
-          dateFormatString =
-              locale.getLanguage().equals("ja") ? "yyyy/M/d" : style.getDataFormatString();
-
-        } else {
-          detailLog
-              .debug("The dataFormat other than 14 is not recommended. It may not be correct.");
-          dateFormatString = style.getDataFormatString();
-        }
-
-        detailLog.debug("dataFormatString(poi original) : " + style.getDataFormatString());
-        detailLog.debug("dataFormatString(corrected) : " + dateFormatString);
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
-        return dateFormat.format(cell.getDateCellValue());
+        // format: date and time
+        return cell.getLocalDateTimeCellValue().format(DateTimeFormatter.ofPattern(dateTimeFormat));
 
       } else {
         // 表示形式：数値
@@ -210,14 +215,15 @@ public class ExcelReadUtil {
         }
 
         if (warning) {
-          detailLog.warn("エクセル表示上の数値と実際のセルの値が異なっています。表示上：" + fmtVal + "、セルの値：" + toStrVal);
+          detailLog.warn("The number actual and displayed in excel differs. actual: " + toStrVal
+              + "、displayed: " + fmtVal);
         }
 
         return fmtVal;
       }
 
     } else {
-      throw new RuntimeException("cellの型が当てはまりません。");
+      throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
     }
   }
 }

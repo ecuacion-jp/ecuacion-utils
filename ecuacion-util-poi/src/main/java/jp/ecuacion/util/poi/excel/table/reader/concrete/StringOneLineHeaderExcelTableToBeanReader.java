@@ -116,12 +116,6 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     for (List<String> line : lines) {
 
       try {
-        // Type type = this.getClass().getGenericSuperclass();
-        // ParameterizedType pt = (ParameterizedType) type;
-        // Type[] actualTypeArguments = pt.getActualTypeArguments();
-        // @SuppressWarnings("unchecked")
-        // Class<T> entityClass = (Class<T>) actualTypeArguments[0];
-
         @SuppressWarnings("unchecked")
         T bean = (T) beanClass.getConstructor(List.class).newInstance(line);
 
@@ -132,5 +126,20 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
       }
     }
     return rtnList;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.defaultDateTimeFormat(
+        dateTimeFormat);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public StringOneLineHeaderExcelTableToBeanReader<T> columnDateTimeFormat(int columnNumber,
+      String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
+        dateTimeFormat);
   }
 }
