@@ -37,7 +37,7 @@ public class ExcelReadUtil {
 
   private String noDataString;
 
-  private String dateTimeFormat = "yyyy-MM-dd";
+  private String defaultDateTimeFormat = "yyyy-MM-dd";
 
   /**
    * Constructs a new instance with {@code NoDataString = NULL}.
@@ -64,14 +64,12 @@ public class ExcelReadUtil {
   }
 
   /**
-   * Sets dateTimeFormat.
+   * Sets defaultDateTimeFormat.
    * 
    * @param dateTimeFormat dateTimeFormat
-   * @return ReturnUrlBean (for method chain)
    */
-  public ExcelReadUtil dateTimeFormat(String dateTimeFormat) {
-    this.dateTimeFormat = dateTimeFormat;
-    return this;
+  public void setDefaultDateTimeFormat(String dateTimeFormat) {
+    this.defaultDateTimeFormat = dateTimeFormat;
   }
 
   /** 
@@ -92,13 +90,30 @@ public class ExcelReadUtil {
   }
 
   /**
+  * Returns {@code String} format cell value
+  * in spite of the format or value kind of the cell.
+  *
+  * @param cell the cell of the excel file
+  * @return the string which expresses the value of the cell.
+  */
+  public @Nullable String getStringFromCell(@Nullable Cell cell) {
+    return getStringFromCell(cell, defaultDateTimeFormat);
+  }
+
+  /**
    * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
    * 
    * @param cell the cell of the excel file
+   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) {
+  public @Nullable String getStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
+    if (dateTimeFormat == null) {
+      dateTimeFormat = defaultDateTimeFormat;
+    }
+
     String cellTypeString = null;
     if (cell == null) {
       cellTypeString = "(cell is null)";
@@ -110,7 +125,7 @@ public class ExcelReadUtil {
     detailLog.debug("-----");
     detailLog.debug("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell);
+    String value = internalGetStringFromCell(cell, dateTimeFormat);
 
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
@@ -121,9 +136,10 @@ public class ExcelReadUtil {
    * Returns the value of the cell.
    * 
    * @param cell cell, may be {@code null}.
+   * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    */
-  private @Nullable String internalGetStringFromCell(@Nullable Cell cell) {
+  private @Nullable String internalGetStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -134,10 +150,11 @@ public class ExcelReadUtil {
 
     if (cellType == CellType.FORMULA) {
       return internalGetStringFromCellOtherThanFormulaCellType(cell,
-          cell.getCachedFormulaResultType());
+          cell.getCachedFormulaResultType(), dateTimeFormat);
 
     } else {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType());
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
+          dateTimeFormat);
     }
   }
 
@@ -152,10 +169,11 @@ public class ExcelReadUtil {
    * 
    * @param cell cell
    * @param cellType cellType
+   * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
    */
   private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType) {
+      @Nullable CellType cellType, String dateTimeFormat) {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -173,7 +191,7 @@ public class ExcelReadUtil {
       // fmtにより細かい表示形式の判別が可能
       detailLog.debug("Format: " + fmt.getClass().getSimpleName());
       if (fmt instanceof ExcelStyleDateFormatter) {
-        // format: date and time 
+        // format: date and time
         return cell.getLocalDateTimeCellValue().format(DateTimeFormatter.ofPattern(dateTimeFormat));
 
       } else {

@@ -1,5 +1,6 @@
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
@@ -31,10 +32,10 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
    * Sets defaultDateTimeFormat.
    * 
    * @param dateTimeFormat dateTimeFormat string for {@link java.time.format.DateTimeFormatter}.
-   * @return ReturnUrlBean (for method chain)
+   * @return StringExcelTableReader (for method chain)
    */
   public StringExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
-    this.defaultDateTimeFormat = dateTimeFormat;
+    getExcelReadUtil().setDefaultDateTimeFormat(dateTimeFormat);
     return this;
   }
 
@@ -45,8 +46,9 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
    *     <b>starting with 1 and column A is equal to columnNumber 1</b>. 
    *     When the far left column of a table is 2 and you want to speciries the far left column,
    *     the columnNumber is 2.
-   * @param dateTimeFormat dateTimeFormat string for {@link java.time.format.DateTimeFormatter}.
-   * @return ReturnUrlBean (for method chain)
+   * @param dateTimeFormat dateTimeFormat string 
+   *     for {@link java.time.format.DateTimeFormatter}.
+   * @return StringExcelTableReader (for method chain)
    */
   public StringExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
     this.columnDateTimeFormatMap.put(columnNumber, dateTimeFormat);
@@ -54,9 +56,9 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
   }
 
   @Override
-  public String getDateTimeFormat(int columnNumber) {
+  public @Nullable String getDateTimeFormat(int columnNumber) {
     return columnDateTimeFormatMap.containsKey(columnNumber)
         ? columnDateTimeFormatMap.get(columnNumber)
-        : defaultDateTimeFormat;
+        : null;
   }
 }
