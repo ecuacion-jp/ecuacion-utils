@@ -92,6 +92,11 @@
 			<artifactId>jakarta.el</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>jakarta.mail</groupId>
+			<artifactId>jakarta.mail-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- ecuacion-lib -->
 		<dependency>
@@ -105,10 +110,12 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
+			<version>${org.apache.poi.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
+			<version>${org.apache.poi.version}</version>
 		</dependency>
 
 		<!-- logging -->

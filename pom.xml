@@ -25,11 +25,12 @@
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependency-jakartaee</artifactId>
-		<version>14.0.9</version>
+		<version>14.0.10</version>
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependency-jakartaee</relativePath>
 	</parent>
 	<properties>
 		<ecuacion-utils.version>4.0.2</ecuacion-utils.version>
+		<org.apache.poi.version>5.2.5</org.apache.poi.version>
 	</properties>
 	
 	<dependencyManagement>
