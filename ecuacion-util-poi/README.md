@@ -13,6 +13,10 @@ This library is dependent to `ecuacion-lib`.
 
 - [javadoc](https://javadoc.ecuacion.jp/apidocs/ecuacion-util-poi/jp.ecuacion.util.poi/module-summary.html)
 
+## Sample Code
+
+- [ecuacion-util-poi-sample](https://github.com/ecuacion-jp/ecuacion-utils/tree/main/ecuacion-util-poi-sample)
+
 ## Introduction
 
 Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.  
@@ -22,7 +26,7 @@ dependency description is as follows.
 <dependency>
     <groupId>jp.ecuacion.util</groupId>
     <artifactId>ecuacion-util-poi</artifactId>
-    <version>4.0.0</version>
+    <version>4.x.x</version>
 </dependency>
 ```
 
