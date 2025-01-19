@@ -27,7 +27,7 @@ public interface IfDataTypeCellExcelTableReader
     extends IfDataTypeCellExcelTable, IfExcelTableReader<Cell> {
 
   @Override
-  public default Cell getCellData(Cell cell) {
+  public default Cell getCellData(Cell cell, int columnNumber) {
     return cell;
   }
 
