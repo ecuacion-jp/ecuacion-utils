@@ -14,8 +14,8 @@ import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeStringExcelTableReader;
 public abstract class StringExcelTableReader extends ExcelTableReader<String>
     implements IfDataTypeStringExcelTableReader {
 
-  protected String defaultDateFormat;
-  protected Map<Integer, String> columnDateFormatMap = new HashMap<>();
+  protected String defaultDateTimeFormat;
+  protected Map<Integer, String> columnDateTimeFormatMap = new HashMap<>();
 
   /**
    * Constructs a new instance.
@@ -28,34 +28,35 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
   }
 
   /**
-   * Sets defaultDateFormat.
+   * Sets defaultDateTimeFormat.
    * 
-   * @param dateFormat dateFormat string for {@link java.text.SimpleDateFormat}.
+   * @param dateTimeFormat dateTimeFormat string for {@link java.time.format.DateTimeFormatter}.
    * @return ReturnUrlBean (for method chain)
    */
-  public StringExcelTableReader defaultDateFormat(String dateFormat) {
-    this.defaultDateFormat = dateFormat;
+  public StringExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+    this.defaultDateTimeFormat = dateTimeFormat;
     return this;
   }
 
   /**
-   * Sets dateFormat for specific column.
+   * Sets dateTimeFormat for specific column.
    * 
    * @param columnNumber the column number data is obtained from, 
    *     <b>starting with 1 and column A is equal to columnNumber 1</b>. 
    *     When the far left column of a table is 2 and you want to speciries the far left column,
    *     the columnNumber is 2.
-   * @param dateFormat dateFormat string for {@link java.text.SimpleDateFormat}.
+   * @param dateTimeFormat dateTimeFormat string for {@link java.time.format.DateTimeFormatter}.
    * @return ReturnUrlBean (for method chain)
    */
-  public StringExcelTableReader columnDateFormat(int columnNumber, String dateFormat) {
-    this.columnDateFormatMap.put(columnNumber, dateFormat);
+  public StringExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
+    this.columnDateTimeFormatMap.put(columnNumber, dateTimeFormat);
     return this;
   }
 
   @Override
-  public String getDateFormat(int columnNumber) {
-    return columnDateFormatMap.containsKey(columnNumber) ? columnDateFormatMap.get(columnNumber)
-        : defaultDateFormat;
+  public String getDateTimeFormat(int columnNumber) {
+    return columnDateTimeFormatMap.containsKey(columnNumber)
+        ? columnDateTimeFormatMap.get(columnNumber)
+        : defaultDateTimeFormat;
   }
 }
