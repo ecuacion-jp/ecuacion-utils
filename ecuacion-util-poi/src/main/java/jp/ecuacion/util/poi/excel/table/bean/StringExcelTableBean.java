@@ -101,8 +101,8 @@ public abstract class StringExcelTableBean {
 
     try {
       detailLog.debug(LogUtil.PARTITION_LARGE);
-      detailLog.debug("excelファイルから読み込んだ値のbeanへの設定開始");
-      detailLog.debug("class名：" + this.getClass().getSimpleName());
+      detailLog.debug("Setting values from excel file to bean started.");
+      detailLog.debug("class name: " + this.getClass().getSimpleName());
 
       for (int i = 0; i < fieldNameArray.length; i++) {
         String fieldName = fieldNameArray[i];
@@ -139,7 +139,7 @@ public abstract class StringExcelTableBean {
         field.set(this, colList.get(i));
       }
 
-      detailLog.debug("（excelファイルから読み込んだ値のbeanへの設定正常終了）");
+      detailLog.debug("Setting values from excel file to bean finished successfully.");
       detailLog.debug(LogUtil.PARTITION_LARGE);
 
     } catch (Exception ex) {
