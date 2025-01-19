@@ -21,7 +21,7 @@
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>4.0.2</version>
+	<version>4.1.0</version>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependency-jakartaee</artifactId>
@@ -29,7 +29,7 @@
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependency-jakartaee</relativePath>
 	</parent>
 	<properties>
-		<ecuacion-utils.version>4.0.2</ecuacion-utils.version>
+		<ecuacion-utils.version>4.1.0</ecuacion-utils.version>
 		<org.apache.poi.version>5.2.5</org.apache.poi.version>
 	</properties>
 	
