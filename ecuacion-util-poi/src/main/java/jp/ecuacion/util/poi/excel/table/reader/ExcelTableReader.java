@@ -261,7 +261,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
         break;
       }
 
-      if (isCellDataEmpty(getCellData(cell, columnNumber + 1 + tableColumnSize))) {
+      if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
         break;
       }
 
