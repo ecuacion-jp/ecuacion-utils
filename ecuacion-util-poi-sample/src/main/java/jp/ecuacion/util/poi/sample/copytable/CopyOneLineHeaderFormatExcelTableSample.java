@@ -41,7 +41,7 @@ public class CopyOneLineHeaderFormatExcelTableSample {
 
     Logger logger = LoggerFactory.getLogger(CopyOneLineHeaderFormatExcelTableSample.class);
 
-    logger.debug("Procedure start.");
+    logger.debug("Procedure started.");
 
     // read
     List<List<Cell>> dataList = read();

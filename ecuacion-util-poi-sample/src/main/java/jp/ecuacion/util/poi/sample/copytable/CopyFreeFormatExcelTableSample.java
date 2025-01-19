@@ -38,7 +38,7 @@ public class CopyFreeFormatExcelTableSample {
     
     Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
     
-    logger.debug("Procedure start.");
+    logger.debug("Procedure started.");
     
     // read
     List<List<Cell>> dataList = read();

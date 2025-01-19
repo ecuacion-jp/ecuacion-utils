@@ -35,7 +35,7 @@ public class ReadStringsFromOneLineHeaderFormatExcelTableToBeanSample {
     Logger logger =
         LoggerFactory.getLogger(ReadStringsFromOneLineHeaderFormatExcelTableToBeanSample.class);
 
-    logger.info("Procedure start.");
+    logger.info("Procedure started.");
 
     // read
     List<SampleTableBean> beanList = read();
