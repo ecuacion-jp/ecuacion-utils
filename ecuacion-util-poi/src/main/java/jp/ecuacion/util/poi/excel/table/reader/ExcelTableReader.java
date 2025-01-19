@@ -184,7 +184,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
         for (int j = poiBasisTableStartColumnNumber; j < poiBasisTableStartColumnNumber
             + tableColumnSize; j++) {
           Cell cell = row.getCell(j);
-          T cellData = getCellData(cell);
+          T cellData = getCellData(cell, j + 1);
           colList.add(cellData);
         }
 
@@ -261,7 +261,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
         break;
       }
 
-      if (isCellDataEmpty(getCellData(cell))) {
+      if (isCellDataEmpty(getCellData(cell, columnNumber + 1 + tableColumnSize))) {
         break;
       }
 

@@ -19,12 +19,10 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
@@ -40,6 +38,8 @@ public class ExcelReadUtil {
   private static final String EMPTY_STRING = "";
 
   private String noDataString;
+  
+  private String dateFormat = "yyyy-MM-dd";
 
   /**
    * Constructs a new instance with {@code NoDataString = NULL}.
@@ -63,6 +63,17 @@ public class ExcelReadUtil {
     ObjectsUtil.paramRequireNonNull(noDataString);
 
     this.noDataString = (noDataString == NoDataString.EMPTY_STRING) ? EMPTY_STRING : null;
+  }
+  
+  /**
+   * Sets dateFormat.
+   * 
+   * @param dateFormat dateFormat
+   * @return ReturnUrlBean (for method chain)
+   */
+  public ExcelReadUtil dateFormat(String dateFormat) {
+    this.dateFormat = dateFormat;
+    return this;
   }
 
   /** 
@@ -145,8 +156,8 @@ public class ExcelReadUtil {
    * @param cellType cellType
    * @return String value of the cell, may be null when the value in the cell is empty.
    */
-  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
-      @Nonnull Cell cell, @Nullable CellType cellType) {
+  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
+      @Nullable CellType cellType) {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -165,29 +176,30 @@ public class ExcelReadUtil {
       detailLog.debug("Format: " + fmt.getClass().getSimpleName());
       if (fmt instanceof ExcelStyleDateFormatter) {
         // 表示形式：日付
-        CellStyle style = cell.getCellStyle();
+        // CellStyle style = cell.getCellStyle();
 
         // 日付の場合のformatは、poi内ではindex番号で管理されており、style.getDataFormat()で取得可能。
         // それに対する実際のformat文字列（yyyy/M/dなど）はgetDataFormatString()で取得。
         // index == 14は、excel（日本語版？）上では「yyyy/M/d」だが、poi内では「m/d/yy」になっている。。。のでOS言語で判断・・
-        String dateFormatString = null;
-        detailLog.debug("dataFormat (index) : " + style.getDataFormat());
-        if (style.getDataFormat() == 14) {
-          Locale locale = Locale.getDefault();
-          dateFormatString =
-              locale.getLanguage().equals("ja") ? "yyyy/M/d" : style.getDataFormatString();
+        // String dateFormatString = null;
+        // detailLog.debug("dataFormat (index) : " + style.getDataFormat());
+        // if (style.getDataFormat() == 14) {
+        // Locale locale = Locale.getDefault();
+        // dateFormatString =
+        // locale.getLanguage().equals("ja") ? "yyyy/M/d" : style.getDataFormatString();
+        //
+        // } else {
+        // detailLog.warn("dataFormat (index) : " + style.getDataFormat());
+        // detailLog
+        // .warn("The dataFormat other than 14 is not recommended. It may not be correct.");
+        // dateFormatString = style.getDataFormatString();
+        // }
 
-        } else {
-          detailLog
-              .debug("The dataFormat other than 14 is not recommended. It may not be correct.");
-          dateFormatString = style.getDataFormatString();
-        }
+        // detailLog.debug("dataFormatString(poi original) : " + style.getDataFormatString());
+        // detailLog.debug("dataFormatString(corrected) : " + dateFormatString);
 
-        detailLog.debug("dataFormatString(poi original) : " + style.getDataFormatString());
-        detailLog.debug("dataFormatString(corrected) : " + dateFormatString);
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatString);
-        return dateFormat.format(cell.getDateCellValue());
+        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
+        return format.format(cell.getDateCellValue());
 
       } else {
         // 表示形式：数値

@@ -54,7 +54,7 @@ public class ReadStringsFromOneLineHeaderFormatExcelTableToBeanSample {
 
     // Get the table data.
     return new StringOneLineHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
-        "Member", headerLabels, HEADER_START_ROW, START_COL, null)
+        "Member", headerLabels, HEADER_START_ROW, START_COL, null).defaultDateFormat("MM/dd/yyyy")
             .readToBean(sourcePath.toString());
   }
 }
