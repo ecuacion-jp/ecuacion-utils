@@ -16,7 +16,7 @@ package jp.ecuacion.util.poi.excel.util;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.text.Format;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
@@ -37,7 +37,7 @@ public class ExcelReadUtil {
 
   private String noDataString;
 
-  private String dateFormat = "yyyy-MM-dd";
+  private String dateTimeFormat = "yyyy-MM-dd";
 
   /**
    * Constructs a new instance with {@code NoDataString = NULL}.
@@ -64,13 +64,13 @@ public class ExcelReadUtil {
   }
 
   /**
-   * Sets dateFormat.
+   * Sets dateTimeFormat.
    * 
-   * @param dateFormat dateFormat
+   * @param dateTimeFormat dateTimeFormat
    * @return ReturnUrlBean (for method chain)
    */
-  public ExcelReadUtil dateFormat(String dateFormat) {
-    this.dateFormat = dateFormat;
+  public ExcelReadUtil dateTimeFormat(String dateTimeFormat) {
+    this.dateTimeFormat = dateTimeFormat;
     return this;
   }
 
@@ -173,31 +173,8 @@ public class ExcelReadUtil {
       // fmtにより細かい表示形式の判別が可能
       detailLog.debug("Format: " + fmt.getClass().getSimpleName());
       if (fmt instanceof ExcelStyleDateFormatter) {
-        // 表示形式：日付
-        // CellStyle style = cell.getCellStyle();
-
-        // 日付の場合のformatは、poi内ではindex番号で管理されており、style.getDataFormat()で取得可能。
-        // それに対する実際のformat文字列（yyyy/M/dなど）はgetDataFormatString()で取得。
-        // index == 14は、excel（日本語版？）上では「yyyy/M/d」だが、poi内では「m/d/yy」になっている。。。のでOS言語で判断・・
-        // String dateFormatString = null;
-        // detailLog.debug("dataFormat (index) : " + style.getDataFormat());
-        // if (style.getDataFormat() == 14) {
-        // Locale locale = Locale.getDefault();
-        // dateFormatString =
-        // locale.getLanguage().equals("ja") ? "yyyy/M/d" : style.getDataFormatString();
-        //
-        // } else {
-        // detailLog.warn("dataFormat (index) : " + style.getDataFormat());
-        // detailLog
-        // .warn("The dataFormat other than 14 is not recommended. It may not be correct.");
-        // dateFormatString = style.getDataFormatString();
-        // }
-
-        // detailLog.debug("dataFormatString(poi original) : " + style.getDataFormatString());
-        // detailLog.debug("dataFormatString(corrected) : " + dateFormatString);
-
-        SimpleDateFormat format = new SimpleDateFormat(dateFormat);
-        return format.format(cell.getDateCellValue());
+        // format: date and time 
+        return cell.getLocalDateTimeCellValue().format(DateTimeFormatter.ofPattern(dateTimeFormat));
 
       } else {
         // 表示形式：数値
