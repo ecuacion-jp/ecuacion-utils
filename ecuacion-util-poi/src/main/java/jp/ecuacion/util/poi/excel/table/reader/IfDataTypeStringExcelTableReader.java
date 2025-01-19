@@ -28,7 +28,8 @@ public interface IfDataTypeStringExcelTableReader
 
   @Override
   public default String getCellData(Cell cell, int columnNumber) {
-    return getExcelReadUtil().dateFormat(getDateFormat(columnNumber)).getStringFromCell(cell);
+    return getExcelReadUtil().dateTimeFormat(getDateTimeFormat(columnNumber))
+        .getStringFromCell(cell);
   }
 
   @Override
@@ -44,10 +45,11 @@ public interface IfDataTypeStringExcelTableReader
   public NoDataString getNoDataString();
 
   /**
-   * Returns the date format considering {@code columnDateFormatMap} and {@code defaultDateFormat}.
+   * Returns the date format considering {@code columnDateTimeFormatMap} 
+   *     and {@code defaultDateTimeFormat}.
    * 
-   * @param columnNumber See {@link #columnDateFormat(int, String)}.
+   * @param columnNumber See {@link #columnDateTimeFormat(int, String)}.
    * @return date format
    */
-  public String getDateFormat(int columnNumber);
+  public String getDateTimeFormat(int columnNumber);
 }

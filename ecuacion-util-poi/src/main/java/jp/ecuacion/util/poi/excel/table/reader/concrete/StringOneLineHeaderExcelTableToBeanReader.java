@@ -130,15 +130,16 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
 
   @SuppressWarnings("unchecked")
   @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateFormat(String dateFormat) {
-    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.defaultDateFormat(dateFormat);
+  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.defaultDateTimeFormat(
+        dateTimeFormat);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> columnDateFormat(int columnNumber,
-      String dateFormat) {
-    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateFormat(columnNumber,
-        dateFormat);
+  public StringOneLineHeaderExcelTableToBeanReader<T> columnDateTimeFormat(int columnNumber,
+      String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
+        dateTimeFormat);
   }
 }

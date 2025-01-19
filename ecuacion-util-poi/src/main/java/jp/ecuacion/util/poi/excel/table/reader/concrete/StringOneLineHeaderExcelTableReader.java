@@ -100,12 +100,14 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
   }
 
   @Override
-  public StringOneLineHeaderExcelTableReader defaultDateFormat(String dateFormat) {
-    return (StringOneLineHeaderExcelTableReader) super.defaultDateFormat(dateFormat);
+  public StringOneLineHeaderExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
   }
 
   @Override
-  public StringOneLineHeaderExcelTableReader columnDateFormat(int columnNumber, String dateFormat) {
-    return (StringOneLineHeaderExcelTableReader) super.columnDateFormat(columnNumber, dateFormat);
+  public StringOneLineHeaderExcelTableReader columnDateTimeFormat(int columnNumber,
+      String dateTimeFormat) {
+    return (StringOneLineHeaderExcelTableReader) super.columnDateTimeFormat(columnNumber,
+        dateTimeFormat);
   }
 }

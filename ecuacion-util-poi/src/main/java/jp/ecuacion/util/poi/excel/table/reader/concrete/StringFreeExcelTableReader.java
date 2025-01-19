@@ -74,12 +74,12 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
   }
 
   @Override
-  public StringFreeExcelTableReader defaultDateFormat(String dateFormat) {
-    return (StringFreeExcelTableReader) super.defaultDateFormat(dateFormat);
+  public StringFreeExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+    return (StringFreeExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
   }
 
   @Override
-  public StringFreeExcelTableReader columnDateFormat(int columnNumber, String dateFormat) {
-    return (StringFreeExcelTableReader) super.columnDateFormat(columnNumber, dateFormat);
+  public StringFreeExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
+    return (StringFreeExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
   }
 }
