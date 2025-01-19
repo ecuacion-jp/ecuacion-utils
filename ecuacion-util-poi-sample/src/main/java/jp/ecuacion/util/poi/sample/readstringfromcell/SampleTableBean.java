@@ -25,7 +25,6 @@ public class SampleTableBean extends StringExcelTableBean {
   private String id;
   private String name;
   private String dateOfBirth;
-
   private String age;
   private String nationality;
 
