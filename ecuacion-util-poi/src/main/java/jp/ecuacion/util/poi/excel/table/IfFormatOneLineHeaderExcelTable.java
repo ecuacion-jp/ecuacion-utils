@@ -46,8 +46,9 @@ public interface IfFormatOneLineHeaderExcelTable<T>
     
     for (int i = 0; i < headerList.size(); i++) {
       if (!headerList.get(i).equals(getHeaderLabels()[i])) {
+        int positionFromUser = i + 1;
         throw new BizLogicAppException("MSG_ERR_HEADER_TITLE_WRONG", getSheetName(),
-            Integer.toString(i), headerList.get(i), getHeaderLabels()[i]);
+            Integer.toString(positionFromUser), headerList.get(i), getHeaderLabels()[i]);
       }
     }
   }
