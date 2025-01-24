@@ -135,6 +135,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
   private List<List<T>> readTableValues(@RequireNonnull String excelPath)
       throws AppException, EncryptedDocumentException, IOException {
     
+    ObjectsUtil.paramRequireNonNull(excelPath);
+    
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("file name  :" + excelPath);
