@@ -32,6 +32,11 @@ public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
   }
 
   @Override
+  public default int getNumberOfHeaderLines() {
+    return 0;
+  }
+  
+  @Override
   @Nonnull
   public default String[][] getHeaderLabelData() {
     throw new NullPointerException();
