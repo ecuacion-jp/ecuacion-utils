@@ -64,16 +64,16 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * Writes table data to the designated excel file.
    * 
    * @param destFilePath destFilePath
-   * @param dataList dataList
+   * @param data dataList
    */
-  public void write(@Nullable String templateFilePath, String destFilePath, List<List<T>> dataList)
-      throws Exception {
+  public void write(@Nullable String templateFilePath, @RequireNonnull String destFilePath,
+      @RequireNonnull List<List<T>> data) throws Exception {
 
-    List<List<String>> headerData = getHeaderData(templateFilePath, dataList.get(0).size());
+    List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
 
     validateHeaderData(headerData);
 
-    writeTableValues(templateFilePath, destFilePath, dataList);
+    writeTableValues(templateFilePath, destFilePath, data);
   }
 
   /**
