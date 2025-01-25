@@ -152,22 +152,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     return rtnData;
   }
 
-  @Nonnull
-  private List<List<T>> readHeader(@RequireNonnull Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
-    List<List<T>> rtnData = readTableData(workbook, true);
-
-    // ヘッダ行のチェック。同時にヘッダ行はexcelTableDataListからremoveしておき、returnするデータには含めない
-    List<List<String>> headerData = updateAndGetHeaderData(rtnData);
-
-    validateHeaderData(headerData);
-
-    return rtnData;
-  }
-
   /**
-   * Reads a table data in an excel file at {@code filePath} 
-   *     and Return it in the form of {@code List<List<T>>}.
+   * Provides an {@code Iterable} reader.
    * 
    * <p>The internal {@code List<T>} stores data in one line.<br>
    * The external {@code List} stores lines of {@code List<T>}.</p>
@@ -181,7 +167,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
-  public Iterable<List<T>> readToIterable(@RequireNonnull Workbook workbook)
+  public Iterable<List<T>> getIterable(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
     // Header check first, and then iterating data.
     List<List<T>> rtnData = readTableData(workbook, true);
