@@ -28,7 +28,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
 
 /**
- * Provides excel-related {@code apache POI} utility methods.
+ * Provides excel reading related {@code apache POI} utility methods.
  */
 public class ExcelReadUtil {
 

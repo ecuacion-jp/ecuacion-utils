@@ -35,11 +35,11 @@ public class CopyFreeFormatExcelTableSample {
   private static Path destPath;
 
   public static void main(String[] args) throws Exception {
-    
+
     Logger logger = LoggerFactory.getLogger(CopyFreeFormatExcelTableSample.class);
-    
+
     logger.info("Procedure started.");
-    
+
     // read
     List<List<Cell>> dataList = read();
 
@@ -54,7 +54,8 @@ public class CopyFreeFormatExcelTableSample {
   private static List<List<Cell>> read() throws Exception {
 
     // Get the path of the excel file.
-    URL sourceUrl = CopyFreeFormatExcelTableSample.class.getClassLoader().getResource("sample.xlsx");
+    URL sourceUrl =
+        CopyFreeFormatExcelTableSample.class.getClassLoader().getResource("sample.xlsx");
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
@@ -64,6 +65,12 @@ public class CopyFreeFormatExcelTableSample {
 
   private static void write(List<List<Cell>> dataList) throws Exception {
 
+    // Create a new file from a template excel file and write the table data to it.
+    // The new file will be created as "result.xlsx" at the current path.
+    URL templateUrl =
+        CopyOneLineHeaderFormatExcelTableSample.class.getClassLoader().getResource("template.xlsx");
+    String templatePath = Path.of(templateUrl.toURI()).toAbsolutePath().toString();
+
     destPath = Path.of(Paths.get("").toAbsolutePath().toString() + "/" + "result.xlsx");
 
     // If the created file already exists, delete it.
@@ -72,7 +79,7 @@ public class CopyFreeFormatExcelTableSample {
     }
 
     // Write the table data.
-    new CellFreeExcelTableWriter("Sheet1", HEADER_START_ROW, START_COL).write(
-        null, destPath.toAbsolutePath().toString(), dataList);
+    new CellFreeExcelTableWriter("Sheet1", HEADER_START_ROW, START_COL).write(templatePath,
+        destPath.toAbsolutePath().toString(), dataList);
   }
 }

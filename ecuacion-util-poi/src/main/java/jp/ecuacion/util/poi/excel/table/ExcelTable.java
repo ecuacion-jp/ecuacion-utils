@@ -52,7 +52,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    *     decided by the far left header value of the table.</p>
    *     
    * <p>The header value is obtained from 
-   *     {@link IfExcelTable#getFarLeftHeaderLabel()}.</p>
+   *     {@link IfExcelTable#getFarLeftAndTopHeaderLabel()}.</p>
    */
   @Nullable
   @Min(1)
@@ -99,7 +99,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * 
    * <p>When {@code tableStartRowNumber} is set to {@code null}, 
    *     this method will find the string designated with 
-   *     {@link IfExcelTableReader#getFarLeftHeaderLabel()} from the top row 
+   *     {@link IfExcelTableReader#getFarLeftAndTopHeaderLabel()} from the top row 
    *     in the column number of {@code tableStartColumnNumber}.</p>
    * 
    * @param sheet excel sheet
@@ -133,14 +133,14 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       // 文字列の取得
       String value = cell.getStringCellValue();
 
-      if (value.equals(getFarLeftHeaderLabel())) {
+      if (value.equals(getFarLeftAndTopHeaderLabel())) {
         // iはプログラム上の行（ゼロ始まり）だが、getTableStartRowNumber()としては左上が(1, 1)として返すルールなので1をプラスして返す
         return i;
       }
     }
 
     // ここまでくるということは、signStringがなかったということ。異常終了
-    throw new RuntimeException("シート「" + sheet.getSheetName() + "」に文字列「" + getFarLeftHeaderLabel()
+    throw new RuntimeException("シート「" + sheet.getSheetName() + "」に文字列「" + getFarLeftAndTopHeaderLabel()
         + "」が" + tableStartColumnNumber + "番目の列に存在しません。終了します。");
   }
 

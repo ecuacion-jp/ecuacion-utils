@@ -47,7 +47,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @return header data
    */
   @Nullable
-  public List<List<String>> updateAndGetHeaderList(@Nonnull List<List<T>> tableData);
+  public List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> tableData);
 
   /**
    * Returns the obtained value from the cell.

@@ -27,13 +27,19 @@ import java.util.List;
 public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
 
   @Override
-  public default void validateHeader(@Nullable List<List<String>> headerData) {
+  public default void validateHeaderData(@Nullable List<List<String>> headerData) {
     // no validations for the argument excel data.
   }
 
   @Override
   @Nonnull
-  public default String getFarLeftHeaderLabel() {
+  public default String[][] getHeaderLabelData() {
+    throw new NullPointerException();
+  }
+
+  @Override
+  @Nonnull
+  public default String getFarLeftAndTopHeaderLabel() {
     throw new NullPointerException();
   }
 }
