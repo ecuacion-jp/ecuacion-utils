@@ -48,8 +48,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  * 
  * @param <T> See {@link IfExcelTable}.
  */
-public abstract class ExcelTableReader<T> extends ExcelTable<T>
-    implements IfExcelTableReader<T> {
+public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExcelTableReader<T> {
 
   private DetailLogger detailLog = new DetailLogger(this);
   private ExcelReadUtil readUtil = new ExcelReadUtil();
@@ -65,7 +64,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
    */
   @Min(1)
   protected Integer tableRowSize;
-  
+
   /**
    * Is the column size of the table.
    * 
@@ -106,19 +105,45 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
 
   /**
    * Reads a table data in an excel file at {@code excelPath} 
-   *     and Return it in the form of {@code List<List<String>>}.
+   *     and Return it in the form of {@code List<List<T>>}.
    * 
-   * <p>The internal {@code List<String>} stores data in one line.<br>
-   * The external {@code List} stores lines of {@code List<String>}.</p>
+   * <p>The internal {@code List<T>} stores data in one line.<br>
+   * The external {@code List} stores lines of {@code List<T>}.</p>
    *
+   * @param filePath filePath
    * @throws IOException IOException
    * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
-  public List<List<T>> read(@RequireNonnull String excelPath)
+  public List<List<T>> read(@RequireNonnull String filePath)
       throws EncryptedDocumentException, AppException, IOException {
-    List<List<T>> rtnData = readTableValues(excelPath);
+    ObjectsUtil.paramRequireNonNull(filePath);
+
+    try (Workbook excel = openForRead(filePath);) {
+      return read(excel);
+    }
+  }
+
+  /**
+   * Reads a table data in an excel file at {@code filePath} 
+   *     and Return it in the form of {@code List<List<T>>}.
+   * 
+   * <p>The internal {@code List<T>} stores data in one line.<br>
+   * The external {@code List} stores lines of {@code List<T>}.</p>
+   *
+   * @param workbook workbook
+   *     It's used only to write down to the log 
+   *     so if getting the filePath is hard, filename or whatever else is fine.
+   *     
+   * @throws IOException IOException
+   * @throws AppException AppException
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   */
+  @Nonnull
+  public List<List<T>> read(@RequireNonnull Workbook workbook)
+      throws EncryptedDocumentException, AppException, IOException {
+    List<List<T>> rtnData = readTableValues(workbook);
 
     // ヘッダ行のチェック。同時にヘッダ行はexcelTableDataListからremoveしておき、returnするデータには含めない
     List<List<String>> headerData = updateAndGetHeaderData(rtnData);
@@ -128,25 +153,32 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
     return rtnData;
   }
 
+  /**
+   * Opens the excel file and returns {@code Workbook} object.
+   * 
+   * @param filePath filePath
+   * @return workbook
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
+  public Workbook openForRead(String filePath) throws EncryptedDocumentException, IOException {
+    return WorkbookFactory.create(new File(filePath), null, true);
+  }
+
   /*
    * get Table Values in the form of the list of the lists.
    */
   @Nonnull
-  private List<List<T>> readTableValues(@RequireNonnull String excelPath)
-      throws AppException, EncryptedDocumentException, IOException {
-    
-    ObjectsUtil.paramRequireNonNull(excelPath);
-    
+  private List<List<T>> readTableValues(@RequireNonnull Workbook workbook) throws AppException {
+
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
-    detailLog.debug("file name  :" + excelPath);
     detailLog.debug("sheet name :" + getSheetName());
 
-    Workbook excel = WorkbookFactory.create(new File(excelPath), null, true);
-    Sheet sheet = excel.getSheet(getSheetName());
+    Sheet sheet = workbook.getSheet(getSheetName());
 
     if (sheet == null) {
-      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", excelPath, getSheetName());
+      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", getSheetName());
     }
 
     // poiBasis means the top-left position is (0, 0)
@@ -215,8 +247,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
 
       rowList.add(colList);
     }
-
-    excel.close();
 
     detailLog.debug("finishing to read excel file. sheet name :" + getSheetName());
     detailLog.debug(LogUtil.PARTITION_LARGE);

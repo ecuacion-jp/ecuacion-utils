@@ -61,7 +61,9 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Writes table data to the designated excel file.
+   * Writes table data to the specified excel file.
+   * 
+   * <p>{@code data} is written to {@code destFilePath}, and then workbook is closed.</p>
    * 
    * @param destFilePath destFilePath
    * @param data dataList
@@ -73,7 +75,66 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
     validateHeaderData(headerData);
 
-    writeTableValues(templateFilePath, destFilePath, data);
+    try (Workbook workbook = openForWrite(templateFilePath);
+        FileOutputStream out = new FileOutputStream(destFilePath);) {
+      writeTableValues(workbook, data);
+
+      workbook.write(out);
+    }
+  }
+
+  /**
+   * Writes table data to the designated excel file.
+   * 
+   * <p>{@code data} is stored to {@code workbook} created from {@code templateFilePath}, 
+   *     and the method returns {@code workbook}.</p>
+   * 
+   * @param templateFilePath templateFilePath
+   * @param data data
+   */
+  public Workbook write(@Nullable String templateFilePath, @RequireNonnull List<List<T>> data)
+      throws Exception {
+
+    List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
+
+    validateHeaderData(headerData);
+
+    try (Workbook workbook = openForWrite(templateFilePath);) {
+      writeTableValues(workbook, data);
+
+      return workbook;
+    }
+  }
+
+  /**
+   * Writes table data to the designated excel file.
+   * 
+   * <p>{@code data} is stored to {@code workbook}.</p>
+   * 
+   * @param workbook workbook
+   * @param data dataList
+   */
+  public void write(@RequireNonnull Workbook workbook, @RequireNonnull List<List<T>> data)
+      throws Exception {
+
+    List<List<String>> headerData = getHeaderData(null, data.get(0).size());
+
+    validateHeaderData(headerData);
+
+    writeTableValues(workbook, data);
+  }
+
+  /**
+   * Opens the excel file and returns {@code Workbook} object.
+   * 
+   * @param filePath filePath
+   * @return workbook
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
+  public Workbook openForWrite(String filePath) throws EncryptedDocumentException, IOException {
+    return filePath == null ? new XSSFWorkbook()
+        : WorkbookFactory.create(new File(filePath), null, false);
   }
 
   /**
@@ -90,27 +151,17 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   protected abstract @Nonnull List<List<String>> getHeaderData(@Nullable String templateFilePath,
       int tableColumnSize) throws EncryptedDocumentException, AppException, IOException;
 
-  private void writeTableValues(@Nullable String templateFilePath,
-      @RequireNonnull String destFilePath, @RequireNonnull List<List<T>> dataList)
+  private void writeTableValues(@RequireNonnull Workbook excel, @RequireNonnull List<List<T>> data)
       throws FileNotFoundException, IOException, BizLogicAppException {
 
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
-    detailLog.debug(
-        "template file name  :" + ((templateFilePath == null) ? "(none)" : templateFilePath));
     detailLog.debug("sheet name :" + getSheetName());
-
-    Workbook excel = (templateFilePath == null) ? new XSSFWorkbook()
-        : WorkbookFactory.create(new File(templateFilePath), null, false);
-
-    if (templateFilePath == null) {
-      excel.createSheet(getSheetName());
-    }
 
     Sheet sheet = excel.getSheet(getSheetName());
 
     if (sheet == null) {
-      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", templateFilePath, getSheetName());
+      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", getSheetName());
     }
 
     int poiBasisTableStartColumnNumber = getPoiBasisDeterminedTableStartColumnNumber();
@@ -122,9 +173,9 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     }
 
     for (int rowNum = poiBasisTableStartRowNumber; rowNum < poiBasisTableStartRowNumber
-        + dataList.size(); rowNum++) {
+        + data.size(); rowNum++) {
 
-      List<T> list = dataList.get(rowNum - poiBasisTableStartRowNumber);
+      List<T> list = data.get(rowNum - poiBasisTableStartRowNumber);
 
       if (sheet.getRow(rowNum) == null) {
         sheet.createRow(rowNum);
@@ -133,7 +184,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
       Row row = sheet.getRow(rowNum);
 
       for (int colNum = poiBasisTableStartColumnNumber; colNum < poiBasisTableStartColumnNumber
-          + dataList.get(0).size(); colNum++) {
+          + data.get(0).size(); colNum++) {
 
         T sourceCellData = list.get(colNum - poiBasisTableStartColumnNumber);
 
@@ -145,11 +196,6 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
         writeToCell(sourceCellData, destCell);
       }
-    }
-
-    // 出力用のストリームを用意。ファイルへ出力
-    try (FileOutputStream out = new FileOutputStream(destFilePath);) {
-      excel.write(out);
     }
   }
 }

@@ -72,7 +72,7 @@ public class CopyOneLineHeaderFormatExcelTableSample {
     // The new file will be created as "result.xlsx" at the current path.
     URL templateUrl =
         CopyOneLineHeaderFormatExcelTableSample.class.getClassLoader().getResource("template.xlsx");
-    Path templatePath = Path.of(templateUrl.toURI()).toAbsolutePath();
+    String templatePath = Path.of(templateUrl.toURI()).toAbsolutePath().toString();
 
     destPath = Path.of(Paths.get("").toAbsolutePath().toString() + "/" + "result.xlsx");
 
@@ -83,6 +83,6 @@ public class CopyOneLineHeaderFormatExcelTableSample {
 
     // Write the table data.
     new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL)
-        .write(templatePath.toString(), destPath.toString(), dataList);
+        .write(templatePath, destPath.toString(), dataList);
   }
 }
