@@ -18,18 +18,17 @@ package jp.ecuacion.util.poi.excel.table.writer.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
-import jp.ecuacion.util.poi.excel.table.reader.concrete.StringFreeExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.reader.concrete.StringOneLineHeaderExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
 import jp.ecuacion.util.poi.excel.table.writer.IfDataTypeCellExcelTableWriter;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  * Reads tables with known number of columns, one line header labels if it has a header line.
@@ -63,13 +62,10 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  protected List<List<String>> getHeaderData(@RequireNonnull String templateFilePath,
-      int tableColumnSize) throws EncryptedDocumentException, AppException, IOException {
+  protected void headerCheck(@RequireNonnull Workbook workbook)
+      throws EncryptedDocumentException, AppException, IOException {
 
-    List<List<String>> data = new ArrayList<>();
-    data.add(new StringFreeExcelTableReader(getSheetName(), tableStartRowNumber,
-        tableStartColumnNumber, 1, tableColumnSize).read(templateFilePath).get(0));
-
-    return data;
+    new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
+        tableStartRowNumber, tableStartColumnNumber, 1).read(workbook);
   }
 }
