@@ -63,12 +63,8 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  protected List<List<String>> getHeaderData(@Nullable String templateFilePath, int tableColumnSize)
-      throws EncryptedDocumentException, AppException, IOException {
-    
-    if (templateFilePath == null) {
-      return new ArrayList<>();
-    }
+  protected List<List<String>> getHeaderData(@RequireNonnull String templateFilePath,
+      int tableColumnSize) throws EncryptedDocumentException, AppException, IOException {
 
     List<List<String>> data = new ArrayList<>();
     data.add(new StringFreeExcelTableReader(getSheetName(), tableStartRowNumber,
