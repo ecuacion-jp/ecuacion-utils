@@ -30,12 +30,10 @@ public interface IfFormatOneLineHeaderExcelTableReader<T>
     extends IfFormatOneLineHeaderExcelTable<T>, IfExcelTableReader<T> {
 
   @Override
-  public default List<List<String>> updateAndGetHeaderList(@Nonnull List<List<T>> excelData) {
-    List<String> list = excelData.remove(0).stream().map(el -> getStringValue(el)).toList();
+  public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> excelData) {
+    List<List<String>> list = new ArrayList<>();
+    list.add(excelData.remove(0).stream().map(el -> getStringValue(el)).toList());
     
-    List<List<String>> rtnList = new ArrayList<>();
-    rtnList.add(list);
-    
-    return rtnList;
+    return list;
   }
 }

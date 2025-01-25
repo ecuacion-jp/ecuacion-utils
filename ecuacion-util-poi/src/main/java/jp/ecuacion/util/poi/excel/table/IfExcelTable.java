@@ -20,6 +20,7 @@ import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.lib.core.util.ObjectsUtil;
 
 /**
  * Provides the methods the extending interfaces use.
@@ -36,34 +37,62 @@ public interface IfExcelTable<T> {
    * @return the sheet name of the excel file
    */
   @Nonnull
-  public abstract String getSheetName();
+  public String getSheetName();
 
   /**
-   * Returns the value of the far left header cell to specify the position of the table.
+   * Returns the value of the far left and top header cell to specify the position of the table.
    * 
    * <p>The method is called when {@code tableStartRowNumber} is {@code null}.<br>
    * See {@link ExcelTable#tableStartRowNumber}</p>
    * 
-   * <p>When the table doesn't have a header, 
-   *     an {@code exception} is thrown if {@code tableStartRowNumber} is {@code null}.<br>
+   * <p>When the table doesn't have a header and {@code tableStartRowNumber} is {@code null},
+   *     an {@code exception} is thrown.<br>
    *     So always set non-null {@code tableStartRowNumber} value 
    *     when the table doesn't have a header.</p>
    * 
-   * @return far left header label
+   * @return far left and top header label<br>
+   *     "top" means the upper side of the header line when the table has multiple header lines.
    */
   @Nonnull
-  public String getFarLeftHeaderLabel();
+  public String getFarLeftAndTopHeaderLabel();
+  
+  /**
+   * Returns an array of header label strings.
+   * 
+   * <p>The data type of the return is {@code String[][]} 
+   *     because table header can be multiple lines.</p>
+   * 
+   * @return table header label strings
+   */
+  @Nonnull
+  public String[][] getHeaderLabelData();
 
   /**
    * Validates the excel table header.
    * 
-   * <p>If the table doesn't have a header, nothing needs to be done in this method.</p>
-   *
-   * @param headerData string header data 
+   * @param headerData string header data<br>
+   *     The data type is {@code List<List<String>> headerData} 
+   *     because the header with multiple lines may exist.<br>
+   *     Pass a list with `size() == 0` 
+   *     when it's a table with no header or nothing to validate.
    * @throws BizLogicAppException BizLogicAppException
    */
-  public void validateHeader(@RequireNonnull List<List<String>> headerData)
-      throws BizLogicAppException;
+  public default void validateHeaderData(@RequireNonnull List<List<String>> headerData)
+      throws BizLogicAppException {
+    
+    for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
+      List<String> headerList = headerData.get(i);
+      String[] headerLabels = getHeaderLabelData()[i];
+      
+      for (int j = 0; j < headerList.size(); j++) {
+        if (!headerList.get(j).equals(headerLabels[j])) {
+          int positionFromUser = j + 1;
+          throw new BizLogicAppException("MSG_ERR_HEADER_TITLE_WRONG", getSheetName(),
+              Integer.toString(positionFromUser), headerList.get(j), headerLabels[j]);
+        }
+      }
+    }
+  }
 
   /**
    * Is used to get the header label string from the argument cell data.

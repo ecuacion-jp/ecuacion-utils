@@ -118,14 +118,14 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T>
   @Nonnull
   public List<List<T>> read(@RequireNonnull String excelPath)
       throws EncryptedDocumentException, AppException, IOException {
-    List<List<T>> rtnList = readTableValues(excelPath);
+    List<List<T>> rtnData = readTableValues(excelPath);
 
     // ヘッダ行のチェック。同時にヘッダ行はexcelTableDataListからremoveしておき、returnするデータには含めない
-    List<List<String>> headerList = updateAndGetHeaderList(rtnList);
+    List<List<String>> headerData = updateAndGetHeaderData(rtnData);
 
-    validateHeader(headerList);
+    validateHeaderData(headerData);
 
-    return rtnList;
+    return rtnData;
   }
 
   /*

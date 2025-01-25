@@ -15,6 +15,7 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -65,29 +66,31 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * @param destFilePath destFilePath
    * @param dataList dataList
    */
-  public void write(String templateFilePath, String destFilePath, List<List<T>> dataList)
+  public void write(@Nullable String templateFilePath, String destFilePath, List<List<T>> dataList)
       throws Exception {
 
-    List<List<String>> headerList = getHeaderList(templateFilePath, dataList.get(0).size());
+    List<List<String>> headerData = getHeaderData(templateFilePath, dataList.get(0).size());
 
-    validateHeader(headerList);
+    validateHeaderData(headerData);
 
     writeTableValues(templateFilePath, destFilePath, dataList);
   }
 
   /**
-   * Obtains header list.
+   * Obtains header list from the file at {@code templateFilePath}.
    * 
+   * @param templateFilePath nullable when the data is written to a new excel file.
    * @param tableColumnSize tableColumnSize
-   * @return the list
+   * @return the list of {@code String}, 
+   *     may be an empty list when {@code templateFilePath} is {@code null}.
    * @throws IOException IOException
    * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  protected abstract List<List<String>> getHeaderList(@RequireNonnull String templateFilePath,
+  protected abstract @Nonnull List<List<String>> getHeaderData(@Nullable String templateFilePath,
       int tableColumnSize) throws EncryptedDocumentException, AppException, IOException;
 
-  private void writeTableValues(@RequireNonnull String templateFilePath,
+  private void writeTableValues(@Nullable String templateFilePath,
       @RequireNonnull String destFilePath, @RequireNonnull List<List<T>> dataList)
       throws FileNotFoundException, IOException, BizLogicAppException {
 

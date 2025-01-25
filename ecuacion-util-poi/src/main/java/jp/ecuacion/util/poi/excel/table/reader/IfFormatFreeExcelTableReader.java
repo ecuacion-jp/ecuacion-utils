@@ -29,7 +29,7 @@ public interface IfFormatFreeExcelTableReader<T>
     extends IfFormatFreeExcelTable<T>, IfExcelTableReader<T> {
 
   @Override
-  public default List<List<String>> updateAndGetHeaderList(@Nonnull List<List<T>> rtnList) {
+  public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> rtnData) {
     return null;
   }
 }

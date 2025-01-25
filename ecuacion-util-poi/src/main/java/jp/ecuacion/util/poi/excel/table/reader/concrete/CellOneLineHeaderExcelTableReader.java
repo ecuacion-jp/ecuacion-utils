@@ -67,7 +67,7 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
   }
 
   @Override
-  public @Nonnull String getFarLeftHeaderLabel() {
+  public @Nonnull String getFarLeftAndTopHeaderLabel() {
     return Objects.requireNonNull(getHeaderLabels()[0]);
   }
 
