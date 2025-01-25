@@ -17,8 +17,6 @@ package jp.ecuacion.util.poi.excel.table.writer.concrete;
 
 import jakarta.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -28,6 +26,7 @@ import jp.ecuacion.util.poi.excel.table.writer.IfDataTypeCellExcelTableWriter;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  * Reads tables with unknown number of columns, unknown whether it have a header line,
@@ -61,9 +60,8 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  protected List<List<String>> getHeaderData(@RequireNonnull String templateFilePath,
-      int tableColumnSize) throws EncryptedDocumentException, AppException, IOException {
+  protected void headerCheck(@RequireNonnull Workbook workbook)
+      throws EncryptedDocumentException, AppException, IOException {
 
-    return new ArrayList<>();
   }
 }
