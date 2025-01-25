@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -74,12 +73,11 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     ObjectsUtil.paramRequireNonNull(templateFilePath);
     ObjectsUtil.paramRequireNonNull(destFilePath);
 
-    List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
-
-    validateHeaderData(headerData);
-
     try (Workbook workbook = openForWrite(templateFilePath);
         FileOutputStream out = new FileOutputStream(destFilePath);) {
+
+      headerCheck(workbook);
+
       writeTableValues(workbook, data);
 
       workbook.write(out);
@@ -98,11 +96,10 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   public Workbook write(@RequireNonnull String templateFilePath, @RequireNonnull List<List<T>> data)
       throws Exception {
 
-    List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
-
-    validateHeaderData(headerData);
-
     try (Workbook workbook = openForWrite(templateFilePath);) {
+
+      headerCheck(workbook);
+
       writeTableValues(workbook, data);
 
       return workbook;
@@ -120,9 +117,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   public void write(@RequireNonnull Workbook workbook, @RequireNonnull List<List<T>> data)
       throws Exception {
 
-    List<List<String>> headerData = getHeaderData(null, data.get(0).size());
-
-    validateHeaderData(headerData);
+    headerCheck(workbook);
 
     writeTableValues(workbook, data);
   }
@@ -143,16 +138,12 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   /**
    * Obtains header list from the file at {@code templateFilePath}.
    * 
-   * @param templateFilePath nullable when the data is written to a new excel file.
-   * @param tableColumnSize tableColumnSize
-   * @return the list of {@code String}, 
-   *     may be an empty list when {@code templateFilePath} is {@code null}.
+   * @param workbook workbook.
    * @throws IOException IOException
    * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  protected abstract @Nonnull List<List<String>> getHeaderData(
-      @RequireNonnull String templateFilePath, int tableColumnSize)
+  protected abstract void headerCheck(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException;
 
   private void writeTableValues(@RequireNonnull Workbook excel, @RequireNonnull List<List<T>> data)
