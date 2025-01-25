@@ -16,8 +16,9 @@
 package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 
@@ -38,25 +39,36 @@ public interface IfFormatOneLineHeaderExcelTable<T>
   public String[] getHeaderLabels();
 
   @Override
-  public default void validateHeader(@Nullable List<List<String>> headerData)
+  public default String[][] getHeaderLabelData() {
+    String[][] rtn = new String[1][];
+    rtn[0] = getHeaderLabels();
+    
+    return rtn;
+  }
+  
+  /**
+   * Validates one line header.
+   * 
+   * <p>Pass a list with `size() == 0` 
+   *     when it's a table with no header or nothing to validate.</p>
+   * 
+   * <p>See {@link IfExcelTable#validateHeaderData}.</p>
+   * 
+   * @param headerList headerList
+   * @throws BizLogicAppException BizLogicAppException
+   */
+  public default void validateHeader(@RequireNonnull List<String> headerList)
       throws BizLogicAppException {
+    List<List<String>> list = new ArrayList<>();
+    list.add(headerList);
     
-    // headerData is nonnull since headerData is in the format of one line header.
-    List<String> headerList = ObjectsUtil.paramRequireNonNull(headerData).get(0);
-    
-    for (int i = 0; i < headerList.size(); i++) {
-      if (!headerList.get(i).equals(getHeaderLabels()[i])) {
-        int positionFromUser = i + 1;
-        throw new BizLogicAppException("MSG_ERR_HEADER_TITLE_WRONG", getSheetName(),
-            Integer.toString(positionFromUser), headerList.get(i), getHeaderLabels()[i]);
-      }
-    }
+    validateHeaderData(list);
   }
 
 
   @Override
   @Nonnull
-  public default String getFarLeftHeaderLabel() {
+  public default String getFarLeftAndTopHeaderLabel() {
 
     String[] headerLabels = getHeaderLabels();
     ObjectsUtil.paramSizeNonZero(headerLabels);

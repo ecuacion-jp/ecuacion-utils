@@ -18,6 +18,7 @@ package jp.ecuacion.util.poi.excel.table.writer.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
@@ -62,10 +63,17 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  protected List<List<String>> getHeaderList(String templateFilePath, int tableColumnSize)
+  protected List<List<String>> getHeaderData(@Nullable String templateFilePath, int tableColumnSize)
       throws EncryptedDocumentException, AppException, IOException {
+    
+    if (templateFilePath == null) {
+      return new ArrayList<>();
+    }
 
-    return new StringFreeExcelTableReader(getSheetName(), tableStartRowNumber,
-        tableStartColumnNumber, 1, tableColumnSize).read(templateFilePath.toString());
+    List<List<String>> data = new ArrayList<>();
+    data.add(new StringFreeExcelTableReader(getSheetName(), tableStartRowNumber,
+        tableStartColumnNumber, 1, tableColumnSize).read(templateFilePath).get(0));
+
+    return data;
   }
 }
