@@ -30,6 +30,11 @@ import jp.ecuacion.lib.core.util.ObjectsUtil;
 public interface IfFormatOneLineHeaderExcelTable<T>
     extends IfExcelTable<T> {
 
+  @Override
+  public default int getNumberOfHeaderLines() {
+    return 1;
+  }
+  
   /** 
    * Defines the header labels in the excel table. 
    * 
