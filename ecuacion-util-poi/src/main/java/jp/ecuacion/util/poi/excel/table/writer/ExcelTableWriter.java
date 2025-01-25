@@ -27,6 +27,7 @@ import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.LogUtil;
+import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
@@ -68,8 +69,10 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * @param destFilePath destFilePath
    * @param data dataList
    */
-  public void write(@Nullable String templateFilePath, @RequireNonnull String destFilePath,
+  public void write(@RequireNonnull String templateFilePath, @RequireNonnull String destFilePath,
       @RequireNonnull List<List<T>> data) throws Exception {
+    ObjectsUtil.paramRequireNonNull(templateFilePath);
+    ObjectsUtil.paramRequireNonNull(destFilePath);
 
     List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
 
@@ -92,7 +95,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * @param templateFilePath templateFilePath
    * @param data data
    */
-  public Workbook write(@Nullable String templateFilePath, @RequireNonnull List<List<T>> data)
+  public Workbook write(@RequireNonnull String templateFilePath, @RequireNonnull List<List<T>> data)
       throws Exception {
 
     List<List<String>> headerData = getHeaderData(templateFilePath, data.get(0).size());
@@ -148,8 +151,9 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  protected abstract @Nonnull List<List<String>> getHeaderData(@Nullable String templateFilePath,
-      int tableColumnSize) throws EncryptedDocumentException, AppException, IOException;
+  protected abstract @Nonnull List<List<String>> getHeaderData(
+      @RequireNonnull String templateFilePath, int tableColumnSize)
+      throws EncryptedDocumentException, AppException, IOException;
 
   private void writeTableValues(@RequireNonnull Workbook excel, @RequireNonnull List<List<T>> data)
       throws FileNotFoundException, IOException, BizLogicAppException {
