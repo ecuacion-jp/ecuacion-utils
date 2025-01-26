@@ -15,8 +15,8 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,19 +24,12 @@ import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
-import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
-import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
+import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 /**
@@ -46,7 +39,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExcelTableWriter<T> {
 
-  private DetailLogger detailLog = new DetailLogger(this);
+  private ExcelWriteUtil writeUtil = new ExcelWriteUtil();
 
   /**
    * Constructs a new instance with the sheet name, the position of the excel table.
@@ -73,7 +66,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     ObjectsUtil.paramRequireNonNull(templateFilePath);
     ObjectsUtil.paramRequireNonNull(destFilePath);
 
-    try (Workbook workbook = openForWrite(templateFilePath);
+    try (Workbook workbook = writeUtil.openForWrite(templateFilePath);
         FileOutputStream out = new FileOutputStream(destFilePath);) {
 
       headerCheck(workbook);
@@ -96,7 +89,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   public Workbook write(@RequireNonnull String templateFilePath, @RequireNonnull List<List<T>> data)
       throws Exception {
 
-    try (Workbook workbook = openForWrite(templateFilePath);) {
+    try (Workbook workbook = writeUtil.openForWrite(templateFilePath);) {
 
       headerCheck(workbook);
 
@@ -123,16 +116,20 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Opens the excel file and returns {@code Workbook} object.
+   * Provides an {@code Iterable} writer.
    * 
-   * @param filePath filePath
-   * @return workbook
-   * @throws EncryptedDocumentException EncryptedDocumentException
-   * @throws IOException IOException
+   * @param workbook workbook
    */
-  public Workbook openForWrite(String filePath) throws EncryptedDocumentException, IOException {
-    return filePath == null ? new XSSFWorkbook()
-        : WorkbookFactory.create(new File(filePath), null, false);
+  @Nonnull
+  public IterableWriter<T> getIterable(@RequireNonnull Workbook workbook)
+      throws EncryptedDocumentException, AppException, IOException {
+    // Header check first, and then iterating data.
+    headerCheck(workbook);
+
+    // get the IteratorWriter
+    ContextContainer context = writeUtil.getReadyToWriteTableData(this, workbook, getSheetName());
+
+    return new IterableWriter<T>(this, context, getNumberOfHeaderLines());
   }
 
   /**
@@ -146,51 +143,54 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   protected abstract void headerCheck(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException;
 
-  private void writeTableValues(@RequireNonnull Workbook excel, @RequireNonnull List<List<T>> data)
+  private void writeTableValues(@RequireNonnull Workbook workbook,
+      @RequireNonnull List<List<T>> data)
       throws FileNotFoundException, IOException, BizLogicAppException {
 
-    detailLog.debug(LogUtil.PARTITION_LARGE);
-    detailLog.debug("starting to write excel file.");
-    detailLog.debug("sheet name :" + getSheetName());
+    ContextContainer context = writeUtil.getReadyToWriteTableData(this, workbook, getSheetName());
 
-    Sheet sheet = excel.getSheet(getSheetName());
+    for (int rowNumber =
+        context.poiBasisTableStartRowNumber; rowNumber < context.poiBasisTableStartRowNumber
+            + data.size(); rowNumber++) {
 
-    if (sheet == null) {
-      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", getSheetName());
+      List<T> list = data.get(rowNumber - context.poiBasisTableStartRowNumber);
+
+      writeUtil.writeTableLine(this, context, rowNumber, list);
+    }
+  }
+
+  /**
+   * Provides {@code Iterable}.
+   */
+  public static class IterableWriter<T> {
+
+    private ExcelTableWriter<T> writer;
+    private ContextContainer context;
+    private int rowNumber;
+
+    private ExcelWriteUtil writeUtil = new ExcelWriteUtil();
+
+    /**
+     * Constructs a new instance.
+     */
+    public IterableWriter(ExcelTableWriter<T> writer, ContextContainer context,
+        int numberOfheaderLines) {
+      this.writer = writer;
+      this.context = context;
+      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
+
     }
 
-    int poiBasisTableStartColumnNumber = getPoiBasisDeterminedTableStartColumnNumber();
-    int poiBasisTableStartRowNumber = getPoiBasisDeterminedTableStartRowNumber(sheet);
+    /**
+     * Writes one line.
+     * 
+     * @param columnList columnList
+     */
+    public void write(List<T> columnList) {
 
-    // Skip the header line if the writer is OneLineHeaderFormat
-    if (this instanceof IfFormatOneLineHeaderExcelTable) {
-      poiBasisTableStartRowNumber++;
-    }
+      writeUtil.writeTableLine(writer, context, rowNumber, columnList);
 
-    for (int rowNum = poiBasisTableStartRowNumber; rowNum < poiBasisTableStartRowNumber
-        + data.size(); rowNum++) {
-
-      List<T> list = data.get(rowNum - poiBasisTableStartRowNumber);
-
-      if (sheet.getRow(rowNum) == null) {
-        sheet.createRow(rowNum);
-      }
-
-      Row row = sheet.getRow(rowNum);
-
-      for (int colNum = poiBasisTableStartColumnNumber; colNum < poiBasisTableStartColumnNumber
-          + data.get(0).size(); colNum++) {
-
-        T sourceCellData = list.get(colNum - poiBasisTableStartColumnNumber);
-
-        if (row.getCell(colNum) == null) {
-          row.createCell(colNum);
-        }
-
-        Cell destCell = row.getCell(colNum);
-
-        writeToCell(sourceCellData, destCell);
-      }
+      rowNumber++;
     }
   }
 }
