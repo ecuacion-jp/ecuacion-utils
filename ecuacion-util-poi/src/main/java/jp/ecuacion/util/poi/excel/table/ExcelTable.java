@@ -105,7 +105,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * @param sheet excel sheet
    * @return the row number the table starts, greater than or equal to {@code 1}.
    */
-  protected int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet) {
+  public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet) {
     ObjectsUtil.paramRequireNonNull(sheet);
 
     if (tableStartRowNumber != null) {
@@ -140,8 +140,8 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     }
 
     // ここまでくるということは、signStringがなかったということ。異常終了
-    throw new RuntimeException("シート「" + sheet.getSheetName() + "」に文字列「" + getFarLeftAndTopHeaderLabel()
-        + "」が" + tableStartColumnNumber + "番目の列に存在しません。終了します。");
+    throw new RuntimeException("シート「" + sheet.getSheetName() + "」に文字列「"
+        + getFarLeftAndTopHeaderLabel() + "」が" + tableStartColumnNumber + "番目の列に存在しません。終了します。");
   }
 
   /**
@@ -154,7 +154,38 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    *     
    * @return the column number the table starts
    */
-  protected int getPoiBasisDeterminedTableStartColumnNumber() {
+  public int getPoiBasisDeterminedTableStartColumnNumber() {
     return tableStartColumnNumber - 1;
+  }
+
+  /**
+   * Stores context data.
+   */
+  public static class ContextContainer {
+    public final Sheet sheet;
+    public final int poiBasisTableStartRowNumber;
+    public final int poiBasisTableStartColumnNumber;
+    public final Integer tableRowSize;
+    public final Integer tableColumnSize;
+
+    public static final int max = 10000;
+
+    /**
+     * Constructs a new instance.
+     * 
+     * @param sheet sheet
+     * @param poiBasisTableStartColumnNumber poiBasisTableStartColumnNumber
+     * @param poiBasisTableStartRowNumber poiBasisTableStartRowNumber
+     * @param tableColumnSize tableColumnSize
+     * @param tableRowSize tableRowSize
+     */
+    public ContextContainer(Sheet sheet, int poiBasisTableStartRowNumber,
+        int poiBasisTableStartColumnNumber, Integer tableRowSize, Integer tableColumnSize) {
+      this.sheet = sheet;
+      this.poiBasisTableStartRowNumber = poiBasisTableStartRowNumber;
+      this.poiBasisTableStartColumnNumber = poiBasisTableStartColumnNumber;
+      this.tableRowSize = tableRowSize;
+      this.tableColumnSize = tableColumnSize;
+    }
   }
 }

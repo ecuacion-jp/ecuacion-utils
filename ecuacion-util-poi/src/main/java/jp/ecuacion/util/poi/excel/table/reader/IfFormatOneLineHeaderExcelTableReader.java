@@ -32,6 +32,11 @@ public interface IfFormatOneLineHeaderExcelTableReader<T>
   @Override
   public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> excelData) {
     List<List<String>> list = new ArrayList<>();
+    
+    if (excelData.size() == 0) {
+      return list;
+    }
+    
     list.add(excelData.remove(0).stream().map(el -> getStringValue(el)).toList());
     
     return list;

@@ -17,15 +17,29 @@ package jp.ecuacion.util.poi.excel.util;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
+import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
+import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
+import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 /**
  * Provides excel reading related {@code apache POI} utility methods.
@@ -227,5 +241,108 @@ public class ExcelReadUtil {
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
     }
+  }
+
+  /**
+   * Opens the excel file and returns {@code Workbook} object.
+   * 
+   * @param filePath filePath
+   * @return workbook
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
+  public Workbook openForRead(String filePath) throws EncryptedDocumentException, IOException {
+    return WorkbookFactory.create(new File(filePath), null, true);
+  }
+
+  /**
+   * Gets ready to read table data.
+   */
+  public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
+      String sheetName, Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull)
+      throws BizLogicAppException {
+    detailLog.debug(LogUtil.PARTITION_LARGE);
+    detailLog.debug("starting to read excel file.");
+    detailLog.debug("sheet name :" + sheetName);
+
+    Sheet sheet = workbook.getSheet(sheetName);
+
+    if (sheet == null) {
+      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", sheetName);
+    }
+
+    Integer tableRowSize =
+        numberOfHeaderLinesIfReadsHeaderOnlyOrNull == null ? reader.getTableRowSize()
+            : numberOfHeaderLinesIfReadsHeaderOnlyOrNull;
+
+    // poiBasis means the top-left position is (0, 0)
+    // while tableStartRowNumber / tableStartColumnNumber >= 1.
+    final int poiBasisTableStartRowNumber = reader.getPoiBasisDeterminedTableStartRowNumber(sheet);
+    final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
+    ContextContainer context = new ContextContainer(sheet, poiBasisTableStartRowNumber,
+        poiBasisTableStartColumnNumber, tableRowSize, reader.getTableColumnSize(sheet,
+            poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber));
+
+    return context;
+  }
+
+  /**
+   * Provides common procedure for read one line of a table.
+   */
+  public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
+      int rowNumber) {
+    detailLog.debug(LogUtil.PARTITION_MEDIUM);
+    detailLog.debug("row number：" + rowNumber);
+
+    // 最大行数を超えたらエラー
+    if (rowNumber == ContextContainer.max) {
+      throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
+    }
+
+    // 指定行数読み込み完了時の処理
+    if (context.tableRowSize != null
+        && rowNumber >= context.poiBasisTableStartRowNumber + context.tableRowSize) {
+      throw new LoopBreakException();
+    }
+
+    Row row = context.sheet.getRow(rowNumber);
+    List<T> colList = new ArrayList<>();
+
+    // excel上でtable範囲が終わった場合は、明示的に「row = null」となる。その場合、対象行は空行扱い。
+    boolean isEmptyRow = true;
+    if (row != null) {
+      // excelデータを読み込み。
+      for (int j =
+          context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
+              + context.tableColumnSize; j++) {
+        Cell cell = row.getCell(j);
+        T cellData = reader.getCellData(cell, j + 1);
+        colList.add(cellData);
+      }
+
+      // 空行チェック。全項目が空欄の場合は空行を意味する。
+      for (T colData : colList) {
+        if (!reader.isCellDataEmpty(colData)) {
+          isEmptyRow = false;
+        }
+      }
+    }
+
+    // 空行時の処理
+    if (isEmptyRow) {
+      detailLog.debug("(no data in the line)");
+      detailLog.debug(LogUtil.PARTITION_MEDIUM);
+
+      if (context.tableRowSize == null) {
+        // 空行発生時に読み込み終了の場合
+        throw new LoopBreakException();
+
+      } else {
+        // 空行は、それとわかるように要素数ゼロのlistとしておく
+        return new ArrayList<>();
+      }
+    }
+
+    return colList;
   }
 }

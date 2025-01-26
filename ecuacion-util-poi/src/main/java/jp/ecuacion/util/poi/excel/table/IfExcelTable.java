@@ -40,6 +40,13 @@ public interface IfExcelTable<T> {
   public String getSheetName();
 
   /**
+   * Returns the number of header lines.
+   * 
+   * @return the number of header lines
+   */
+  public int getNumberOfHeaderLines();
+
+  /**
    * Returns the value of the far left and top header cell to specify the position of the table.
    * 
    * <p>The method is called when {@code tableStartRowNumber} is {@code null}.<br>
@@ -55,7 +62,7 @@ public interface IfExcelTable<T> {
    */
   @Nonnull
   public String getFarLeftAndTopHeaderLabel();
-  
+
   /**
    * Returns an array of header label strings.
    * 
@@ -79,11 +86,11 @@ public interface IfExcelTable<T> {
    */
   public default void validateHeaderData(@RequireNonnull List<List<String>> headerData)
       throws BizLogicAppException {
-    
+
     for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
       List<String> headerList = headerData.get(i);
       String[] headerLabels = getHeaderLabelData()[i];
-      
+
       for (int j = 0; j < headerList.size(); j++) {
         if (!headerList.get(j).equals(headerLabels[j])) {
           int positionFromUser = j + 1;
@@ -102,5 +109,5 @@ public interface IfExcelTable<T> {
    */
   @Nullable
   public String getStringValue(@Nullable T cellData);
-  
+
 }
