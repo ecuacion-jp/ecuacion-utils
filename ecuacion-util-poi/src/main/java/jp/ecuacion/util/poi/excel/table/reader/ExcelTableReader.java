@@ -203,8 +203,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     List<List<T>> rowList = new ArrayList<>();
     try {
       for (int rowNumber =
-          context.poiBasisTableStartRowNumber; rowNumber <= context.max; rowNumber++) {
-        List<T> colList = readUtil.getTableLine(this, context, rowNumber);
+          context.poiBasisTableStartRowNumber; rowNumber <= ContextContainer.max; rowNumber++) {
+        List<T> colList = readUtil.readTableLine(this, context, rowNumber);
         rowList.add(colList);
       }
     } catch (LoopBreakException ex) {
@@ -294,37 +294,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Stores context data.
-   */
-  public static class ContextContainer {
-    public final Sheet sheet;
-    public final int poiBasisTableStartRowNumber;
-    public final int poiBasisTableStartColumnNumber;
-    public final Integer tableRowSize;
-    public final int tableColumnSize;
-
-    public final int max = 10000;
-
-    /**
-     * Constructs a new instance.
-     * 
-     * @param sheet sheet
-     * @param poiBasisTableStartColumnNumber poiBasisTableStartColumnNumber
-     * @param poiBasisTableStartRowNumber poiBasisTableStartRowNumber
-     * @param tableColumnSize tableColumnSize
-     * @param tableRowSize tableRowSize
-     */
-    public ContextContainer(Sheet sheet, int poiBasisTableStartRowNumber,
-        int poiBasisTableStartColumnNumber, Integer tableRowSize, int tableColumnSize) {
-      this.sheet = sheet;
-      this.poiBasisTableStartRowNumber = poiBasisTableStartRowNumber;
-      this.poiBasisTableStartColumnNumber = poiBasisTableStartColumnNumber;
-      this.tableRowSize = tableRowSize;
-      this.tableColumnSize = tableColumnSize;
-    }
-  }
-
-  /**
    * Provides {@code Iterable}.
    */
   public static class IterableReader<T> implements Iterable<List<T>> {
@@ -349,7 +318,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * Provides Iterator.
    * 
   * @param <T> See {@link IfExcelTable}.
-   * @param <S> equal to {@code List<T>}.
    */
   public static class IteratorReader<T> implements Iterator<List<T>> {
 
@@ -367,7 +335,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         int numberOfheaderLines) {
       this.reader = reader;
       this.context = context;
-      this.rowNumber = context.poiBasisTableStartRowNumber + 1;
+      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
     }
 
     @Override
@@ -379,13 +347,13 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     public List<T> next() {
       List<T> rtn = null;
 
-      rtn = readUtil.getTableLine(reader, context, rowNumber);
+      rtn = readUtil.readTableLine(reader, context, rowNumber);
 
       rowNumber++;
 
       // check for hasNext
       try {
-        readUtil.getTableLine(reader, context, rowNumber);
+        readUtil.readTableLine(reader, context, rowNumber);
       } catch (LoopBreakException ex) {
         hasNext = false;
       }

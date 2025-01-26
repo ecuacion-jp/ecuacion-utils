@@ -16,17 +16,19 @@
 package jp.ecuacion.util.poi.sample.copytable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.util.poi.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
+import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter.IterableWriter;
 import jp.ecuacion.util.poi.excel.table.writer.concrete.CellOneLineHeaderExcelTableWriter;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
+import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -40,10 +42,11 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
 
   private static final int HEADER_START_ROW = 3;
   private static final int START_COL = 2;
-
-  private static Path destPath;
+  
+  private static String destPath;
 
   private static ExcelReadUtil readUtil = new ExcelReadUtil();
+  private static ExcelWriteUtil writeUtil = new ExcelWriteUtil();
 
   public static void main(String[] args) throws Exception {
 
@@ -51,27 +54,31 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
 
     logger.info("Procedure started.");
 
-    List<List<Cell>> dataList = new ArrayList<>();
-    try (Workbook wb = startRead()) {
+    try (Workbook readWb = openToRead();
+        Workbook writeWb = openToWrite();
+        FileOutputStream out = openToOutput();) {
 
       // reader
-      Iterable<List<Cell>> it = new CellOneLineHeaderExcelTableReader("Member", headerLabels,
-          HEADER_START_ROW, START_COL, 3).getIterable(wb);
-      
-      for (List<Cell> list : it) {
-        dataList.add(list);
+      Iterable<List<Cell>> itReader = new CellOneLineHeaderExcelTableReader("Member", headerLabels,
+          HEADER_START_ROW, START_COL, 3).getIterable(readWb);
+      // writer
+      IterableWriter<Cell> itWriter =
+          new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL)
+              .getIterable(writeWb);
+
+      for (List<Cell> list : itReader) {
+        // write
+        itWriter.write(list);
       }
+
+      writeUtil.saveToFile(writeWb, out);
     }
 
-    // write
-    write(dataList);
-
     logger.info("A new excel file created and table data copied to: " + destPath.toString());
-
     logger.info("Procedure finshed.");
   }
 
-  private static Workbook startRead()
+  private static Workbook openToRead()
       throws URISyntaxException, EncryptedDocumentException, IOException {
     // Get the path of the excel file.
     URL sourceUrl = IterativeCopyOneLineHeaderFormatExcelTableSample.class.getClassLoader()
@@ -81,7 +88,7 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
     return readUtil.openForRead(sourcePath);
   }
 
-  private static void write(List<List<Cell>> dataList) throws Exception {
+  private static Workbook openToWrite() throws Exception {
 
     // Create a new file from a template excel file and write the table data to it.
     // The new file will be created as "result.xlsx" at the current path.
@@ -89,15 +96,19 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
         .getResource("template.xlsx");
     String templatePath = Path.of(templateUrl.toURI()).toAbsolutePath().toString();
 
-    destPath = Path.of(Paths.get("").toAbsolutePath().toString() + "/" + "result.xlsx");
+    return writeUtil.openForWrite(templatePath);
+  }
+
+  private static FileOutputStream openToOutput() throws Exception {
+
+    destPath = Path.of(Paths.get("").toAbsolutePath().toString() + "/" + "result.xlsx")
+        .toAbsolutePath().toString();
 
     // If the created file already exists, delete it.
-    if (new File(destPath.toString()).exists()) {
-      Files.delete(destPath);
+    if (new File(destPath).exists()) {
+      Files.delete(Path.of(destPath));
     }
 
-    // Write the table data.
-    new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL)
-        .write(templatePath, destPath.toString(), dataList);
+    return writeUtil.openForOutput(destPath);
   }
 }

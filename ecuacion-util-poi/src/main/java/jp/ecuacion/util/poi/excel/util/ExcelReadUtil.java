@@ -29,8 +29,8 @@ import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
+import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
-import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader.ContextContainer;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -289,14 +289,14 @@ public class ExcelReadUtil {
   /**
    * Provides common procedure for read one line of a table.
    */
-  public <T> List<T> getTableLine(ExcelTableReader<T> reader, ContextContainer context,
+  public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
       int rowNumber) {
     detailLog.debug(LogUtil.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
     // 最大行数を超えたらエラー
-    if (rowNumber == context.max) {
-      throw new RuntimeException("'max':" + context.max + " exceeded.");
+    if (rowNumber == ContextContainer.max) {
+      throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
     }
 
     // 指定行数読み込み完了時の処理
