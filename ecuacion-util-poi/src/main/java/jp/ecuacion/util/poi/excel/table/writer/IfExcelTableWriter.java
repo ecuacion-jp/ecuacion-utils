@@ -21,6 +21,9 @@ import org.apache.poi.ss.usermodel.Cell;
 /**
  * Provides the excel table writer methods.
  * 
+ * <p>Since the number of {@code CellStyle} in an excel file has limit (64,000), 
+ * first data line of {@code CellStyle} is reused to cells at the latter lines.</p>
+ * 
  * @param <T> See {@link IfExcelTable}.
  */
 public interface IfExcelTableWriter<T> extends IfExcelTable<T> {
@@ -28,8 +31,9 @@ public interface IfExcelTableWriter<T> extends IfExcelTable<T> {
   /**
    * writes cell data to the cell.
    * 
+   * @param columnNumberFromZero columnNumberFromZero
    * @param sourceCellData sourceCellData
    * @param destCell destCell
    */
-  public void writeToCell(T sourceCellData, Cell destCell);
+  public void writeToCell(int columnNumberFromZero, T sourceCellData, Cell destCell);
 }
