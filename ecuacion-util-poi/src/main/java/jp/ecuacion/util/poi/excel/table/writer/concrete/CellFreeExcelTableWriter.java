@@ -17,6 +17,8 @@ package jp.ecuacion.util.poi.excel.table.writer.concrete;
 
 import jakarta.annotation.Nullable;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -26,6 +28,7 @@ import jp.ecuacion.util.poi.excel.table.writer.IfDataTypeCellExcelTableWriter;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
@@ -63,5 +66,12 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   protected void headerCheck(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
 
+  }
+
+  private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
+  
+  @Override
+  public Map<Integer, CellStyle> getColumnStyleMap() {
+    return columnStyleMap;
   }
 }
