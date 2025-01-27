@@ -18,6 +18,8 @@ package jp.ecuacion.util.poi.excel.table.writer.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
@@ -28,6 +30,7 @@ import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
 import jp.ecuacion.util.poi.excel.table.writer.IfDataTypeCellExcelTableWriter;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
@@ -67,5 +70,12 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
         tableStartRowNumber, tableStartColumnNumber, 1).read(workbook);
+  }
+
+  private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
+  
+  @Override
+  public Map<Integer, CellStyle> getColumnStyleMap() {
+    return columnStyleMap;
   }
 }
