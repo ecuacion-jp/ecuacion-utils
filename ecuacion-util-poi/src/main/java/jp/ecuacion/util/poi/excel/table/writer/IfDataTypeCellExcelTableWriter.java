@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
-import java.util.HashMap;
 import java.util.Map;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeCellExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
@@ -29,8 +28,6 @@ import org.apache.poi.ss.util.CellUtil;
  */
 public interface IfDataTypeCellExcelTableWriter
     extends IfDataTypeCellExcelTable, IfExcelTableWriter<Cell> {
-
-  public final Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
 
   /**
    * Writes a value to the cell.
@@ -56,13 +53,20 @@ public interface IfDataTypeCellExcelTableWriter
     CellUtil.copyCell(sourceCellData, destCell, policy, null);
 
     // copy cellStyle
-    if (columnStyleMap.containsKey(columnNumberFromZero)) {
-      destCell.setCellStyle(columnStyleMap.get(columnNumberFromZero));
+    if (getColumnStyleMap().containsKey(columnNumberFromZero)) {
+      destCell.setCellStyle(getColumnStyleMap().get(columnNumberFromZero));
       
     } else {
       destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
       
-      columnStyleMap.put(columnNumberFromZero, destCell.getCellStyle());
+      getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
     }
   }
+  
+  /**
+   * Gets {@code columnStyleMap} to reuse {@code CellStyle}.
+   * 
+   * @return columnStyleMap
+   */
+  public Map<Integer, CellStyle> getColumnStyleMap();
 }
