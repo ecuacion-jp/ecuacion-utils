@@ -15,9 +15,12 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
+import java.util.HashMap;
+import java.util.Map;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeCellExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellCopyPolicy;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.util.CellUtil;
 
 /**
@@ -27,16 +30,39 @@ import org.apache.poi.ss.util.CellUtil;
 public interface IfDataTypeCellExcelTableWriter
     extends IfDataTypeCellExcelTable, IfExcelTableWriter<Cell> {
 
+  public final Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
+
   /**
    * Writes a value to the cell.
    * 
    * @param sourceCellData sourceCellData
    * @param destCell destCell
    */
-  public default void writeToCell(Cell sourceCellData, Cell destCell) {
+  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell) {
     CellCopyPolicy policy = new CellCopyPolicy();
     policy.setCopyCellFormula(false);
 
+    // The number of CellStyle in an excel file has limit: 64,000.
+    // If it exceeds, we'll get the exception below. To avoid it CellStyle has to be reused.
+    //
+    // Exception in thread "main" java.lang.IllegalStateException: The maximum number of Cell Styles
+    // was exceeded. You can define up to 64000 style in a .xlsx Workbook
+    // 
+    // Since CellUtil.copyCell always creates style for each cell 
+    // when the source and destination workbook is different, we need to set this to false
+    // and override style copy procedure.
+    policy.setCopyCellStyle(false);
+    
     CellUtil.copyCell(sourceCellData, destCell, policy, null);
+
+    // copy cellStyle
+    if (columnStyleMap.containsKey(columnNumberFromZero)) {
+      destCell.setCellStyle(columnStyleMap.get(columnNumberFromZero));
+      
+    } else {
+      destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
+      
+      columnStyleMap.put(columnNumberFromZero, destCell.getCellStyle());
+    }
   }
 }
