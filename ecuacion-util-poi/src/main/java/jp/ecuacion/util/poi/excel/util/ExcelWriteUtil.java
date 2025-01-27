@@ -138,7 +138,8 @@ public class ExcelWriteUtil {
 
       Cell destCell = row.getCell(colNumber);
 
-      writer.writeToCell(sourceCellData, destCell);
+      writer.writeToCell(colNumber - context.poiBasisTableStartColumnNumber, sourceCellData,
+          destCell);
     }
 
   }
