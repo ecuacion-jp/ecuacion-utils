@@ -45,6 +45,8 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  * Provides excel reading related {@code apache POI} utility methods.
  */
 public class ExcelReadUtil {
+  
+  private boolean suppressesWarnLog = false;
 
   private DetailLogger detailLog = new DetailLogger(this);
 
@@ -230,7 +232,7 @@ public class ExcelReadUtil {
           }
         }
 
-        if (warning) {
+        if (warning && !suppressesWarnLog) {
           detailLog.warn("The number actual and displayed in excel differs. actual: " + toStrVal
               + "、displayed: " + fmtVal);
         }
@@ -344,5 +346,16 @@ public class ExcelReadUtil {
     }
 
     return colList;
+  }
+  
+  /**
+   * Sets {@code suppressesWarnLog}.
+   * 
+   * @param suppressesWarnLog suppressesWarnLog
+   * @return {@code ExcelTableReader<T>}
+   */
+  public ExcelReadUtil suppressesWarnLog(boolean suppressesWarnLog) {
+    this.suppressesWarnLog = suppressesWarnLog;
+    return this;
   }
 }
