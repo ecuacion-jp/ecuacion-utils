@@ -45,7 +45,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  * Provides excel reading related {@code apache POI} utility methods.
  */
 public class ExcelReadUtil {
-  
+
   private boolean suppressesWarnLog = false;
 
   private DetailLogger detailLog = new DetailLogger(this);
@@ -55,7 +55,7 @@ public class ExcelReadUtil {
 
   private String noDataString;
 
-  private String defaultDateTimeFormat = "yyyy-MM-dd";
+  private DateTimeFormatter defaultDateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   /**
    * Constructs a new instance with {@code NoDataString = NULL}.
@@ -86,7 +86,7 @@ public class ExcelReadUtil {
    * 
    * @param dateTimeFormat dateTimeFormat
    */
-  public void setDefaultDateTimeFormat(String dateTimeFormat) {
+  public void setDefaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
     this.defaultDateTimeFormat = dateTimeFormat;
   }
 
@@ -127,7 +127,7 @@ public class ExcelReadUtil {
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
+  public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat) {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -157,7 +157,8 @@ public class ExcelReadUtil {
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    */
-  private @Nullable String internalGetStringFromCell(@Nullable Cell cell, String dateTimeFormat) {
+  private @Nullable String internalGetStringFromCell(@Nullable Cell cell,
+      DateTimeFormatter dateTimeFormat) {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -191,7 +192,7 @@ public class ExcelReadUtil {
    * @return String value of the cell, may be null when the value in the cell is empty.
    */
   private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType, String dateTimeFormat) {
+      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -210,7 +211,7 @@ public class ExcelReadUtil {
       detailLog.debug("Format: " + fmt.getClass().getSimpleName());
       if (fmt instanceof ExcelStyleDateFormatter) {
         // format: date and time
-        return cell.getLocalDateTimeCellValue().format(DateTimeFormatter.ofPattern(dateTimeFormat));
+        return cell.getLocalDateTimeCellValue().format(dateTimeFormat);
 
       } else {
         // 表示形式：数値
@@ -347,7 +348,7 @@ public class ExcelReadUtil {
 
     return colList;
   }
-  
+
   /**
    * Sets {@code suppressesWarnLog}.
    * 

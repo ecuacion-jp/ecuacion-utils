@@ -17,6 +17,7 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
@@ -74,12 +75,13 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
   }
 
   @Override
-  public StringFreeExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+  public StringFreeExcelTableReader defaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
     return (StringFreeExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
   }
 
   @Override
-  public StringFreeExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
+  public StringFreeExcelTableReader columnDateTimeFormat(int columnNumber,
+      DateTimeFormatter dateTimeFormat) {
     return (StringFreeExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
   }
 }
