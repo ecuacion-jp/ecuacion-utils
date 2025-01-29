@@ -17,6 +17,7 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import jakarta.annotation.Nonnull;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
@@ -132,7 +133,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
 
   @SuppressWarnings("unchecked")
   @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(String dateTimeFormat) {
+  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(
+      DateTimeFormatter dateTimeFormat) {
     return (StringOneLineHeaderExcelTableToBeanReader<T>) super.defaultDateTimeFormat(
         dateTimeFormat);
   }
@@ -140,11 +142,11 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
   @SuppressWarnings("unchecked")
   @Override
   public StringOneLineHeaderExcelTableToBeanReader<T> columnDateTimeFormat(int columnNumber,
-      String dateTimeFormat) {
+      DateTimeFormatter dateTimeFormat) {
     return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
         dateTimeFormat);
   }
-  
+
   /**
    * Sets {@code suppressesWarnLog}.
    * 

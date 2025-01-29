@@ -16,6 +16,7 @@
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import jakarta.annotation.Nullable;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
@@ -27,7 +28,7 @@ import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeStringExcelTableReader;
 public abstract class StringExcelTableReader extends ExcelTableReader<String>
     implements IfDataTypeStringExcelTableReader {
 
-  protected Map<Integer, String> columnDateTimeFormatMap = new HashMap<>();
+  protected Map<Integer, DateTimeFormatter> columnDateTimeFormatMap = new HashMap<>();
 
   /**
    * Constructs a new instance.
@@ -45,7 +46,7 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
    * @param dateTimeFormat dateTimeFormat string for {@link java.time.format.DateTimeFormatter}.
    * @return StringExcelTableReader (for method chain)
    */
-  public StringExcelTableReader defaultDateTimeFormat(String dateTimeFormat) {
+  public StringExcelTableReader defaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
     getExcelReadUtil().setDefaultDateTimeFormat(dateTimeFormat);
     return this;
   }
@@ -61,13 +62,14 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
    *     for {@link java.time.format.DateTimeFormatter}.
    * @return StringExcelTableReader (for method chain)
    */
-  public StringExcelTableReader columnDateTimeFormat(int columnNumber, String dateTimeFormat) {
+  public StringExcelTableReader columnDateTimeFormat(int columnNumber,
+      DateTimeFormatter dateTimeFormat) {
     this.columnDateTimeFormatMap.put(columnNumber, dateTimeFormat);
     return this;
   }
 
   @Override
-  public @Nullable String getDateTimeFormat(int columnNumber) {
+  public @Nullable DateTimeFormatter getDateTimeFormat(int columnNumber) {
     return columnDateTimeFormatMap.containsKey(columnNumber)
         ? columnDateTimeFormatMap.get(columnNumber)
         : null;

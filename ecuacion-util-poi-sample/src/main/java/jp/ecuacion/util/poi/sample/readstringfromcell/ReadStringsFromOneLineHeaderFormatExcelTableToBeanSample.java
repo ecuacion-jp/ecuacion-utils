@@ -17,6 +17,7 @@ package jp.ecuacion.util.poi.sample.readstringfromcell;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import jp.ecuacion.util.poi.excel.table.reader.concrete.StringOneLineHeaderExcelTableToBeanReader;
 import org.slf4j.Logger;
@@ -54,7 +55,8 @@ public class ReadStringsFromOneLineHeaderFormatExcelTableToBeanSample {
 
     // Get the table data.
     return new StringOneLineHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
-        "Member", headerLabels, HEADER_START_ROW, START_COL, null).defaultDateTimeFormat("MM/dd/yyyy")
+        "Member", headerLabels, HEADER_START_ROW, START_COL, null)
+            .defaultDateTimeFormat(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
             .readToBean(sourcePath.toString());
   }
 }
