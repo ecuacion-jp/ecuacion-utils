@@ -152,7 +152,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * 
    * <p>This method is defined in {@code ExcelTableReader} 
    *     and the one in this class has the same function as it.<br>
-   *     But this class use {@readToBean} method to read excel tables
+   *     But this class use {@code readToBean} method to read excel tables
    *     and {@code ExcelTableReader} doesn't have it so method chain link disconnected.
    * 
    * @param suppressesWarnLog suppressesWarnLog
