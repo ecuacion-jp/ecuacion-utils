@@ -50,7 +50,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExcelTableReader<T> {
 
   private DetailLogger detailLog = new DetailLogger(this);
-  private ExcelReadUtil readUtil = new ExcelReadUtil();
+  protected ExcelReadUtil readUtil = new ExcelReadUtil();
 
   /**
    * Is the row size of the table. 
@@ -360,5 +360,16 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
       return rtn;
     }
+  }
+  
+  /**
+   * Sets {@code suppressesWarnLog}.
+   * 
+   * @param suppressesWarnLog suppressesWarnLog
+   * @return {@code ExcelTableReader<T>}
+   */
+  public ExcelTableReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
+    readUtil.suppressesWarnLog(suppressesWarnLog);
+    return this;
   }
 }

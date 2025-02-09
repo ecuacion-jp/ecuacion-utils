@@ -30,12 +30,15 @@ module jp.ecuacion.util.poi {
   opens jp.ecuacion.util.poi.excel.table;
   opens jp.ecuacion.util.poi.excel.table.reader;
   
+  provides jp.ecuacion.lib.core.spi.MessagesUtilPoiProvider
+      with jp.ecuacion.util.poi.spi.impl.internal.MessagesUtilPoiProviderImpl;
+
   requires jakarta.annotation;
   requires jakarta.validation;
   requires jp.ecuacion.lib.core;
-  
+
   requires org.apache.commons.lang3;
-  
+
   requires transitive org.apache.poi.poi;
   requires org.apache.poi.ooxml;
 }

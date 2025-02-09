@@ -16,6 +16,7 @@
 package jp.ecuacion.util.poi.excel.table.reader;
 
 import jakarta.annotation.Nullable;
+import java.time.format.DateTimeFormatter;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeStringExcelTable;
 import org.apache.commons.lang3.StringUtils;
@@ -55,5 +56,5 @@ public interface IfDataTypeStringExcelTableReader
    *     the columnNumber is 2.
    * @return date format
    */
-  public String getDateTimeFormat(int columnNumber);
+  public DateTimeFormatter getDateTimeFormat(int columnNumber);
 }

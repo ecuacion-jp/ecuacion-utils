@@ -17,6 +17,7 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import jakarta.annotation.Nonnull;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
@@ -132,7 +133,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
 
   @SuppressWarnings("unchecked")
   @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(String dateTimeFormat) {
+  public StringOneLineHeaderExcelTableToBeanReader<T> defaultDateTimeFormat(
+      DateTimeFormatter dateTimeFormat) {
     return (StringOneLineHeaderExcelTableToBeanReader<T>) super.defaultDateTimeFormat(
         dateTimeFormat);
   }
@@ -140,8 +142,25 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
   @SuppressWarnings("unchecked")
   @Override
   public StringOneLineHeaderExcelTableToBeanReader<T> columnDateTimeFormat(int columnNumber,
-      String dateTimeFormat) {
+      DateTimeFormatter dateTimeFormat) {
     return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
         dateTimeFormat);
+  }
+
+  /**
+   * Sets {@code suppressesWarnLog}.
+   * 
+   * <p>This method is defined in {@code ExcelTableReader} 
+   *     and the one in this class has the same function as it.<br>
+   *     But this class use {@code readToBean} method to read excel tables
+   *     and {@code ExcelTableReader} doesn't have it so method chain link disconnected.
+   * 
+   * @param suppressesWarnLog suppressesWarnLog
+   * @return {@code ExcelTableReader<T>}
+   */
+  @Override
+  public StringOneLineHeaderExcelTableToBeanReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
+    super.suppressesWarnLog(suppressesWarnLog);
+    return this;
   }
 }
