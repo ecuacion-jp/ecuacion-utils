@@ -102,6 +102,7 @@
 		<dependency>
 			<groupId>jp.ecuacion.lib</groupId>
 			<artifactId>ecuacion-lib-core</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- others -->
