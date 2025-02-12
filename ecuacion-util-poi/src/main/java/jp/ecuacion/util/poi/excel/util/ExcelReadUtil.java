@@ -249,9 +249,8 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new BizLogicAppException("MSG_ERR_CELL_CONTAINS_ERROR",
-          cell.getRow().getSheet().getSheetName(),
-          Integer.valueOf(cell.getRowIndex() + 1).toString(),
-          Integer.valueOf(cell.getColumnIndex() + 1).toString());
+          cell.getRow().getSheet().getSheetName(), Integer.toString(cell.getRowIndex() + 1),
+          Integer.toString(cell.getColumnIndex() + 1));
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
