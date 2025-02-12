@@ -16,6 +16,7 @@
 package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nullable;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
 
@@ -26,7 +27,7 @@ public interface IfDataTypeCellExcelTable extends IfExcelTable<Cell> {
 
   @Override
   @Nullable
-  public default String getStringValue(@Nullable Cell cellData) {
+  public default String getStringValue(@Nullable Cell cellData) throws BizLogicAppException {
     return cellData == null ? null : new ExcelReadUtil().getStringFromCell(cellData);
   }
 }

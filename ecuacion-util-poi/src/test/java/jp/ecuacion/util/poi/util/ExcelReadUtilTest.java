@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.format.DateTimeFormatter;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -44,7 +45,7 @@ public class ExcelReadUtilTest {
 
   @Test
   public void readFromCellTest()
-      throws URISyntaxException, EncryptedDocumentException, IOException {
+      throws URISyntaxException, EncryptedDocumentException, IOException, BizLogicAppException {
     String excelPath = new File("src/test/resources").getAbsolutePath() + "/readFromCellTest.xlsx";
     Workbook excel = WorkbookFactory.create(new File(excelPath.toString()), null, true);
     Sheet sheet = excel.getSheet("StringReader");
