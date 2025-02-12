@@ -106,8 +106,9 @@ public interface IfExcelTable<T> {
    * 
    * @param cellData data obtained from the cell
    * @return {@code String} value obtained from the {@code cellData}
+   * @throws BizLogicAppException BizLogicAppException
    */
   @Nullable
-  public String getStringValue(@Nullable T cellData);
+  public String getStringValue(@Nullable T cellData) throws BizLogicAppException;
 
 }

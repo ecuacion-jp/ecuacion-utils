@@ -113,8 +113,9 @@ public class ExcelReadUtil {
   *
   * @param cell the cell of the excel file
   * @return the string which expresses the value of the cell.
+   * @throws BizLogicAppException BizLogicAppException
   */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) {
+  public @Nullable String getStringFromCell(@Nullable Cell cell) throws BizLogicAppException {
     return getStringFromCell(cell, defaultDateTimeFormat);
   }
 
@@ -126,8 +127,10 @@ public class ExcelReadUtil {
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
+   * @throws BizLogicAppException BizLogicAppException
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat) {
+  public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat)
+      throws BizLogicAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -156,9 +159,10 @@ public class ExcelReadUtil {
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
+   * @throws BizLogicAppException BizLogicAppException
    */
   private @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      DateTimeFormatter dateTimeFormat) {
+      DateTimeFormatter dateTimeFormat) throws BizLogicAppException {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -190,9 +194,10 @@ public class ExcelReadUtil {
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
+   * @throws BizLogicAppException BizLogicAppException
    */
   private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) {
+      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) throws BizLogicAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -240,6 +245,13 @@ public class ExcelReadUtil {
 
         return fmtVal;
       }
+
+    } else if (cellType == CellType.ERROR) {
+      // We've got this when the cell says "#NUM!" in excel.
+      throw new BizLogicAppException("MSG_ERR_CELL_CONTAINS_ERROR",
+          cell.getRow().getSheet().getSheetName(),
+          Integer.valueOf(cell.getRowIndex() + 1).toString(),
+          Integer.valueOf(cell.getColumnIndex() + 1).toString());
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
@@ -291,9 +303,11 @@ public class ExcelReadUtil {
 
   /**
    * Provides common procedure for read one line of a table.
+   *
+   * @throws BizLogicAppException BizLogicAppException
    */
   public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
-      int rowNumber) {
+      int rowNumber) throws BizLogicAppException {
     detailLog.debug(LogUtil.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
