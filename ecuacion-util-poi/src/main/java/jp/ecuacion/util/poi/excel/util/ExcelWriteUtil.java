@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.poi.excel.util;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -62,7 +62,7 @@ public class ExcelWriteUtil {
    * @throws IOException IOException
    */
   public Workbook openForWrite(String filePath) throws EncryptedDocumentException, IOException {
-    return WorkbookFactory.create(new File(filePath), null, false);
+    return WorkbookFactory.create(new FileInputStream(filePath));
   }
 
   /**
