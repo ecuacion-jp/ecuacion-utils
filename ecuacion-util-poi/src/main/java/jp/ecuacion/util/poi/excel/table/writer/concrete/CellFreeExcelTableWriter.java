@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatFreeExcelTable;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
@@ -58,7 +59,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  public String getStringValue(@Nullable Cell cellData) {
+  public String getStringValue(@Nullable Cell cellData) throws BizLogicAppException {
     return new ExcelReadUtil().getStringFromCell(cellData);
   }
 

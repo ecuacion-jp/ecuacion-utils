@@ -28,6 +28,7 @@ import java.util.Set;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.lib.core.exception.unchecked.RuntimeAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.BeanValidationUtil;
 import jp.ecuacion.lib.core.util.LogUtil;
@@ -347,18 +348,24 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     public List<T> next() {
       List<T> rtn = null;
 
-      rtn = readUtil.readTableLine(reader, context, rowNumber);
-
-      rowNumber++;
-
-      // check for hasNext
       try {
-        readUtil.readTableLine(reader, context, rowNumber);
-      } catch (LoopBreakException ex) {
-        hasNext = false;
+        rtn = readUtil.readTableLine(reader, context, rowNumber);
+
+        rowNumber++;
+
+        // check for hasNext
+        try {
+          readUtil.readTableLine(reader, context, rowNumber);
+        } catch (LoopBreakException ex) {
+          hasNext = false;
+        }
+        
+        return rtn;
+
+      } catch (BizLogicAppException ex) {
+        throw new RuntimeAppException(ex);
       }
 
-      return rtn;
     }
   }
   

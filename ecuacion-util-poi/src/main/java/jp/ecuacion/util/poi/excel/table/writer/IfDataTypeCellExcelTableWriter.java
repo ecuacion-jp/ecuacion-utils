@@ -57,6 +57,16 @@ public interface IfDataTypeCellExcelTableWriter
       destCell.setCellStyle(getColumnStyleMap().get(columnNumberFromZero));
       
     } else {
+      
+      // Under some conditions org.apache.xmlbeans.impl.vales.XmlValueDisconnectedException occurs
+      // when workbook.save() is caled after cloneStyleFrom is used. 
+      // Reason is unclear but it seems to happen when the java object (like Cells) exists 
+      // but the xml in workbook is gone.
+      // So I think it's may be because of something related to the cloned style w
+      // hich does not exist in xml.
+      // That's why I put createCellStyle() before cloneStyleFrom() 
+      // and problem seems to be resolved.
+      destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
       destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
       
       getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());

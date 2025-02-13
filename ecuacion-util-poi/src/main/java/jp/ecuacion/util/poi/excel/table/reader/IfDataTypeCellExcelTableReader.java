@@ -16,6 +16,7 @@
 package jp.ecuacion.util.poi.excel.table.reader;
 
 import jakarta.annotation.Nullable;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeCellExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
 
@@ -32,7 +33,7 @@ public interface IfDataTypeCellExcelTableReader
   }
 
   @Override
-  public default boolean isCellDataEmpty(@Nullable Cell cellData) {
+  public default boolean isCellDataEmpty(@Nullable Cell cellData) throws BizLogicAppException {
     if (cellData == null) {
       return true;
     }

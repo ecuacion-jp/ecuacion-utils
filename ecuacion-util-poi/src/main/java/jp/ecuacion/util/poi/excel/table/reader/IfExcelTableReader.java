@@ -19,6 +19,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -45,9 +46,11 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * 
    * @param tableData table data
    * @return header data
+   * @throws BizLogicAppException BizLogicAppException
    */
   @Nullable
-  public List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> tableData);
+  public List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> tableData)
+      throws BizLogicAppException;
 
   /**
    * Returns the obtained value from the cell.
@@ -61,8 +64,10 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    *     When the far left column of a table is 2 and you want to speciries the far left column,
    *     the columnNumber is 2.
    * @return the obtained value from the cell
+   * @throws BizLogicAppException BizLogicAppException
    */
-  public @Nullable T getCellData(@RequireNonnull Cell cell, int columnNumber);
+  public @Nullable T getCellData(@RequireNonnull Cell cell, int columnNumber)
+      throws BizLogicAppException;
 
   /**
    * Returns whether the value of the cell is empty.
@@ -70,5 +75,5 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @param cellData cellData
    * @return whether the valule of the cell is empty.
    */
-  public boolean isCellDataEmpty(@Nullable T cellData);
+  public boolean isCellDataEmpty(@Nullable T cellData) throws BizLogicAppException;
 }
