@@ -99,7 +99,7 @@ public class ExcelWriteUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", sheetName);
+      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
