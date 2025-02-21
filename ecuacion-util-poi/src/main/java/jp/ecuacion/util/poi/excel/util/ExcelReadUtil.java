@@ -248,7 +248,7 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
-      throw new BizLogicAppException("MSG_ERR_CELL_CONTAINS_ERROR",
+      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
           cell.getRow().getSheet().getSheetName(), Integer.toString(cell.getRowIndex() + 1),
           Integer.toString(cell.getColumnIndex() + 1));
 
@@ -282,7 +282,7 @@ public class ExcelReadUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new BizLogicAppException("MSG_ERR_SHEET_NOT_EXIST", sheetName);
+      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
     }
 
     Integer tableRowSize =
