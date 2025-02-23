@@ -19,7 +19,7 @@ import jp.ecuacion.lib.core.spi.MessagesUtilPoiProvider;
 import jp.ecuacion.lib.core.spi.impl.AbstractPropertyFileProviderImpl;
 
 /**
- * Provides 
+ * Provides the implementation of the Service Provider Interface.
  */
 public class MessagesUtilPoiProviderImpl extends AbstractPropertyFileProviderImpl
     implements MessagesUtilPoiProvider {
