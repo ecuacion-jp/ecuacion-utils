@@ -190,16 +190,17 @@ public class ExcelWriteUtil {
       String sheet = sheetAndCell.split("!")[0];
       String cell = sheetAndCell.split("!")[1];
 
-      String reason = PropertyFileUtil.getMsg(
-          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementeException.ReasonUnknown.message");
+      String reason = PropertyFileUtil.getMsg("jp.ecuacion.util.poi.excel.ExcelWriteUtil"
+          + ".NotImplementedException.ReasonUnknown.message");
 
       if (ex.getCause() instanceof NotImplementedFunctionException) {
         NotImplementedFunctionException ex2 = (NotImplementedFunctionException) ex.getCause();
         reason = "未対応の関数：" + ex2.getMessage().replace("_xlfn.", "");
       }
 
-      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.NotImplementeException.message",
-          sheet, cell, reason);
+      throw new BizLogicAppException(
+          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message", sheet, cell,
+          reason);
 
     } catch (FormulaParseException ex) {
       throwBizLogicExceptionForUnknownException(ex, fileInfo);
@@ -230,7 +231,8 @@ public class ExcelWriteUtil {
             String fileInfoInFunction = arg3Tmp1.substring(0, arg3Tmp1.indexOf("'"));
             Arg[] fileInfoStrs = getFileInfoString(fileInfo, false);
 
-            throw new BizLogicAppException("",
+            throw new BizLogicAppException(
+                "jp.ecuacion.util.poi.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
                 new Arg[] {new Arg(sheetame), new Arg(cellName), new Arg(errorOccuredFunction),
                     new Arg(fileInfoInFunction), fileInfoStrs[0], fileInfoStrs[1], fileInfoStrs[2],
                     fileInfoStrs[3]});
