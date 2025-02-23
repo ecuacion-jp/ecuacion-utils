@@ -23,11 +23,11 @@ import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.LogUtil;
-import jp.ecuacion.lib.core.util.PropertyFileUtil;
 import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.formula.CollaboratingWorkbooksEnvironment.WorkbookNotFoundException;
 import org.apache.poi.ss.formula.FormulaParseException;
@@ -181,6 +181,8 @@ public class ExcelWriteUtil {
    * @throws BizLogicAppException BizLogicAppException
    */
   public void evaluateAllFormulas(Workbook workbook, String fileInfo) throws BizLogicAppException {
+    Arg fileInfoArg = getFileInfoString(fileInfo);
+
     try {
       workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
 
@@ -190,17 +192,21 @@ public class ExcelWriteUtil {
       String sheet = sheetAndCell.split("!")[0];
       String cell = sheetAndCell.split("!")[1];
 
-      String reason = PropertyFileUtil.getMsg("jp.ecuacion.util.poi.excel.ExcelWriteUtil"
+      Arg reason = Arg.message("jp.ecuacion.util.poi.excel.ExcelWriteUtil"
           + ".NotImplementedException.ReasonUnknown.message");
 
       if (ex.getCause() instanceof NotImplementedFunctionException) {
         NotImplementedFunctionException ex2 = (NotImplementedFunctionException) ex.getCause();
-        reason = "未対応の関数：" + ex2.getMessage().replace("_xlfn.", "");
+        String msg = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException."
+            + "ReasonUnimplementedFunction.message";
+        reason = Arg.message(msg, Arg.string(ex2.getMessage().replace("_xlfn.", "")));
       }
 
       throw new BizLogicAppException(
-          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message", sheet, cell,
-          reason);
+          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
+          ArrayUtils.addAll(
+              ArrayUtils.addAll(Arg.strings(sheet, cell), reason), fileInfoArg)
+          );
 
     } catch (FormulaParseException ex) {
       throwBizLogicExceptionForUnknownException(ex, fileInfo);
@@ -229,13 +235,12 @@ public class ExcelWriteUtil {
           if (ex3.getMessage().startsWith(startsWith)) {
             String arg3Tmp1 = ex3.getMessage().replace(startsWith + "'", "");
             String fileInfoInFunction = arg3Tmp1.substring(0, arg3Tmp1.indexOf("'"));
-            Arg[] fileInfoStrs = getFileInfoString(fileInfo, false);
 
             throw new BizLogicAppException(
                 "jp.ecuacion.util.poi.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
-                new Arg[] {new Arg(sheetame), new Arg(cellName), new Arg(errorOccuredFunction),
-                    new Arg(fileInfoInFunction), fileInfoStrs[0], fileInfoStrs[1], fileInfoStrs[2],
-                    fileInfoStrs[3]});
+                ArrayUtils.addAll(
+                    Arg.strings(sheetame, cellName, errorOccuredFunction, fileInfoInFunction),
+                    fileInfoArg));
 
           } else {
             // In case of unknown cause.
@@ -254,7 +259,9 @@ public class ExcelWriteUtil {
             cellName, errorOccuredFunction);
       }
 
-    } catch (Exception ex) {
+    } catch (
+
+    Exception ex) {
       throwBizLogicExceptionForUnknownException(ex, fileInfo);
     }
   }
@@ -264,12 +271,11 @@ public class ExcelWriteUtil {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream()
         .forEach(e -> sb.append("  - " + e.getMessage()));
-    Arg[] fileInfoStrs = getFileInfoString(fileInfo, true);
+    Arg fileInfoArg = getFileInfoString(fileInfo);
 
     throw new BizLogicAppException(
         "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
-        new Arg[] {fileInfoStrs[0], fileInfoStrs[1], fileInfoStrs[2], fileInfoStrs[3],
-            new Arg(sb.toString())});
+        ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(sb.toString())));
   }
 
   private void throwBizLogicExceptionForIllegalStateExceptionFailedToEvaluateCell(Exception ex,
@@ -277,24 +283,21 @@ public class ExcelWriteUtil {
       throws BizLogicAppException {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream()
-        .forEach(e -> sb.append("  - " + e.getMessage()));
-    Arg[] fileInfoStrs = getFileInfoString(fileInfo, false);
+        .forEach(e -> sb.append("      - " + e.getMessage()));
+    Arg fileInfoArg = getFileInfoString(fileInfo);
 
     throw new BizLogicAppException(
         "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
-        new Arg[] {new Arg(sheetName), new Arg(cellName), new Arg(errorOccuredFunction),
-            fileInfoStrs[0], fileInfoStrs[1], fileInfoStrs[2], fileInfoStrs[3],
-            new Arg(sb.toString())});
+        ArrayUtils.addAll(
+            ArrayUtils.addAll(Arg.strings(sheetName, cellName, errorOccuredFunction), fileInfoArg),
+            Arg.strings(sb.toString())));
   }
 
-  private Arg[] getFileInfoString(String fileInfo, boolean is1stParameter) {
-    String msgLabel = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.FileInfoLabel.message";
-    Arg prefix = is1stParameter
-        ? new Arg("jp.ecuacion.util.poi.excel.ExcelWriteUtil.StartBracket.message", true)
-        : new Arg("jp.ecuacion.util.poi.excel.ExcelWriteUtil.Comma.message", true);
-    Arg fileInfoLabel = fileInfo == null ? new Arg("") : new Arg(msgLabel, true);
-    Arg fileInfoValue = fileInfo == null ? new Arg("") : new Arg(fileInfo);
-    Arg postfix = new Arg("jp.ecuacion.util.poi.excel.ExcelWriteUtil.EndBracket.message", true);
-    return new Arg[] {prefix, fileInfoLabel, fileInfoValue, postfix};
+  private Arg getFileInfoString(String fileInfo) {
+
+    String infoNone = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.FileInfoLabel.None.message";
+    Arg fileInfoLabel = fileInfo == null ? Arg.message(infoNone) : Arg.string(fileInfo);
+
+    return fileInfoLabel;
   }
 }
