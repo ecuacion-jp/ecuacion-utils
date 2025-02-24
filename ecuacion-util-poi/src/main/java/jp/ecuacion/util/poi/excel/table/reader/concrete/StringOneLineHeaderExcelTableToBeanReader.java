@@ -111,9 +111,10 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     
     if (validates) {
       for (T bean : rtnList) {
-        // bean validation
-        valUtil.validateThenThrow(bean);
-
+        // bean validation. excel data is usually not shown on displays, 
+        // so "validateThenThrowShowingMessagesWithItemNames" is used.
+        valUtil.validateThenThrowShowingMessagesWithItemNames(bean);
+        
         // dat整合性check
         bean.dataConsistencyCheck();
       }
