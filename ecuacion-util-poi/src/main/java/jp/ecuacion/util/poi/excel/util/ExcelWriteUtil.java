@@ -204,9 +204,7 @@ public class ExcelWriteUtil {
 
       throw new BizLogicAppException(
           "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
-          ArrayUtils.addAll(
-              ArrayUtils.addAll(Arg.strings(sheet, cell), reason), fileInfoArg)
-          );
+          ArrayUtils.addAll(ArrayUtils.addAll(Arg.strings(sheet, cell), reason), fileInfoArg));
 
     } catch (FormulaParseException ex) {
       throwBizLogicExceptionForUnknownException(ex, fileInfo);
@@ -269,8 +267,9 @@ public class ExcelWriteUtil {
   private void throwBizLogicExceptionForUnknownException(Exception ex, String fileInfo)
       throws BizLogicAppException {
     StringBuilder sb = new StringBuilder();
-    exUtil.getExceptionListWithMessages(ex).stream()
-        .forEach(e -> sb.append("  - " + e.getMessage()));
+    exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
+    // delete last "\n"
+    sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
     throw new BizLogicAppException(
@@ -282,8 +281,9 @@ public class ExcelWriteUtil {
       String fileInfo, String sheetName, String cellName, String errorOccuredFunction)
       throws BizLogicAppException {
     StringBuilder sb = new StringBuilder();
-    exUtil.getExceptionListWithMessages(ex).stream()
-        .forEach(e -> sb.append("      - " + e.getMessage()));
+    exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
+    // delete last "\n"
+    sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
     throw new BizLogicAppException(
