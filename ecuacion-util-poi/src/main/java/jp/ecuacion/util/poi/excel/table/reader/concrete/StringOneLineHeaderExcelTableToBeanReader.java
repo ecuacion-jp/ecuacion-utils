@@ -88,19 +88,40 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    */
   public List<T> readToBean(String filePath)
       throws AppException, EncryptedDocumentException, IOException {
+    return readToBean(filePath, true);
+  }
+
+  /**
+   * Obtains excel table in the form of {@code List<PoiStringTableBean>}
+   *     and validate obtained values..
+   * 
+   * @param filePath excelPath
+   * @param validates whether validation is enabled or not
+   * @return the list of {@code PoiStringTableBean}.
+   * @throws AppException AppException
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
+  public List<T> readToBean(String filePath, boolean validates)
+      throws AppException, EncryptedDocumentException, IOException {
     List<T> rtnList = excelTableToBeanList(filePath);
 
     // data check
     BeanValidationUtil valUtil = new BeanValidationUtil();
-    for (T bean : rtnList) {
-      // bean validation
-      valUtil.validateThenThrow(bean);
-
-      // dat整合性check
-      bean.dataConsistencyCheck();
+    
+    if (validates) {
+      for (T bean : rtnList) {
+        // bean validation. excel data is usually not shown on displays, 
+        // so "validateThenThrowShowingMessagesWithItemNames" is used.
+        valUtil.validateThenThrowShowingMessagesWithItemNames(bean);
+        
+        // dat整合性check
+        bean.dataConsistencyCheck();
+      }
     }
 
     return rtnList;
+    
   }
 
   /** 
