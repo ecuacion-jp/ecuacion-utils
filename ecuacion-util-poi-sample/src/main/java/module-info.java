@@ -21,4 +21,6 @@ module jp.ecuacion.util.poi.sample {
   requires jp.ecuacion.util.poi;
   requires org.apache.poi.poi;
   requires org.slf4j;
+  
+  opens jp.ecuacion.util.poi.sample.readstringfromcell;
 }
