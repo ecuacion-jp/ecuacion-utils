@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
@@ -96,7 +95,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     // Validate the input values.
     Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
-        new BeanValidationUtil().validate(this, Locale.getDefault());
+        new BeanValidationUtil().validate(this);
     if (violationSet != null && violationSet.size() > 0) {
 
       throw new RuntimeException("Validation failed at TableReader constructor.");
