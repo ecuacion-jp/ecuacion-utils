@@ -23,6 +23,7 @@ import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.BeanValidationUtil;
+import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.bean.StringExcelTableBean;
 import org.apache.poi.EncryptedDocumentException;
@@ -104,24 +105,25 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    */
   public List<T> readToBean(String filePath, boolean validates)
       throws AppException, EncryptedDocumentException, IOException {
+    final String msgId = "jp.ecuacion.util.poi.excel.reader.ValidationMessagePostfix.message";
     List<T> rtnList = excelTableToBeanList(filePath);
 
     // data check
     BeanValidationUtil valUtil = new BeanValidationUtil();
-    
+
     if (validates) {
       for (T bean : rtnList) {
-        // bean validation. excel data is usually not shown on displays, 
-        // so "validateThenThrowShowingMessagesWithItemNames" is used.
-        valUtil.validateThenThrowShowingMessagesWithItemNames(bean);
-        
+        // bean validation. excel data is usually not shown on displays,
+        // so "setMessageWithItemName(true)" is used.
+        valUtil.setMessageWithItemName(true)
+            .setMessagePostfix(Arg.message(msgId, Arg.strings(sheetName))).validateThenThrow(bean);
+
         // dat整合性check
         bean.dataConsistencyCheck();
       }
     }
 
     return rtnList;
-    
   }
 
   /** 
