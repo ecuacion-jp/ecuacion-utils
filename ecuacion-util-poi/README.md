@@ -28,14 +28,13 @@
 ### Manual Load Needed Libraries
 
 - `jakarta.validation:jakarta.validation-api`
+- (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
 - `jakarta.annotation:jakarta.annotation-api`
 - `org.slf4j:slf4j-api`
+- (any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
 
 (modules depending on `ecuacion-lib-core`)
 - `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
-- `org.hibernate.validator:hibernate-validator`
-- `org.glassfish:jakarta.el`
-- (any logging libraries. `ch.qos.logback:logback-classic` is reccomended.)
 
 ## Documentation
 
@@ -67,18 +66,18 @@ The description of dependent `ecuacion` modules is as follows.
 </dependency>
 ```
 
-## features
+## Features
 
-We'll use the following table as an example. This table is in `Sheet1` sheet of `sample.xlsx`. The position of the top left cell is `A1`.
+We'll use the following table as an example. Let's say this table is in `Sheet1` sheet of `sample.xlsx`, the position of the top left cell of the table is `A1`.
 
 | name | age  | phone number   |
 | ---- | ---- | ----           |
 | John | 30   | (+01)123456789 |
 | Ken  | 40   | (+81)987654321 |
 
-### read values in excel cells as string
+### Read Values In Excel Cells As String
 
-Following features read values of cells in excels and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
+The following features read values of cells in the excel file and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
 
 #### read excel table values and put them to the list of strings
 
