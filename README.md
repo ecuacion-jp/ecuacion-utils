@@ -3,7 +3,7 @@
 ## What is it?
 
 `ecuacion-utils` provides various utilities.  
-This library is dependent to `ecuacion-lib`.
+This library is dependent on `ecuacion-lib`.
 
 ## System Requirements
 
@@ -11,8 +11,8 @@ This library is dependent to `ecuacion-lib`.
 
 ## Documentation
 
-- [javadoc](https://javadoc.ecuacion.jp/apidocs/)
+(See `Documentation` part of `README` in each module)
 
 ## Introduction
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.
+(See `Introduction` part of `README` in each module)

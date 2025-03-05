@@ -1,13 +1,41 @@
-# ecuacion-utils
+# ecuacion-util-poi
 
 ## What is it?
 
-`ecuacion-utils-poi` provides utilities for `apache-poi`.  
-This library is dependent to `ecuacion-lib`.
+`ecuacion-util-poi` provides utilities for `apache POI`.  
 
 ## System Requirements
 
 - JDK 21 or above.
+
+## Dependent Ecuacion Libraries
+
+### Automatically Loaded Libraries
+
+(none)
+
+### Manual Load Needed Libraries
+
+- `ecuacion-lib-core`
+
+## Dependent External Libraries
+
+### Automatically Loaded Libraries
+
+- `org.apache.poi:poi`
+- `org.apache.poi:poi-ooxml`
+
+### Manual Load Needed Libraries
+
+- `jakarta.validation:jakarta.validation-api`
+- `jakarta.annotation:jakarta.annotation-api`
+- `org.slf4j:slf4j-api`
+
+(modules depending on `ecuacion-lib-core`)
+- `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
+- `org.hibernate.validator:hibernate-validator`
+- `org.glassfish:jakarta.el`
+- (any logging libraries. `ch.qos.logback:logback-classic` is reccomended.)
 
 ## Documentation
 
@@ -19,14 +47,23 @@ This library is dependent to `ecuacion-lib`.
 
 ## Introduction
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.  
-dependency description is as follows.
+Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
+The description of dependent `ecuacion` modules is as follows.
 
 ```xml
 <dependency>
     <groupId>jp.ecuacion.util</groupId>
     <artifactId>ecuacion-util-poi</artifactId>
-    <version>4.x.x</version>
+    <!-- Put the latest release version -->
+    <version>x.x.x</version>
+</dependency>
+
+<!-- ecuacion-lib -->
+<dependency>
+    <groupId>jp.ecuacion.util</groupId>
+    <artifactId>ecuacion-lib-core</artifactId>
+    <!-- Put the latest release version -->
+    <version>x.x.x</version>
 </dependency>
 ```
 
