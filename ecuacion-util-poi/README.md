@@ -1,13 +1,40 @@
-# ecuacion-utils
+# ecuacion-util-poi
 
 ## What is it?
 
-`ecuacion-utils-poi` provides utilities for `apache-poi`.  
-This library is dependent to `ecuacion-lib`.
+`ecuacion-util-poi` provides utilities for `apache POI`.  
 
 ## System Requirements
 
 - JDK 21 or above.
+
+## Dependent Ecuacion Libraries
+
+### Automatically Loaded Libraries
+
+(none)
+
+### Manual Load Needed Libraries
+
+- `ecuacion-lib-core`
+
+## Dependent External Libraries
+
+### Automatically Loaded Libraries
+
+- `org.apache.poi:poi`
+- `org.apache.poi:poi-ooxml`
+
+### Manual Load Needed Libraries
+
+- `jakarta.validation:jakarta.validation-api`
+- (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
+- `jakarta.annotation:jakarta.annotation-api`
+- `org.slf4j:slf4j-api`
+- (any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
+
+(modules depending on `ecuacion-lib-core`)
+- `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
 
 ## Documentation
 
@@ -19,29 +46,38 @@ This library is dependent to `ecuacion-lib`.
 
 ## Introduction
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page.  
-dependency description is as follows.
+Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
+The description of dependent `ecuacion` modules is as follows.
 
 ```xml
 <dependency>
     <groupId>jp.ecuacion.util</groupId>
     <artifactId>ecuacion-util-poi</artifactId>
-    <version>4.x.x</version>
+    <!-- Put the latest release version -->
+    <version>x.x.x</version>
+</dependency>
+
+<!-- ecuacion-lib -->
+<dependency>
+    <groupId>jp.ecuacion.util</groupId>
+    <artifactId>ecuacion-lib-core</artifactId>
+    <!-- Put the latest release version -->
+    <version>x.x.x</version>
 </dependency>
 ```
 
-## features
+## Features
 
-We'll use the following table as an example. This table is in `Sheet1` sheet of `sample.xlsx`. The position of the top left cell is `A1`.
+We'll use the following table as an example. Let's say this table is in `Sheet1` sheet of `sample.xlsx`, the position of the top left cell of the table is `A1`.
 
 | name | age  | phone number   |
 | ---- | ---- | ----           |
 | John | 30   | (+01)123456789 |
 | Ken  | 40   | (+81)987654321 |
 
-### read values in excel cells as string
+### Read Values In Excel Cells As String
 
-Following features read values of cells in excels and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
+The following features read values of cells in the excel file and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
 
 #### read excel table values and put them to the list of strings
 
