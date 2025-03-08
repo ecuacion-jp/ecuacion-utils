@@ -24,6 +24,7 @@
 
 - `org.apache.poi:poi`
 - `org.apache.poi:poi-ooxml`
+- `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules)
 
 ### Manual Load Needed Libraries
 
