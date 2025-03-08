@@ -30,6 +30,7 @@
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
+		<org.apache.logging.log4j.log4j-to-slf4j.version>2.24.3</org.apache.logging.log4j.log4j-to-slf4j.version>
 	</properties>
 	
 	<dependencyManagement>
