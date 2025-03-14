@@ -33,8 +33,7 @@
 - `jakarta.annotation:jakarta.annotation-api`
 - `org.slf4j:slf4j-api`
 - (if you use log4j2, add `org.apache.logging.log4j:log4j-slf4j-impl` and `org.apache.logging.log4j:log4j-core`,
-   or else `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules) and any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
-
+   or else `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules) and any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.
 (modules depending on `ecuacion-lib-core`)
 - `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
 
