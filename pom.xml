@@ -30,6 +30,7 @@
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
+		<org.apache.pdfbox.version>3.0.4</org.apache.pdfbox.version>
 	</properties>
 	
 	<dependencyManagement>
