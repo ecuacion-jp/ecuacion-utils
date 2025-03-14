@@ -24,7 +24,6 @@
 
 - `org.apache.poi:poi`
 - `org.apache.poi:poi-ooxml`
-- `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules)
 
 ### Manual Load Needed Libraries
 
@@ -32,10 +31,13 @@
 - (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
 - `jakarta.annotation:jakarta.annotation-api`
 - `org.slf4j:slf4j-api`
-- (any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
+- (if you use log4j2, add `org.apache.logging.log4j:log4j-slf4j-impl` and `org.apache.logging.log4j:log4j-core`,
+   or else `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules) and any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
 
 (modules depending on `ecuacion-lib-core`)
 - `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
+
+Since the dependency libraries are a little complicated, we recommend to refer `pom.xml` in `ecuacion-util-poi-sample`. 
 
 ## Documentation
 
