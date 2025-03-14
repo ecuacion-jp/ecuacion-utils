@@ -82,6 +82,16 @@
 			<artifactId>jakarta.annotation-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		 <dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.el</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- ecuacion-lib -->
 		<dependency>
@@ -109,12 +119,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		<!-- Needed to use slf4j from POI -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-to-slf4j</artifactId>
-			<version>${org.apache.logging.log4j.log4j-to-slf4j.version}</version>
 		</dependency>
 
 		<!-- unit test -->
