@@ -32,4 +32,5 @@ module jp.ecuacion.util.pdfbox {
   requires transitive org.apache.poi.poi;
   requires org.apache.poi.ooxml;
   requires org.apache.pdfbox;
+  requires org.apache.commons.lang3;
 }

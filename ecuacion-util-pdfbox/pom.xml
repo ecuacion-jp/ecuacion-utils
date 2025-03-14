@@ -86,8 +86,15 @@
 		<!-- ecuacion-lib -->
 		<dependency>
 			<groupId>jp.ecuacion.lib</groupId>
-			<artifactId>ecuacion-lib-core</artifactId>
+			<artifactId>ecuacion-lib-validation</artifactId>
 			<scope>provided</scope>
+		</dependency>
+
+		<!-- pdfbox -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>${org.apache.pdfbox.version}</version>
 		</dependency>
 
 		<!-- poi -->
@@ -100,13 +107,6 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>${org.apache.poi.version}</version>
-		</dependency>
-
-		<!-- pdfbox -->
-		<dependency>
-			<groupId>org.apache.pdfbox</groupId>
-			<artifactId>pdfbox</artifactId>
-			<version>${org.apache.pdfbox.version}</version>
 		</dependency>
 
 		<!-- logging -->

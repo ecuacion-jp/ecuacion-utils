@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.pdfbox.sample;
+package jp.ecuacion.util.pdfbox;
 
-import java.nio.file.Path;
-import java.util.List;
-import jp.ecuacion.util.pdfbox.excel.util.ExcelToPdfUtil;
+import java.io.IOException;
+import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.util.pdfbox.excel.ExcelToPdf;
+import org.apache.poi.EncryptedDocumentException;
 
-public class Test {
+public class Main {
   public static void main(String[] args) throws Exception {
+    new Main().internalMain();
+  }
 
-    ExcelToPdfUtil.generate(Path.of("test.xlsx"), List.of("testSheet"),
-        Path.of("test.pdf"), null);
+  private void internalMain() throws EncryptedDocumentException, IOException, BizLogicAppException {
+    new ExcelToPdf().execute("helloworld.pdf", "local-test/test01.xlsx", new String[] {"Sheet1"});
   }
 }
