@@ -119,7 +119,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
             .setMessagePostfix(Arg.message(msgId, Arg.strings(sheetName))).validateThenThrow(bean);
 
         // dat整合性check
-        bean.dataConsistencyCheck();
+        bean.afterReading();
       }
     }
 
