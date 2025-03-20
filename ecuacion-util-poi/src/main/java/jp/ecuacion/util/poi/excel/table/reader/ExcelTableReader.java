@@ -27,11 +27,11 @@ import java.util.Set;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
-import jp.ecuacion.lib.core.exception.unchecked.RuntimeAppException;
+import jp.ecuacion.lib.core.exception.unchecked.UncheckedAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.BeanValidationUtil;
 import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.lib.core.util.ValidationUtil;
 import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
@@ -95,7 +95,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     // Validate the input values.
     Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
-        new BeanValidationUtil().validate(this);
+        new ValidationUtil().validate(this);
     if (violationSet != null && violationSet.size() > 0) {
 
       throw new RuntimeException("Validation failed at TableReader constructor.");
@@ -362,7 +362,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         return rtn;
 
       } catch (BizLogicAppException ex) {
-        throw new RuntimeAppException(ex);
+        throw new UncheckedAppException(ex);
       }
 
     }

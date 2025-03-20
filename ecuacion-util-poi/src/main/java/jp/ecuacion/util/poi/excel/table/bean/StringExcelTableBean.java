@@ -36,12 +36,16 @@ public abstract class StringExcelTableBean {
   private DetailLogger detailLog = new DetailLogger(this);
 
   /**
-   * Validates the inter-fields data.
+   * Is called after reading an excel file. 
    * 
-   * <p>Validations for each field needs to be done by bean vaildation.
-   *     This method covers selective-requirement, or other inter-fields validations.
+   * <p>This is assumed to use to deserialize (structure) the line of data into objects, 
+   *     and validate the inter-fields data.<br>
+   *     Validations for each field are supposed to be done by bean vaildation.
+   *     This method covers selective-requirement, or other inter-fields validations.</p>
    */
-  public abstract void dataConsistencyCheck() throws AppException;
+  public void afterReading() throws AppException {
+
+  }
 
   /**
    * Returns {@code String} array of field names in the bean.

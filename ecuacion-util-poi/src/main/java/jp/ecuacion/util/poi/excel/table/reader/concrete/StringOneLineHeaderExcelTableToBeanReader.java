@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
-import jp.ecuacion.lib.core.util.BeanValidationUtil;
 import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
+import jp.ecuacion.lib.core.util.ValidationUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.bean.StringExcelTableBean;
 import org.apache.poi.EncryptedDocumentException;
@@ -109,7 +109,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     List<T> rtnList = excelTableToBeanList(filePath);
 
     // data check
-    BeanValidationUtil valUtil = new BeanValidationUtil();
+    ValidationUtil valUtil = new ValidationUtil();
 
     if (validates) {
       for (T bean : rtnList) {
@@ -119,7 +119,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
             .setMessagePostfix(Arg.message(msgId, Arg.strings(sheetName))).validateThenThrow(bean);
 
         // dat整合性check
-        bean.dataConsistencyCheck();
+        bean.afterReading();
       }
     }
 

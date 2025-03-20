@@ -17,7 +17,6 @@ package jp.ecuacion.util.poi.sample.readstringfromcell;
 
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.util.poi.excel.table.bean.StringExcelTableBean;
 
 public class SampleTableBean extends StringExcelTableBean {
@@ -35,11 +34,6 @@ public class SampleTableBean extends StringExcelTableBean {
   @Override
   protected String[] getFieldNameArray() {
     return new String[] {"id", "name", "dateOfBirth", "age", "nationality"};
-  }
-
-  @Override
-  public void dataConsistencyCheck() throws AppException {
-
   }
 
   public String getId() {
