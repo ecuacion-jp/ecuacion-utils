@@ -36,6 +36,20 @@ public interface IfDataTypeCellExcelTableWriter
    * @param destCell destCell
    */
   public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell) {
+    writeToCell(columnNumberFromZero, sourceCellData, destCell, false);
+  }
+
+  /**
+   * Writes a value to the cell.
+   * 
+   * @param sourceCellData sourceCellData
+   * @param destCell destCell
+   * @param copiesStyleOfDataFormatOnly when this is {@code true}, whole style is not copied 
+   *     to the destination cell, but {@code DataFormat} only. <br>
+   *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.
+   */
+  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell,
+      boolean copiesStyleOfDataFormatOnly) {
     CellCopyPolicy policy = new CellCopyPolicy();
     policy.setCopyCellFormula(false);
 
@@ -44,35 +58,39 @@ public interface IfDataTypeCellExcelTableWriter
     //
     // Exception in thread "main" java.lang.IllegalStateException: The maximum number of Cell Styles
     // was exceeded. You can define up to 64000 style in a .xlsx Workbook
-    // 
-    // Since CellUtil.copyCell always creates style for each cell 
+    //
+    // Since CellUtil.copyCell always creates style for each cell
     // when the source and destination workbook is different, we need to set this to false
     // and override style copy procedure.
     policy.setCopyCellStyle(false);
-    
+
     CellUtil.copyCell(sourceCellData, destCell, policy, null);
 
     // copy cellStyle
     if (getColumnStyleMap().containsKey(columnNumberFromZero)) {
       destCell.setCellStyle(getColumnStyleMap().get(columnNumberFromZero));
-      
+
     } else {
-      
-      // Under some conditions org.apache.xmlbeans.impl.vales.XmlValueDisconnectedException occurs
-      // when workbook.save() is caled after cloneStyleFrom is used. 
-      // Reason is unclear but it seems to happen when the java object (like Cells) exists 
-      // but the xml in workbook is gone.
-      // So I think it's may be because of something related to the cloned style w
-      // hich does not exist in xml.
-      // That's why I put createCellStyle() before cloneStyleFrom() 
-      // and problem seems to be resolved.
-      destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
-      destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
-      
-      getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
+      if (copiesStyleOfDataFormatOnly) {
+        destCell.getCellStyle().setDataFormat(sourceCellData.getCellStyle().getDataFormat());
+
+      } else {
+        // Under some conditions org.apache.xmlbeans.impl.vales.XmlValueDisconnectedException occurs
+        // when workbook.save() is called after cloneStyleFrom is used.
+        // Reason is unclear but it seems to happen when the java object (like Cells) exists
+        // but the xml in workbook is gone.
+        // So I think it's may be because of something related to the cloned style
+        // which does not exist in xml.
+        // That's why I put createCellStyle() before cloneStyleFrom()
+        // and problem seems to be resolved.
+        destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
+        destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
+
+        getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
+      }
     }
   }
-  
+
   /**
    * Gets {@code columnStyleMap} to reuse {@code CellStyle}.
    * 
