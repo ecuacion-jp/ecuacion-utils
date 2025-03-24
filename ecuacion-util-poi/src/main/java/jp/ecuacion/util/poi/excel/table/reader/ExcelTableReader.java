@@ -244,6 +244,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     // the folloing is executed when tableColumnSize value needs to be analyzed dynamically.
 
     Row row = sheet.getRow(poiBasisDeterminedTableStartRowNumber);
+    if (row == null) {
+      String msg = "jp.ecuacion.util.poi.excel.reader."
+          + "RowNotSupposedToBeNullSinceItsTheFarLeftCellOfHeaderRow.message";
+      throw new BizLogicAppException(msg);
+    }
 
     // This row is the line with header, which cannot be {@code null}.
     ObjectsUtil.requireNonNull(row);
@@ -358,7 +363,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         } catch (LoopBreakException ex) {
           hasNext = false;
         }
-        
+
         return rtn;
 
       } catch (BizLogicAppException ex) {
@@ -367,7 +372,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     }
   }
-  
+
   /**
    * Sets {@code suppressesWarnLog}.
    * 
