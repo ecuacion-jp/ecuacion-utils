@@ -247,7 +247,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     if (row == null) {
       String msg = "jp.ecuacion.util.poi.excel.reader."
           + "RowNotSupposedToBeNullSinceItsTheFarLeftCellOfHeaderRow.message";
-      throw new BizLogicAppException(msg);
+      throw new BizLogicAppException(msg, sheet.getSheetName(),
+          Integer.valueOf(poiBasisDeterminedTableStartRowNumber).toString());
     }
 
     // This row is the line with header, which cannot be {@code null}.
