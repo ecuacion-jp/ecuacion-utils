@@ -92,6 +92,11 @@
 			<artifactId>jakarta.el</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>jakarta.mail</groupId>
+			<artifactId>jakarta.mail-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- ecuacion-lib -->
 		<dependency>
