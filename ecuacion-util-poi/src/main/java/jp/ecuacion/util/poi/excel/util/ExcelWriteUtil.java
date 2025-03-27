@@ -200,7 +200,8 @@ public class ExcelWriteUtil {
           cell.setCellValue(d);
 
         } catch (Exception ex) {
-          // do nothing
+          // Do nothing. The following is for spotbug countermeasure.
+          detailLog.trace("String does not match the number format.");
         }
       }
       
@@ -215,7 +216,8 @@ public class ExcelWriteUtil {
             break;
 
           } catch (Exception ex) {
-            // do nothing
+            // Do nothing. The following is for spotbug countermeasure.
+            detailLog.trace("String does not match the number format.");
           }
         }
       }
