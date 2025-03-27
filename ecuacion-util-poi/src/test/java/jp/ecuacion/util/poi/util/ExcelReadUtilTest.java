@@ -44,11 +44,11 @@ public class ExcelReadUtilTest {
   }
 
   @Test
-  public void readFromCellTest()
+  public void getStringFromCellTest()
       throws URISyntaxException, EncryptedDocumentException, IOException, BizLogicAppException {
-    String excelPath = new File("src/test/resources").getAbsolutePath() + "/readFromCellTest.xlsx";
+    String excelPath = new File("src/test/resources").getAbsolutePath() + "/ExcelReadUtilTest.xlsx";
     Workbook excel = WorkbookFactory.create(new File(excelPath.toString()), null, true);
-    Sheet sheet = excel.getSheet("StringReader");
+    Sheet sheet = excel.getSheet("getStringFromCellTest");
     System.out.println();
     final int START_ROW = 2;
 

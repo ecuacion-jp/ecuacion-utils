@@ -18,6 +18,8 @@ package jp.ecuacion.util.poi.excel.util;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
@@ -34,6 +36,8 @@ import org.apache.poi.ss.formula.FormulaParseException;
 import org.apache.poi.ss.formula.eval.NotImplementedException;
 import org.apache.poi.ss.formula.eval.NotImplementedFunctionException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -148,6 +152,73 @@ public class ExcelWriteUtil {
 
       writer.writeToCell(colNumber - context.poiBasisTableStartColumnNumber, sourceCellData,
           destCell);
+    }
+  }
+
+  /**
+   * There are patterns where excel can evaluate formulas but POI cannot. 
+   * This method cares about it and let POI do the same evaluation as excel.
+   * 
+   * <p>Let's say {@code A1} cell is {@code CellType == STRING} and value = {@code "2025/01/01"},
+   *     and {@code A2} cell is a formula cell with formula {@code =A1+1}.<br>
+   *     Excel can evaluate A2 and shows {@code 45659} (Serial number which expresses "2025/1/2"),
+   *     but {@code POI} cannot.<br>
+   *     So it change a date format string value (like "2025/01/01") to number (like 45658) 
+   *     when {@code CellType} is {@code STRING} and its value matches the date format.<br>
+   *     But it won't change the value when the {@code dataFormat == 49} 
+   *     because 49 means format is "text"
+   *     and that means a user clearly wants to treat the value as a string format.</p>
+   * 
+   * <p>Number format is exactly the same case as the {@code date} case above.
+   *     Data format allows comma.</p>
+   * 
+   * @param cell cell
+   * @param changesNumberString whether it changes number format string
+   * @param changesDateString whether it changes number format string
+   * @param dateFormats dateFormats like {@code yyyy/MM/dd} 
+   *     (java.time.format.DateTimeFormatter format), which can be {@code null} when 
+   *     {@code changesDateString} is {@code false}.
+   *     When {@code changesDateString} is {@code true} it cannot be {@code null}
+   *     and element length must be more than or equal to 1.
+   * @param changesCellsWithTextDataFormat That Data format is "text" means that 
+   *     a user seems explicitly to set it because the user wants to treat it as "text" format.
+   *     By setting this value {@code true}, 
+   *     the method applies the change even if the cell is "text" format.
+   */
+  public void getReadyToEvaluateFormula(Cell cell, boolean changesNumberString,
+      boolean changesDateString, boolean changesCellsWithTextDataFormat, String[] dateFormats) {
+    boolean skipsBecauseOfDataFormat =
+        !changesCellsWithTextDataFormat && cell.getCellStyle().getDataFormat() == 49;
+    
+    if (cell != null && cell.getCellType() == CellType.STRING && !skipsBecauseOfDataFormat) {
+      
+      if (changesNumberString) {
+        try {
+          Double d = Double.parseDouble(cell.getStringCellValue().replaceAll(",", ""));
+
+          // setCellValue with double argument also changes cellType to NUMERIC
+          cell.setCellValue(d);
+
+        } catch (Exception ex) {
+          // do nothing
+        }
+      }
+      
+      if (changesDateString) {
+        for (String dateFormat : dateFormats) {
+          try {
+            LocalDate locDate =
+                LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern(dateFormat));
+
+            // setCellValue with double argument also changes cellType to NUMERIC
+            cell.setCellValue(DateUtil.getExcelDate(locDate));
+            break;
+
+          } catch (Exception ex) {
+            // do nothing
+          }
+        }
+      }
     }
   }
 
