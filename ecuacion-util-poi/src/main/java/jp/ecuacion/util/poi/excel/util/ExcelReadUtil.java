@@ -249,8 +249,8 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new BizLogicAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
-          cell.getRow().getSheet().getSheetName(), Integer.toString(cell.getRowIndex() + 1),
-          Integer.toString(cell.getColumnIndex() + 1));
+          cell.getRow().getSheet().getSheetName(), cell.getAddress().formatAsString(),
+          cell.getAddress().formatAsR1C1String());
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
