@@ -83,8 +83,10 @@ public interface IfDataTypeCellExcelTableWriter
         // which does not exist in xml.
         // That's why I put createCellStyle() before cloneStyleFrom()
         // and problem seems to be resolved.
-        destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
-        destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
+        if (sourceCellData != null) {
+          destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
+          destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
+        }
 
         getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
       }
