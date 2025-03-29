@@ -87,9 +87,9 @@ public interface IfDataTypeCellExcelTableWriter
           destCell.setCellStyle(destCell.getRow().getSheet().getWorkbook().createCellStyle());
           destCell.getCellStyle().cloneStyleFrom(sourceCellData.getCellStyle());
         }
-
-        getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
       }
+      
+      getColumnStyleMap().put(columnNumberFromZero, destCell.getCellStyle());
     }
   }
 
