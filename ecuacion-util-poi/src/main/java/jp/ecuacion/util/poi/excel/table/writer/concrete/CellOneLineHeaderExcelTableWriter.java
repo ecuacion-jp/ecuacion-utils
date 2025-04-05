@@ -47,8 +47,6 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
    * 
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     The row number must specify the header row of the table
-   *     Since the writer does not overwrite the header, but the writer does read and validate it.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
    */
   public CellOneLineHeaderExcelTableWriter(@RequireNonnull String sheetName,
@@ -71,7 +69,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
       throws EncryptedDocumentException, AppException, IOException {
 
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
-        tableStartRowNumber, tableStartColumnNumber, 1)
+        tableStartRowNumber - 1, tableStartColumnNumber, 1)
             .ignoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
             .read(workbook);
   }
