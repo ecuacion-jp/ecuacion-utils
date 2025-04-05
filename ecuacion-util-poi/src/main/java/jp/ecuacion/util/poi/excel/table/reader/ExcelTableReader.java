@@ -142,12 +142,14 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   @Nonnull
   public List<List<T>> read(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
-    List<List<T>> rtnData = readTableData(workbook);
 
-    // ヘッダ行のチェック。同時にヘッダ行はexcelTableDataListからremoveしておき、returnするデータには含めない
-    List<List<String>> headerData = updateAndGetHeaderData(rtnData);
-
+    // validate the header line
+    List<List<T>> headerData = readTableData(workbook, true);
     validateHeaderData(headerData);
+
+    // obtain data
+    List<List<T>> rtnData = readTableData(workbook);
+    updateAndGetHeaderData(rtnData);
 
     return rtnData;
   }
@@ -169,14 +171,18 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   @Nonnull
   public Iterable<List<T>> getIterable(@RequireNonnull Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
-    // Header check first, and then iterating data.
-    List<List<T>> rtnData = readTableData(workbook, true);
-    List<List<String>> headerData = updateAndGetHeaderData(rtnData);
+
+    // validate the header line
+    List<List<T>> headerData = readTableData(workbook, true);
     validateHeaderData(headerData);
+
+    // obtain data
+    List<List<T>> rtnData = readTableData(workbook);
+    updateAndGetHeaderData(rtnData);
 
     // get the IteratorReader
     ContextContainer context =
-        readUtil.getReadyToReadTableData(this, workbook, getSheetName(), null);
+        readUtil.getReadyToReadTableData(this, workbook, getSheetName(), null, false);
 
     return new IterableReader<T>(this, context, getNumberOfHeaderLines());
   }
@@ -195,8 +201,10 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   private List<List<T>> readTableData(@RequireNonnull Workbook workbook, boolean readsHeaderOnly)
       throws AppException {
 
+    // when readsHeaderOnly == true, return data is used to validate the header labels,
+    // so ignoresColumnSizeSetInReader should also be true.
     ContextContainer context = readUtil.getReadyToReadTableData(this, workbook, getSheetName(),
-        (readsHeaderOnly) ? getNumberOfHeaderLines() : null);
+        (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
 
     // データを取得
     // 2重のlistに格納する
@@ -233,11 +241,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws BizLogicAppException BizLogicAppException
    */
   public @Nonnull Integer getTableColumnSize(@RequireNonnull Sheet sheet,
-      int poiBasisDeterminedTableStartRowNumber, int poiBasisDeterminedTableStartColumnNumber)
-      throws BizLogicAppException {
+      int poiBasisDeterminedTableStartRowNumber, int poiBasisDeterminedTableStartColumnNumber,
+      boolean ignoresColumnSizeSetInReader) throws BizLogicAppException {
     ObjectsUtil.paramRequireNonNull(sheet);
 
-    if (tableColumnSizeGivenByConstructor != null) {
+    if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
       return tableColumnSizeGivenByConstructor;
     }
 
@@ -382,6 +390,12 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   public ExcelTableReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
     readUtil.suppressesWarnLog(suppressesWarnLog);
+    return this;
+  }
+
+  @Override
+  public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
+    this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
   }
 }

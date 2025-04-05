@@ -71,6 +71,8 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
   @Min(1)
   protected int tableStartColumnNumber;
 
+  protected boolean ignoresAdditionalColumnsOfHeaderData;
+
   /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
    * 
@@ -187,5 +189,10 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       this.tableRowSize = tableRowSize;
       this.tableColumnSize = tableColumnSize;
     }
+  }
+
+  @Override
+  public boolean ignoresAdditionalColumnsOfHeaderData() {
+    return ignoresAdditionalColumnsOfHeaderData;
   }
 }

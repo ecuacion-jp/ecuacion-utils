@@ -159,6 +159,12 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     }
   }
 
+  @Override
+  public ExcelTableWriter<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
+    this.ignoresAdditionalColumnsOfHeaderData = value;
+    return this;
+  }
+
   /**
    * Provides {@code Iterable}.
    */

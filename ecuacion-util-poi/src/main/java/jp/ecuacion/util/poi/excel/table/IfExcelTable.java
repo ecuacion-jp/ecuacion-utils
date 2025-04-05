@@ -75,6 +75,22 @@ public interface IfExcelTable<T> {
   public String[][] getHeaderLabelData();
 
   /**
+   * Stores the boolean value which indicates whether {@code validateHeaderData} ignores
+   *     additional header columns.
+   * 
+   * @param value boolean
+   */
+  public IfExcelTable<T> ignoresAdditionalColumnsOfHeaderData(boolean value);
+
+  /**
+   * Obtains the boolean value which indicates whether {@code validateHeaderData} ignores
+   *     additional header columns.
+   * 
+   * @return boolean
+   */
+  public boolean ignoresAdditionalColumnsOfHeaderData();
+
+  /**
    * Validates the excel table header.
    * 
    * @param headerData string header data<br>
@@ -84,25 +100,29 @@ public interface IfExcelTable<T> {
    *     when it's a table with no header or nothing to validate.
    * @throws BizLogicAppException BizLogicAppException
    */
-  public default void validateHeaderData(@RequireNonnull List<List<String>> headerData)
+  public default void validateHeaderData(@RequireNonnull List<List<T>> headerData)
       throws BizLogicAppException {
 
     for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
-      List<String> headerList = headerData.get(i);
+      List<T> headerList = headerData.get(i);
       String[] headerLabels = getHeaderLabelData()[i];
 
-      if (headerList.size() != headerLabels.length) {
+      boolean ignoresAdditionalColumns = ignoresAdditionalColumnsOfHeaderData();
+
+      if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
+          || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
         throw new BizLogicAppException(
             "jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message", getSheetName(),
             Integer.toString(headerList.size()), Integer.toString(headerLabels.length));
       }
 
-      for (int j = 0; j < headerList.size(); j++) {
-        if (!headerLabels[j].equals(headerList.get(j))) {
+      for (int j = 0; j < headerLabels.length; j++) {
+        if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
           int positionFromUser = j + 1;
           throw new BizLogicAppException(
-              "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message.default", getSheetName(),
-              Integer.toString(positionFromUser), headerList.get(j), headerLabels[j]);
+              "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message", getSheetName(),
+              Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
+              headerLabels[j]);
         }
       }
     }
