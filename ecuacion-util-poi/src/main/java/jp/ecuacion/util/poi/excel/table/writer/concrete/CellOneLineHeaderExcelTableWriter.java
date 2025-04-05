@@ -69,7 +69,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
       throws EncryptedDocumentException, AppException, IOException {
 
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
-        tableStartRowNumber, tableStartColumnNumber, 1).read(workbook);
+        tableStartRowNumber - 1, tableStartColumnNumber, 1).read(workbook);
   }
 
   private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
