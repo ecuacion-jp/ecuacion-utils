@@ -91,6 +91,12 @@ public interface IfExcelTable<T> {
       List<String> headerList = headerData.get(i);
       String[] headerLabels = getHeaderLabelData()[i];
 
+      if (headerList.size() != headerLabels.length) {
+        throw new BizLogicAppException(
+            "jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message", getSheetName(),
+            Integer.toString(headerList.size()), Integer.toString(headerLabels.length));
+      }
+
       for (int j = 0; j < headerList.size(); j++) {
         if (!headerList.get(j).equals(headerLabels[j])) {
           int positionFromUser = j + 1;
