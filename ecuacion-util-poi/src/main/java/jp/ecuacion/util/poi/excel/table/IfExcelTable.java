@@ -98,7 +98,7 @@ public interface IfExcelTable<T> {
       }
 
       for (int j = 0; j < headerList.size(); j++) {
-        if (!headerList.get(j).equals(headerLabels[j])) {
+        if (!headerLabels[j].equals(headerList.get(j))) {
           int positionFromUser = j + 1;
           throw new BizLogicAppException(
               "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message.default", getSheetName(),
