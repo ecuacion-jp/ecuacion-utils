@@ -271,10 +271,14 @@ public class ExcelReadUtil {
 
   /**
    * Gets ready to read table data.
+   * 
+   * @param ignoresColumnSizeSetInReader It is {@code true} means 
+   *     that even if the reader determines the column size,
+   *     this method obtains all the columns as long as the header column exists.
    */
   public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
-      String sheetName, Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull)
-      throws BizLogicAppException {
+      String sheetName, Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
+      boolean ignoresColumnSizeSetInReader) throws BizLogicAppException {
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
@@ -293,9 +297,10 @@ public class ExcelReadUtil {
     // while tableStartRowNumber / tableStartColumnNumber >= 1.
     final int poiBasisTableStartRowNumber = reader.getPoiBasisDeterminedTableStartRowNumber(sheet);
     final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
-    ContextContainer context = new ContextContainer(sheet, poiBasisTableStartRowNumber,
-        poiBasisTableStartColumnNumber, tableRowSize, reader.getTableColumnSize(sheet,
-            poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber));
+    ContextContainer context =
+        new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
+            tableRowSize, reader.getTableColumnSize(sheet, poiBasisTableStartRowNumber,
+                poiBasisTableStartColumnNumber, ignoresColumnSizeSetInReader));
 
     return context;
   }
