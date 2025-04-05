@@ -279,8 +279,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
 
     if (size == 0) {
-      throw new RuntimeException(
-          "The column size of the table is zero. Something wrong is happening.");
+      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
+          sheet.getSheetName(), Integer.toString(poiBasisDeterminedTableStartRowNumber + 1),
+          Integer.toString(poiBasisDeterminedTableStartColumnNumber + 1));
     }
 
     return size;
