@@ -26,7 +26,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class StringDynamicTableReaderTest {
+public class StringFreeExcelTableReaderTest {
 
   @Test
   public void tableRowSizeNullTest() throws EncryptedDocumentException, AppException, IOException {

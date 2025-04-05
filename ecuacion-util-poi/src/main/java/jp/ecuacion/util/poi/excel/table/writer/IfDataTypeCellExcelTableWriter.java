@@ -42,23 +42,23 @@ public interface IfDataTypeCellExcelTableWriter
   /**
    * Writes a value to the cell.
    * 
+   * <p>The number of CellStyle in an excel file has limit: 64,000.
+   *     If it exceeds, we'll get the exception below. To avoid it CellStyle has to be reused.
+   *     To reuse style</p>
+   * 
    * @param sourceCellData sourceCellData
    * @param destCell destCell
-   * @param copiesStyleOfDataFormatOnly when this is {@code true}, whole style is not copied 
+   * @param columnNumberFromZero column number starting from zero. 
+   *     Used as a key to store and reuse the style for each column.
+   * @param copiesDataFormatOnly when this is {@code true}, whole style is not copied 
    *     to the destination cell, but {@code DataFormat} only. <br>
    *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.
    */
   public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell,
-      boolean copiesStyleOfDataFormatOnly) {
+      boolean copiesDataFormatOnly) {
     CellCopyPolicy policy = new CellCopyPolicy();
     policy.setCopyCellFormula(false);
 
-    // The number of CellStyle in an excel file has limit: 64,000.
-    // If it exceeds, we'll get the exception below. To avoid it CellStyle has to be reused.
-    //
-    // Exception in thread "main" java.lang.IllegalStateException: The maximum number of Cell Styles
-    // was exceeded. You can define up to 64000 style in a .xlsx Workbook
-    //
     // Since CellUtil.copyCell always creates style for each cell
     // when the source and destination workbook is different, we need to set this to false
     // and override style copy procedure.
@@ -71,7 +71,7 @@ public interface IfDataTypeCellExcelTableWriter
       destCell.setCellStyle(getColumnStyleMap().get(columnNumberFromZero));
 
     } else {
-      if (copiesStyleOfDataFormatOnly) {
+      if (copiesDataFormatOnly) {
         destCell.getCellStyle().setDataFormat(sourceCellData.getCellStyle().getDataFormat());
 
       } else {
