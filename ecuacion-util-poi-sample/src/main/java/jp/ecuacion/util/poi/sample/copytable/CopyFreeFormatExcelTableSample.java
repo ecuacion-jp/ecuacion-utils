@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class CopyFreeFormatExcelTableSample {
 
-  private static final int HEADER_START_ROW = 3;
+  private static final int HEADER_START_ROW = 4;
   private static final int START_COL = 2;
 
   private static Path destPath;
