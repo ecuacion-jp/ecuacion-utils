@@ -149,9 +149,12 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
     ContextContainer context = writeUtil.getReadyToWriteTableData(this, workbook, getSheetName());
 
-    final int startRowNumber = context.poiBasisTableStartRowNumber + getNumberOfHeaderLines();
-    for (int rowNumber = startRowNumber; rowNumber < startRowNumber + data.size(); rowNumber++) {
-      List<T> list = data.get(rowNumber - startRowNumber);
+    for (int rowNumber =
+        context.poiBasisTableStartRowNumber; rowNumber < context.poiBasisTableStartRowNumber
+            + data.size(); rowNumber++) {
+
+      List<T> list = data.get(rowNumber - context.poiBasisTableStartRowNumber);
+
       writeUtil.writeTableLine(this, context, rowNumber, list);
     }
   }
