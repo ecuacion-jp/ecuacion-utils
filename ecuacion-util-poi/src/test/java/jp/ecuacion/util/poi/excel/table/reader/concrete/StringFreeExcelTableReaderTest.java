@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.poi.read.string.reader;
+package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,12 +21,11 @@ import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
-import jp.ecuacion.util.poi.excel.table.reader.concrete.StringFreeExcelTableReader;
 import org.apache.poi.EncryptedDocumentException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class StringDynamicTableReaderTest {
+public class StringFreeExcelTableReaderTest {
 
   @Test
   public void tableRowSizeNullTest() throws EncryptedDocumentException, AppException, IOException {

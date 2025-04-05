@@ -62,9 +62,9 @@ public interface IfFormatOneLineHeaderExcelTable<T>
    * @param headerList headerList
    * @throws BizLogicAppException BizLogicAppException
    */
-  public default void validateHeader(@RequireNonnull List<String> headerList)
+  public default void validateHeader(@RequireNonnull List<T> headerList)
       throws BizLogicAppException {
-    List<List<String>> list = new ArrayList<>();
+    List<List<T>> list = new ArrayList<>();
     list.add(headerList);
     
     validateHeaderData(list);

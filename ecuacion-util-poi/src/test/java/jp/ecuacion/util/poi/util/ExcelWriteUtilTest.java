@@ -80,6 +80,9 @@ public class ExcelWriteUtilTest {
     Assertions.assertEquals(CellType.NUMERIC, cell.getCellType());
     Assertions.assertEquals(1, cell.getNumericCellValue());
     
+    
+    // dateString
+    
     // changesDateString == false, dataFormat is "number"
     cell = sheet.getRow(3).getCell(2);
     writer.getReadyToEvaluateFormula(cell, false, false, false, new String[] {"yyyy/MM/dd"});
