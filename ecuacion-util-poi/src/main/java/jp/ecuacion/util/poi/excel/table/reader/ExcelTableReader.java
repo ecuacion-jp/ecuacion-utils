@@ -251,49 +251,33 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
 
     // the folloing is executed when tableColumnSize value needs to be analyzed dynamically.
-    int columnNumber = -1;
-    if (isVerticalAndHorizontalOpposite) {
-      columnNumber = poiBasisDeterminedTableStartColumnNumber;
-      while (true) {
+    int columnNumber = poiBasisDeterminedTableStartColumnNumber;
+    Cell cell;
+    while (true) {
+      if (isVerticalAndHorizontalOpposite) {
         Row row = sheet.getRow(columnNumber);
         // If the cell is null, that means header is end.
         if (row == null || row.getCell(poiBasisDeterminedTableStartRowNumber) == null) {
           break;
         }
 
-        Cell cell = row.getCell(poiBasisDeterminedTableStartRowNumber);
-        if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
-          break;
-        }
+        cell = row.getCell(poiBasisDeterminedTableStartRowNumber);
 
-        columnNumber++;
-      }
-
-    } else {
-      Row row = sheet.getRow(poiBasisDeterminedTableStartRowNumber);
-      if (row == null) {
-        String msg = "jp.ecuacion.util.poi.excel.reader.HeaderRowIsNull.message";
-        throw new BizLogicAppException(msg, sheet.getSheetName(),
-            Integer.toString(poiBasisDeterminedTableStartRowNumber + 1));
-      }
-
-      // This row is the line with header, which cannot be {@code null}.
-      ObjectsUtil.requireNonNull(row);
-
-      columnNumber = poiBasisDeterminedTableStartColumnNumber;
-      while (true) {
-        Cell cell = row.getCell(columnNumber);
+      } else {
+        Row row = sheet.getRow(poiBasisDeterminedTableStartRowNumber);
         // If the cell is null, that means header is end.
         if (row == null || row.getCell(columnNumber) == null) {
           break;
         }
 
-        if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
-          break;
-        }
-
-        columnNumber++;
+        cell = row.getCell(columnNumber);
       }
+
+      if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
+        break;
+      }
+
+      columnNumber++;
     }
 
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
