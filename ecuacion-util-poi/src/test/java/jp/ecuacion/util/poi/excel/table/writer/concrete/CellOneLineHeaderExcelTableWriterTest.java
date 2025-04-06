@@ -93,7 +93,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
         Assertions.fail();
 
       } catch (BizLogicAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.HeaderRowIsNull.message",
+        Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
             ex.getMessageId());
       }
 
