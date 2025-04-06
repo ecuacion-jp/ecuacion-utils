@@ -20,6 +20,7 @@ import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -37,6 +38,44 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @return {@code ExcelReadUtil} instance
    */
   public ExcelReadUtil getExcelReadUtil();
+
+  /**
+   * Validates the excel table header.
+   * 
+   * @param headerData string header data<br>
+   *     The data type is {@code List<List<String>> headerData} 
+   *     because the header with multiple lines may exist.<br>
+   *     Pass a list with `size() == 0` 
+   *     when it's a table with no header or nothing to validate.
+   * @throws BizLogicAppException BizLogicAppException
+   */
+  public default void validateHeaderData(@RequireNonnull List<List<T>> headerData)
+      throws BizLogicAppException {
+
+    for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
+      List<T> headerList = headerData.get(i);
+      String[] headerLabels = getHeaderLabelData()[i];
+
+      boolean ignoresAdditionalColumns = ignoresAdditionalColumnsOfHeaderData();
+
+      if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
+          || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
+        throw new BizLogicAppException(
+            "jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message", getSheetName(),
+            Integer.toString(headerList.size()), Integer.toString(headerLabels.length));
+      }
+
+      for (int j = 0; j < headerLabels.length; j++) {
+        if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
+          int positionFromUser = j + 1;
+          throw new BizLogicAppException(
+              "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message", getSheetName(),
+              Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
+              headerLabels[j]);
+        }
+      }
+    }
+  }
 
   /**
    * Updates excel data to treat it easily, like remove its header line, 

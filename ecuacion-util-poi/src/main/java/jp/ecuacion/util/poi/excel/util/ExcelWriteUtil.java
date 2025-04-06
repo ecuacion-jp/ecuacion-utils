@@ -102,7 +102,7 @@ public class ExcelWriteUtil {
    * Gets ready to write table data.
    */
   public <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
-      Workbook workbook, String sheetName) throws BizLogicAppException {
+      Workbook workbook, String sheetName, int tableStartColumnNumber) throws BizLogicAppException {
 
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
@@ -115,7 +115,8 @@ public class ExcelWriteUtil {
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
-    int poiBasisTableStartRowNumber = writer.getPoiBasisDeterminedTableStartRowNumber(sheet);
+    int poiBasisTableStartRowNumber =
+        writer.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
 
     // Skip the header line if the writer is OneLineHeaderFormat
     if (this instanceof IfFormatOneLineHeaderExcelTable) {
@@ -136,20 +137,38 @@ public class ExcelWriteUtil {
       context.sheet.createRow(rowNumber);
     }
 
-    Row row = context.sheet.getRow(rowNumber);
-
     for (int colNumber =
         context.poiBasisTableStartColumnNumber; colNumber < context.poiBasisTableStartColumnNumber
             + columnList.size(); colNumber++) {
 
-      T sourceCellData = columnList.get(colNumber - context.poiBasisTableStartColumnNumber);
+      T sourceCellData;
+      Cell destCell;
+      if (writer.isVerticalAndHorizontalOpposite()) {
+        Row row = context.sheet.getRow(colNumber);
+        if (row == null) {
+          row = context.sheet.createRow(colNumber);
+        }
 
-      if (row.getCell(colNumber) == null) {
-        row.createCell(colNumber);
+        if (row.getCell(rowNumber) == null) {
+          row.createCell(rowNumber);
+        }
+
+        destCell = row.getCell(rowNumber);
+
+      } else {
+        Row row = context.sheet.getRow(rowNumber);
+        if (row == null) {
+          row = context.sheet.createRow(rowNumber);
+        }
+        
+        if (row.getCell(colNumber) == null) {
+          row.createCell(colNumber);
+        }
+
+        destCell = row.getCell(colNumber);
       }
 
-      Cell destCell = row.getCell(colNumber);
-
+      sourceCellData = columnList.get(colNumber - context.poiBasisTableStartColumnNumber);
       writer.writeToCell(colNumber - context.poiBasisTableStartColumnNumber, sourceCellData,
           destCell);
     }
@@ -189,9 +208,9 @@ public class ExcelWriteUtil {
       boolean changesDateString, boolean changesCellsWithTextDataFormat, String[] dateFormats) {
     boolean skipsBecauseOfDataFormat =
         !changesCellsWithTextDataFormat && cell.getCellStyle().getDataFormat() == 49;
-    
+
     if (cell != null && cell.getCellType() == CellType.STRING && !skipsBecauseOfDataFormat) {
-      
+
       if (changesNumberString) {
         try {
           Double d = Double.parseDouble(cell.getStringCellValue().replaceAll(",", ""));
@@ -204,7 +223,7 @@ public class ExcelWriteUtil {
           detailLog.trace("String does not match the number format.");
         }
       }
-      
+
       if (changesDateString) {
         for (String dateFormat : dateFormats) {
           try {

@@ -17,10 +17,7 @@ package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import java.util.List;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
 
 /**
  * Provides the methods the extending interfaces use.
@@ -91,44 +88,6 @@ public interface IfExcelTable<T> {
   public boolean ignoresAdditionalColumnsOfHeaderData();
 
   /**
-   * Validates the excel table header.
-   * 
-   * @param headerData string header data<br>
-   *     The data type is {@code List<List<String>> headerData} 
-   *     because the header with multiple lines may exist.<br>
-   *     Pass a list with `size() == 0` 
-   *     when it's a table with no header or nothing to validate.
-   * @throws BizLogicAppException BizLogicAppException
-   */
-  public default void validateHeaderData(@RequireNonnull List<List<T>> headerData)
-      throws BizLogicAppException {
-
-    for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
-      List<T> headerList = headerData.get(i);
-      String[] headerLabels = getHeaderLabelData()[i];
-
-      boolean ignoresAdditionalColumns = ignoresAdditionalColumnsOfHeaderData();
-
-      if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
-          || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
-        throw new BizLogicAppException(
-            "jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message", getSheetName(),
-            Integer.toString(headerList.size()), Integer.toString(headerLabels.length));
-      }
-
-      for (int j = 0; j < headerLabels.length; j++) {
-        if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
-          int positionFromUser = j + 1;
-          throw new BizLogicAppException(
-              "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message", getSheetName(),
-              Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
-              headerLabels[j]);
-        }
-      }
-    }
-  }
-
-  /**
    * Is used to get the header label string from the argument cell data.
    * 
    * @param cellData data obtained from the cell
@@ -138,4 +97,18 @@ public interface IfExcelTable<T> {
   @Nullable
   public String getStringValue(@Nullable T cellData) throws BizLogicAppException;
 
+  /**
+   * Decides whether header is top (normal table) or left. 
+   * {@code true} means headers are at the left.
+   * 
+   * @param value boolean
+   * @return {@code IfExcelTable<T>}
+   */
+  public IfExcelTable<T> isVerticalAndHorizontalOpposite(boolean value);
+
+  /**
+   * Obtains whether header is top (normal table) or left. 
+   * {@code true} means headers are at the left.
+   */
+  public boolean isVerticalAndHorizontalOpposite();
 }

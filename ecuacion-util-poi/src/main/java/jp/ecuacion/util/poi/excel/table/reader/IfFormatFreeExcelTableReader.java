@@ -16,6 +16,7 @@
 package jp.ecuacion.util.poi.excel.table.reader;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatFreeExcelTable;
@@ -31,5 +32,10 @@ public interface IfFormatFreeExcelTableReader<T>
   @Override
   public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> rtnData) {
     return null;
+  }
+
+  @Override
+  public default void validateHeaderData(@Nullable List<List<T>> headerData) {
+    // no validations for the argument excel data.
   }
 }

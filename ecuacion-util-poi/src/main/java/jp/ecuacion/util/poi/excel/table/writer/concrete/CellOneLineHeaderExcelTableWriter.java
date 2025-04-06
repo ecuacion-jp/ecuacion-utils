@@ -73,6 +73,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
         tableStartRowNumber, tableStartColumnNumber, 1)
             .ignoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
+            .isVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite())
             .read(workbook);
   }
 

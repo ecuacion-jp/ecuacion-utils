@@ -277,8 +277,9 @@ public class ExcelReadUtil {
    *     this method obtains all the columns as long as the header column exists.
    */
   public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
-      String sheetName, Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
-      boolean ignoresColumnSizeSetInReader) throws BizLogicAppException {
+      String sheetName, int tableStartColumnNumber,
+      Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
+      throws BizLogicAppException {
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
@@ -295,7 +296,8 @@ public class ExcelReadUtil {
 
     // poiBasis means the top-left position is (0, 0)
     // while tableStartRowNumber / tableStartColumnNumber >= 1.
-    final int poiBasisTableStartRowNumber = reader.getPoiBasisDeterminedTableStartRowNumber(sheet);
+    final int poiBasisTableStartRowNumber =
+        reader.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
     final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
     ContextContainer context =
         new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
@@ -326,26 +328,43 @@ public class ExcelReadUtil {
       throw new LoopBreakException();
     }
 
-    Row row = context.sheet.getRow(rowNumber);
     List<T> colList = new ArrayList<>();
-
     // excel上でtable範囲が終わった場合は、明示的に「row = null」となる。その場合、対象行は空行扱い。
     boolean isEmptyRow = true;
-    if (row != null) {
-      // excelデータを読み込み。
-      for (int j =
-          context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
-              + context.tableColumnSize; j++) {
-        Cell cell = row.getCell(j);
-        T cellData = reader.getCellData(cell, j + 1);
-        colList.add(cellData);
-      }
 
-      // 空行チェック。全項目が空欄の場合は空行を意味する。
-      for (T colData : colList) {
-        if (!reader.isCellDataEmpty(colData)) {
-          isEmptyRow = false;
+    // excelデータを読み込み。
+    for (int j = context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
+        + context.tableColumnSize; j++) {
+
+      if (reader.isVerticalAndHorizontalOpposite()) {
+        Row row = context.sheet.getRow(j);
+        if (row == null || row.getCell(rowNumber) == null) {
+          colList.add(null);
+
+        } else {
+          Cell cell = row.getCell(rowNumber);
+          T cellData = reader.getCellData(cell, j + 1);
+          colList.add(cellData);
         }
+
+      } else {
+        Row row = context.sheet.getRow(rowNumber);
+        if (row == null || row.getCell(j) == null) {
+          colList.add(null);
+
+        } else {
+          Cell cell = row.getCell(j);
+          T cellData = reader.getCellData(cell, j + 1);
+          colList.add(cellData);
+        }
+      }
+    }
+
+    // 空行チェック。全項目が空欄の場合は空行を意味する。
+    for (T colData : colList) {
+      if (!reader.isCellDataEmpty(colData)) {
+        isEmptyRow = false;
+        break;
       }
     }
 

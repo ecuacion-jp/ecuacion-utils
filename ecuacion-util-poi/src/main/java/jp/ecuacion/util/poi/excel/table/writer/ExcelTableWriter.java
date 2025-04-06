@@ -127,7 +127,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     headerCheck(workbook);
 
     // get the IteratorWriter
-    ContextContainer context = writeUtil.getReadyToWriteTableData(this, workbook, getSheetName());
+    ContextContainer context =
+        writeUtil.getReadyToWriteTableData(this, workbook, getSheetName(), tableStartColumnNumber);
 
     return new IterableWriter<T>(this, context, getNumberOfHeaderLines());
   }
@@ -147,7 +148,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
       @RequireNonnull List<List<T>> data)
       throws FileNotFoundException, IOException, BizLogicAppException {
 
-    ContextContainer context = writeUtil.getReadyToWriteTableData(this, workbook, getSheetName());
+    ContextContainer context =
+        writeUtil.getReadyToWriteTableData(this, workbook, getSheetName(), tableStartColumnNumber);
 
     final int startRowNumber = context.poiBasisTableStartRowNumber + getNumberOfHeaderLines();
     for (int rowNumber = startRowNumber; rowNumber < startRowNumber + data.size(); rowNumber++) {
@@ -159,6 +161,12 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   @Override
   public ExcelTableWriter<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
+    return this;
+  }
+
+  @Override
+  public ExcelTableWriter<T> isVerticalAndHorizontalOpposite(boolean value) {
+    this.isVerticalAndHorizontalOpposite = value;
     return this;
   }
 
