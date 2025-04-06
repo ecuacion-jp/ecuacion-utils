@@ -59,12 +59,13 @@ public class CellOneLineHeaderExcelTableWriterTest {
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
             .read(origExcelPath);
     Workbook wb = writeUtil.openForWrite(origExcelPath);
+    String copyToSheetName = "copy-to-normalTableTest";
 
     // try-finally added to save the tested excel file.
     try {
 
       // normal copy
-      String copyToSheetName = "copy-to-normalTableTest";
+
       new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 2, 1).write(wb,
           rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
@@ -179,13 +180,13 @@ public class CellOneLineHeaderExcelTableWriterTest {
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 8, 1, null)
             .read(origExcelPath);
     Workbook wb = writeUtil.openForWrite(origExcelPath);
+    String copyToSheetName = "copy-to-tableWithNullCellseTest";
 
     // try-finally added to save the tested excel file.
     try {
 
       // normal copy
 
-      String copyToSheetName = "copy-to-tableWithNullCellseTest";
       new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 1).write(wb,
           rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
@@ -219,11 +220,13 @@ public class CellOneLineHeaderExcelTableWriterTest {
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
             .read(origExcelPath);
     Workbook wb = writeUtil.openForWrite(origExcelPath);
+    String copyToSheetName = "copy-to-verticalHeaderTableTest";
 
     // try-finally added to save the tested excel file.
     try {
 
-      String copyToSheetName = "copy-to-verticalHeaderTableTest";
+      // normal copy
+
       new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 3, 2)
           .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
@@ -239,6 +242,70 @@ public class CellOneLineHeaderExcelTableWriterTest {
       Assertions.assertEquals("data2-1", readUtil.getStringFromCell(sheet.getRow(1).getCell(4)));
       Assertions.assertEquals("data2-2", readUtil.getStringFromCell(sheet.getRow(2).getCell(4)));
       Assertions.assertEquals("data2-3", readUtil.getStringFromCell(sheet.getRow(3).getCell(4)));
+
+      // copy to whitespace
+
+      try {
+        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 8)
+            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
+        Assertions.fail();
+
+      } catch (BizLogicAppException ex) {
+        Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
+            ex.getMessageId());
+      }
+
+      // copy to the position where is a smaller size of header labels, with additional columns
+      // not allowed.
+
+      try {
+        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 11)
+            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
+        Assertions.fail();
+
+      } catch (BizLogicAppException ex) {
+        Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
+            ex.getMessageId());
+      }
+
+      // copy to the position where is a smaller size of header labels, with additional columns
+      // allowed.
+
+      try {
+        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 11)
+            .ignoresAdditionalColumnsOfHeaderData(true).isVerticalAndHorizontalOpposite(true)
+            .write(wb, rowList);
+        Assertions.fail();
+
+      } catch (BizLogicAppException ex) {
+        Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
+            ex.getMessageId());
+      }
+
+      // copy to the position where is a larger size of header labels, with additional columns
+      // not allowed.
+
+      try {
+        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 16)
+            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
+        Assertions.fail();
+
+      } catch (BizLogicAppException ex) {
+        Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
+            ex.getMessageId());
+      }
+
+      // copy to the position where is a larger size of header labels, with additional columns
+      // allowed.
+
+      try {
+        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 16)
+            .ignoresAdditionalColumnsOfHeaderData(true).isVerticalAndHorizontalOpposite(true)
+            .write(wb, rowList);
+
+      } catch (BizLogicAppException ex) {
+        Assertions.fail();
+      }
 
     } finally {
       // delete previous test data.
