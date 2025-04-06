@@ -16,8 +16,6 @@
 package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
-import java.util.List;
 
 /**
  * Is a reader interface which treats free format tables.
@@ -25,11 +23,6 @@ import java.util.List;
  * @param <T> See {@link IfExcelTable}.
  */
 public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
-
-  @Override
-  public default void validateHeaderData(@Nullable List<List<T>> headerData) {
-    // no validations for the argument excel data.
-  }
 
   @Override
   public default int getNumberOfHeaderLines() {
