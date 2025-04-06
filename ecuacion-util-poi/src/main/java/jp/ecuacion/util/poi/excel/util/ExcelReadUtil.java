@@ -277,7 +277,8 @@ public class ExcelReadUtil {
    *     this method obtains all the columns as long as the header column exists.
    */
   public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
-      String sheetName, Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
+      String sheetName, int tableStartColumnNumber,
+      Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean isVerticalAndHorizontalOpposite,
       boolean ignoresColumnSizeSetInReader) throws BizLogicAppException {
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
@@ -295,7 +296,8 @@ public class ExcelReadUtil {
 
     // poiBasis means the top-left position is (0, 0)
     // while tableStartRowNumber / tableStartColumnNumber >= 1.
-    final int poiBasisTableStartRowNumber = reader.getPoiBasisDeterminedTableStartRowNumber(sheet);
+    final int poiBasisTableStartRowNumber =
+        reader.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
     final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
     ContextContainer context =
         new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
