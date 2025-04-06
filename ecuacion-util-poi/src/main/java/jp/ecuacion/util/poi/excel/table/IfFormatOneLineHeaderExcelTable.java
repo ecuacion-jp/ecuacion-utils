@@ -16,10 +16,6 @@
 package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 
 /**
@@ -49,25 +45,6 @@ public interface IfFormatOneLineHeaderExcelTable<T>
     rtn[0] = getHeaderLabels();
     
     return rtn;
-  }
-  
-  /**
-   * Validates one line header.
-   * 
-   * <p>Pass a list with `size() == 0` 
-   *     when it's a table with no header or nothing to validate.</p>
-   * 
-   * <p>See {@link IfExcelTable#validateHeaderData}.</p>
-   * 
-   * @param headerList headerList
-   * @throws BizLogicAppException BizLogicAppException
-   */
-  public default void validateHeader(@RequireNonnull List<T> headerList)
-      throws BizLogicAppException {
-    List<List<T>> list = new ArrayList<>();
-    list.add(headerList);
-    
-    validateHeaderData(list);
   }
 
 
