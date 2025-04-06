@@ -137,20 +137,38 @@ public class ExcelWriteUtil {
       context.sheet.createRow(rowNumber);
     }
 
-    Row row = context.sheet.getRow(rowNumber);
-
     for (int colNumber =
         context.poiBasisTableStartColumnNumber; colNumber < context.poiBasisTableStartColumnNumber
             + columnList.size(); colNumber++) {
 
-      T sourceCellData = columnList.get(colNumber - context.poiBasisTableStartColumnNumber);
+      T sourceCellData;
+      Cell destCell;
+      if (writer.isVerticalAndHorizontalOpposite()) {
+        Row row = context.sheet.getRow(colNumber);
+        if (row == null) {
+          row = context.sheet.createRow(colNumber);
+        }
 
-      if (row.getCell(colNumber) == null) {
-        row.createCell(colNumber);
+        if (row.getCell(rowNumber) == null) {
+          row.createCell(rowNumber);
+        }
+
+        destCell = row.getCell(rowNumber);
+
+      } else {
+        Row row = context.sheet.getRow(rowNumber);
+        if (row == null) {
+          row = context.sheet.createRow(rowNumber);
+        }
+        
+        if (row.getCell(colNumber) == null) {
+          row.createCell(colNumber);
+        }
+
+        destCell = row.getCell(colNumber);
       }
 
-      Cell destCell = row.getCell(colNumber);
-
+      sourceCellData = columnList.get(colNumber - context.poiBasisTableStartColumnNumber);
       writer.writeToCell(colNumber - context.poiBasisTableStartColumnNumber, sourceCellData,
           destCell);
     }
