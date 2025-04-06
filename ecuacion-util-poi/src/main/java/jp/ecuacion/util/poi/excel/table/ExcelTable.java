@@ -73,6 +73,8 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
 
   protected boolean ignoresAdditionalColumnsOfHeaderData;
 
+  protected boolean isVerticalAndHorizontalOpposite;
+
   /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
    * 
@@ -110,6 +112,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
   public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet,
       int excelBasisTableStartColumnNumber) {
     ObjectsUtil.paramRequireNonNull(sheet);
+    int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
 
     if (tableStartRowNumber != null) {
       return Objects.requireNonNull(tableStartRowNumber) - 1;
@@ -119,16 +122,32 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
 
     // A列に特定の文字列があることを確認
     for (int i = 0; i < 100; i++) {
-      // i行目
-      Row row = sheet.getRow(i);
-      // 空行がnullになる場合もあるのでその場合はskip
-      if (row == null) {
-        continue;
-      }
+      Cell cell;
+      
+      if (isVerticalAndHorizontalOpposite) {
+        // ith row
+        Row row = sheet.getRow(poiBasisTableStartColumnNumber);
+        
+        // when row == null there can be a table heade label
+        if (row == null) {
+          break;
+        }
+        
+        cell = row.getCell(i);
+        
+      } else {
+        // i行目
+        Row row = sheet.getRow(i);
+        // 空行がnullになる場合もあるのでその場合はskip
+        if (row == null) {
+          continue;
+        }
 
-      // 0番目のセル
-      Cell cell = row.getCell(excelBasisTableStartColumnNumber - 1);
-      // cellがnullになる場合もあるのでその場合はskip
+        // cell of poiBasisTableStartColumnNumber
+        cell = row.getCell(poiBasisTableStartColumnNumber);
+      }
+      
+      // cell can be null
       if (cell == null) {
         continue;
       }
@@ -195,5 +214,10 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
   @Override
   public boolean ignoresAdditionalColumnsOfHeaderData() {
     return ignoresAdditionalColumnsOfHeaderData;
+  }
+
+  @Override
+  public boolean isVerticalAndHorizontalOpposite() {
+    return isVerticalAndHorizontalOpposite;
   }
 }

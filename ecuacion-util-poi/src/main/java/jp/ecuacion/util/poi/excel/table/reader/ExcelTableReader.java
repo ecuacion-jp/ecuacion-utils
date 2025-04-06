@@ -181,8 +181,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     updateAndGetHeaderData(rtnData);
 
     // get the IteratorReader
-    ContextContainer context =
-        readUtil.getReadyToReadTableData(this, workbook, getSheetName(), null, false);
+    ContextContainer context = readUtil.getReadyToReadTableData(this, workbook, getSheetName(),
+        tableStartColumnNumber, null, false);
 
     return new IterableReader<T>(this, context, getNumberOfHeaderLines());
   }
@@ -203,8 +203,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     // when readsHeaderOnly == true, return data is used to validate the header labels,
     // so ignoresColumnSizeSetInReader should also be true.
-    ContextContainer context = readUtil.getReadyToReadTableData(this, workbook, getSheetName(),
-        (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
+    ContextContainer context =
+        readUtil.getReadyToReadTableData(this, workbook, getSheetName(), tableStartColumnNumber,
+            (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
 
     // データを取得
     // 2重のlistに格納する
@@ -250,30 +251,49 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
 
     // the folloing is executed when tableColumnSize value needs to be analyzed dynamically.
+    int columnNumber = -1;
+    if (isVerticalAndHorizontalOpposite) {
+      columnNumber = poiBasisDeterminedTableStartColumnNumber;
+      while (true) {
+        Row row = sheet.getRow(columnNumber);
+        // If the cell is null, that means header is end.
+        if (row == null || row.getCell(poiBasisDeterminedTableStartRowNumber) == null) {
+          break;
+        }
 
-    Row row = sheet.getRow(poiBasisDeterminedTableStartRowNumber);
-    if (row == null) {
-      String msg = "jp.ecuacion.util.poi.excel.reader.HeaderRowIsNull.message";
-      throw new BizLogicAppException(msg, sheet.getSheetName(),
-          Integer.toString(poiBasisDeterminedTableStartRowNumber + 1));
-    }
+        Cell cell = row.getCell(poiBasisDeterminedTableStartRowNumber);
+        if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
+          break;
+        }
 
-    // This row is the line with header, which cannot be {@code null}.
-    ObjectsUtil.requireNonNull(row);
-
-    int columnNumber = poiBasisDeterminedTableStartColumnNumber;
-    while (true) {
-      Cell cell = row.getCell(columnNumber);
-      // If the cell is null, that means header is end.
-      if (cell == null) {
-        break;
+        columnNumber++;
       }
 
-      if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
-        break;
+    } else {
+      Row row = sheet.getRow(poiBasisDeterminedTableStartRowNumber);
+      if (row == null) {
+        String msg = "jp.ecuacion.util.poi.excel.reader.HeaderRowIsNull.message";
+        throw new BizLogicAppException(msg, sheet.getSheetName(),
+            Integer.toString(poiBasisDeterminedTableStartRowNumber + 1));
       }
 
-      columnNumber++;
+      // This row is the line with header, which cannot be {@code null}.
+      ObjectsUtil.requireNonNull(row);
+
+      columnNumber = poiBasisDeterminedTableStartColumnNumber;
+      while (true) {
+        Cell cell = row.getCell(columnNumber);
+        // If the cell is null, that means header is end.
+        if (row == null || row.getCell(columnNumber) == null) {
+          break;
+        }
+
+        if (isCellDataEmpty(getCellData(cell, tableStartColumnNumber + columnNumber + 1))) {
+          break;
+        }
+
+        columnNumber++;
+      }
     }
 
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
@@ -396,6 +416,12 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   @Override
   public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
+    return this;
+  }
+
+  @Override
+  public ExcelTableReader<T> isVerticalAndHorizontalOpposite(boolean value) {
+    this.isVerticalAndHorizontalOpposite = value;
     return this;
   }
 }

@@ -97,4 +97,18 @@ public interface IfExcelTable<T> {
   @Nullable
   public String getStringValue(@Nullable T cellData) throws BizLogicAppException;
 
+  /**
+   * Decides whether header is top (normal table) or left. 
+   * {@code true} means headers are at the left.
+   * 
+   * @param value boolean
+   * @return {@code IfExcelTable<T>}
+   */
+  public IfExcelTable<T> isVerticalAndHorizontalOpposite(boolean value);
+
+  /**
+   * Obtains whether header is top (normal table) or left. 
+   * {@code true} means headers are at the left.
+   */
+  public boolean isVerticalAndHorizontalOpposite();
 }
