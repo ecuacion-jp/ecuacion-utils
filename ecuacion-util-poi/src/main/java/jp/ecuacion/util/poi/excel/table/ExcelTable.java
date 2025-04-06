@@ -102,12 +102,13 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * <p>When {@code tableStartRowNumber} is set to {@code null}, 
    *     this method will find the string designated with 
    *     {@link IfExcelTableReader#getFarLeftAndTopHeaderLabel()} from the top row 
-   *     in the column number of {@code tableStartColumnNumber}.</p>
+   *     in the column number of {@code excelBasisTableStartColumnNumber}.</p>
    * 
    * @param sheet excel sheet
    * @return the row number the table starts, greater than or equal to {@code 1}.
    */
-  public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet) {
+  public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet,
+      int excelBasisTableStartColumnNumber) {
     ObjectsUtil.paramRequireNonNull(sheet);
 
     if (tableStartRowNumber != null) {
@@ -126,7 +127,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       }
 
       // 0番目のセル
-      Cell cell = row.getCell(0);
+      Cell cell = row.getCell(excelBasisTableStartColumnNumber - 1);
       // cellがnullになる場合もあるのでその場合はskip
       if (cell == null) {
         continue;

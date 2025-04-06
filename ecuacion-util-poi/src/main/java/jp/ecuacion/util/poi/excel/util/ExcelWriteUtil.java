@@ -102,7 +102,7 @@ public class ExcelWriteUtil {
    * Gets ready to write table data.
    */
   public <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
-      Workbook workbook, String sheetName) throws BizLogicAppException {
+      Workbook workbook, String sheetName, int tableStartColumnNumber) throws BizLogicAppException {
 
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
@@ -115,7 +115,8 @@ public class ExcelWriteUtil {
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
-    int poiBasisTableStartRowNumber = writer.getPoiBasisDeterminedTableStartRowNumber(sheet);
+    int poiBasisTableStartRowNumber =
+        writer.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
 
     // Skip the header line if the writer is OneLineHeaderFormat
     if (this instanceof IfFormatOneLineHeaderExcelTable) {
@@ -189,9 +190,9 @@ public class ExcelWriteUtil {
       boolean changesDateString, boolean changesCellsWithTextDataFormat, String[] dateFormats) {
     boolean skipsBecauseOfDataFormat =
         !changesCellsWithTextDataFormat && cell.getCellStyle().getDataFormat() == 49;
-    
+
     if (cell != null && cell.getCellType() == CellType.STRING && !skipsBecauseOfDataFormat) {
-      
+
       if (changesNumberString) {
         try {
           Double d = Double.parseDouble(cell.getStringCellValue().replaceAll(",", ""));
@@ -204,7 +205,7 @@ public class ExcelWriteUtil {
           detailLog.trace("String does not match the number format.");
         }
       }
-      
+
       if (changesDateString) {
         for (String dateFormat : dateFormats) {
           try {
