@@ -213,8 +213,14 @@ public class ExcelReadUtil {
       Format fmt = fmter.createFormat(cell);
 
       // fmtにより細かい表示形式の判別が可能
-      detailLog.debug("Format: " + fmt.getClass().getSimpleName());
-      if (fmt instanceof ExcelStyleDateFormatter) {
+      detailLog.debug("Format: " + (fmt == null ? "(null)" : fmt.getClass().getSimpleName()));
+      
+      if (fmt == null) {
+        // DataFormatter#createFormat(Cell) is nullable.
+        // In that case return the value without formatting.
+        return Double.toString(cell.getNumericCellValue());
+
+      } else if (fmt instanceof ExcelStyleDateFormatter) {
         // format: date and time
         return cell.getLocalDateTimeCellValue().format(dateTimeFormat);
 
