@@ -213,7 +213,7 @@ public class ExcelReadUtil {
       Format fmt = fmter.createFormat(cell);
 
       // fmtにより細かい表示形式の判別が可能
-      detailLog.debug("Format: " + (fmt == null ? "(null)" : fmt.getClass().getSimpleName()));
+      detailLog.debug("Format: " + ((fmt == null) ? "(null)" : fmt.getClass().getSimpleName()));
       
       if (fmt == null) {
         // DataFormatter#createFormat(Cell) is nullable.
