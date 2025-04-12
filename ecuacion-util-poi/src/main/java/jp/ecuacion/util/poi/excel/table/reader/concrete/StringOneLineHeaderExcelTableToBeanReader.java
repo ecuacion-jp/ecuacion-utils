@@ -186,4 +186,11 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     super.suppressesWarnLog(suppressesWarnLog);
     return this;
   }
+
+  @Override
+  public StringOneLineHeaderExcelTableToBeanReader<T> ignoresAdditionalColumnsOfHeaderData(
+      boolean value) {
+    this.ignoresAdditionalColumnsOfHeaderData = value;
+    return this;
+  }
 }
