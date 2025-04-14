@@ -45,6 +45,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
     implements IfFormatFreeExcelTable<Cell>, IfDataTypeCellExcelTableWriter {
 
+  private boolean copiesDataFormatOnly;
+
   /**
   * Constructs a new instance.
   *
@@ -70,9 +72,20 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
-  
+
   @Override
   public Map<Integer, CellStyle> getColumnStyleMap() {
     return columnStyleMap;
+  }
+
+  @Override
+  public CellFreeExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
+    this.copiesDataFormatOnly = copiesDataFormatOnly;
+    return this;
+  }
+
+  @Override
+  public boolean copiesDataFormatOnly() {
+    return copiesDataFormatOnly;
   }
 }

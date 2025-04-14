@@ -189,7 +189,6 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
       this.writer = writer;
       this.context = context;
       this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
-
     }
 
     /**
