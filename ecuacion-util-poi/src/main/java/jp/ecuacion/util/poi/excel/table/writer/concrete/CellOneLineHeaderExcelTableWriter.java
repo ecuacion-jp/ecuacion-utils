@@ -39,6 +39,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
     implements IfDataTypeCellExcelTableWriter, IfFormatOneLineHeaderExcelTable<Cell> {
 
+  private boolean copiesDataFormatOnly;
+
   @Nonnull
   private String[] headerLabels;
 
@@ -73,8 +75,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
         tableStartRowNumber, tableStartColumnNumber, 1)
             .ignoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
-            .isVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite())
-            .read(workbook);
+            .isVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);
   }
 
   private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
@@ -82,5 +83,16 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   @Override
   public Map<Integer, CellStyle> getColumnStyleMap() {
     return columnStyleMap;
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
+    this.copiesDataFormatOnly = copiesDataFormatOnly;
+    return this;
+  }
+
+  @Override
+  public boolean copiesDataFormatOnly() {
+    return copiesDataFormatOnly;
   }
 }
