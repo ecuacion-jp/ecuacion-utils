@@ -32,30 +32,16 @@ public interface IfDataTypeCellExcelTableWriter
   /**
    * Writes a value to the cell.
    * 
-   * @param sourceCellData sourceCellData
-   * @param destCell destCell
-   */
-  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell) {
-    writeToCell(columnNumberFromZero, sourceCellData, destCell, false);
-  }
-
-  /**
-   * Writes a value to the cell.
-   * 
    * <p>The number of CellStyle in an excel file has limit: 64,000.
    *     If it exceeds, we'll get the exception below. To avoid it CellStyle has to be reused.
    *     To reuse style</p>
    * 
-   * @param sourceCellData sourceCellData
-   * @param destCell destCell
    * @param columnNumberFromZero column number starting from zero. 
    *     Used as a key to store and reuse the style for each column.
-   * @param copiesDataFormatOnly when this is {@code true}, whole style is not copied 
-   *     to the destination cell, but {@code DataFormat} only. <br>
-   *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.
+   * @param sourceCellData sourceCellData
+   * @param destCell destCell
    */
-  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell,
-      boolean copiesDataFormatOnly) {
+  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell) {
     CellCopyPolicy policy = new CellCopyPolicy();
     policy.setCopyCellFormula(false);
 
@@ -72,7 +58,7 @@ public interface IfDataTypeCellExcelTableWriter
 
     } else {
       if (sourceCellData != null) {
-        if (copiesDataFormatOnly) {
+        if (copiesDataFormatOnly()) {
           destCell.getCellStyle().setDataFormat(sourceCellData.getCellStyle().getDataFormat());
 
         } else {
@@ -93,6 +79,29 @@ public interface IfDataTypeCellExcelTableWriter
       }
     }
   }
+  
+  /**
+   * Sets copiesDataFormatOnly value.
+   * 
+   * <p>When this is {@code true}, whole style is not copied 
+   *     to the destination cell, but {@code DataFormat} only. <br>
+   *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.</p>
+   *     
+   * @param value boolean
+   *     
+   */
+  public IfDataTypeCellExcelTableWriter copiesDataFormatOnly(boolean value);
+  
+  /**
+   * Returns copiesDataFormatOnly value.
+   * 
+   * <p>When this is {@code true}, whole style is not copied 
+   *     to the destination cell, but {@code DataFormat} only. <br>
+   *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.</p>
+   *     
+   * @return boolean
+   */
+  public boolean copiesDataFormatOnly();
 
   /**
    * Gets {@code columnStyleMap} to reuse {@code CellStyle}.
