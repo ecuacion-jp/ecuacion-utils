@@ -22,4 +22,6 @@ module jp.ecuacion.util.pdfbox {
   requires org.apache.pdfbox;
   requires org.apache.poi.poi;
   requires org.apache.commons.lang3;
+  requires java.desktop;
+  requires org.apache.fontbox;
 }
