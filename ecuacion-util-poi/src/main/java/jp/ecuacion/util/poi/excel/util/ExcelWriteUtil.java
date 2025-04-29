@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import java.util.List;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
@@ -160,7 +161,7 @@ public class ExcelWriteUtil {
         if (row == null) {
           row = context.sheet.createRow(rowNumber);
         }
-        
+
         if (row.getCell(colNumber) == null) {
           row.createCell(colNumber);
         }
@@ -253,10 +254,27 @@ public class ExcelWriteUtil {
    *     should be understandable to the users.</p>
    * 
    * @param workbook workbook
+   * @param fileInfo filename or file path of the excel file to add to the message
    * @throws BizLogicAppException BizLogicAppException
    */
-  public void evaluateAllFormulas(Workbook workbook) throws BizLogicAppException {
-    evaluateAllFormulas(workbook, null);
+  public void evaluateFormula(Workbook workbook, String fileInfo) throws BizLogicAppException {
+    // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
+    Iterator<Sheet> sheetIt = workbook.sheetIterator();
+    while (sheetIt.hasNext()) {
+      Sheet sheet = sheetIt.next();
+
+      Iterator<Row> rowIt = sheet.rowIterator();
+      while (rowIt.hasNext()) {
+        Row row = rowIt.next();
+
+        Iterator<Cell> cellIt = row.cellIterator();
+        while (cellIt.hasNext()) {
+          Cell cell = cellIt.next();
+          
+          evaluateFormula(cell, fileInfo);
+        }
+      }
+    }
   }
 
   /**
@@ -270,19 +288,54 @@ public class ExcelWriteUtil {
    * 
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
+   * @param sheetNames array of sheet names you want to evaluate
    * @throws BizLogicAppException BizLogicAppException
    */
-  public void evaluateAllFormulas(Workbook workbook, String fileInfo) throws BizLogicAppException {
+  public void evaluateFormula(Workbook workbook, String fileInfo, String... sheetNames)
+      throws BizLogicAppException {
+
+    for (String sheetName : sheetNames) {
+      Sheet sheet = workbook.getSheet(sheetName);
+      Iterator<Row> rowIt = sheet.rowIterator();
+
+      while (rowIt.hasNext()) {
+        Row row = rowIt.next();
+
+        Iterator<Cell> cellIt = row.cellIterator();
+        while (cellIt.hasNext()) {
+          Cell cell = cellIt.next();
+
+          evaluateFormula(cell, fileInfo);
+        }
+      }
+    }
+  }
+
+  /**
+   * Catches {@code Exception}s which are thrown 
+   *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
+   *     and changes it to a {@code BizLogicAppException} with an appropriate message.
+   * 
+   * <p>When an excel file is created and uploaded by users, 
+   *     {@code Exception}s according to the content of the file 
+   *     should be understandable to the users.</p>
+   * 
+   * @param cell target cell you want to evaluate
+   * @param fileInfo filename or file path of the excel file to add to the message
+   * @throws BizLogicAppException BizLogicAppException
+   */
+  public void evaluateFormula(Cell cell, String fileInfo) throws BizLogicAppException {
     Arg fileInfoArg = getFileInfoString(fileInfo);
+    Workbook workbook = cell.getRow().getSheet().getWorkbook();
 
     try {
-      workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
+      workbook.getCreationHelper().createFormulaEvaluator().evaluate(cell);
 
     } catch (NotImplementedException ex) {
 
       String sheetAndCell = ex.getMessage().replace("Error evaluating cell ", "");
       String sheet = sheetAndCell.split("!")[0];
-      String cell = sheetAndCell.split("!")[1];
+      String tmpCell = sheetAndCell.split("!")[1];
 
       Arg reason = Arg.message("jp.ecuacion.util.poi.excel.ExcelWriteUtil"
           + ".NotImplementedException.ReasonUnknown.message");
@@ -296,10 +349,10 @@ public class ExcelWriteUtil {
 
       throw new BizLogicAppException(
           "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
-          ArrayUtils.addAll(ArrayUtils.addAll(Arg.strings(sheet, cell), reason), fileInfoArg));
+          ArrayUtils.addAll(ArrayUtils.addAll(Arg.strings(sheet, tmpCell), reason), fileInfoArg));
 
     } catch (FormulaParseException ex) {
-      throwBizLogicExceptionForUnknownException(ex, fileInfo);
+      throwBizLogicExceptionForUnknownException(ex, cell, fileInfo);
 
     } catch (IllegalStateException ex) {
       String msg1 = ex.getMessage();
@@ -307,7 +360,7 @@ public class ExcelWriteUtil {
       String startsWith1 = "Failed to evaluate cell: ";
       if (!msg1.startsWith(startsWith1)) {
         // In case of unknown cause.
-        throwBizLogicExceptionForUnknownException(ex, fileInfo);
+        throwBizLogicExceptionForUnknownException(ex, cell, fileInfo);
       }
 
       String[] arg1Tmp1Arr = msg1.replace(startsWith1, "").split(",");
@@ -349,14 +402,12 @@ public class ExcelWriteUtil {
             cellName, errorOccuredFunction);
       }
 
-    } catch (
-
-    Exception ex) {
-      throwBizLogicExceptionForUnknownException(ex, fileInfo);
+    } catch (Exception ex) {
+      throwBizLogicExceptionForUnknownException(ex, cell, fileInfo);
     }
   }
 
-  private void throwBizLogicExceptionForUnknownException(Exception ex, String fileInfo)
+  private void throwBizLogicExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
       throws BizLogicAppException {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
@@ -366,7 +417,8 @@ public class ExcelWriteUtil {
 
     throw new BizLogicAppException(
         "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
-        ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(sb.toString())));
+        ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(cell.getSheet().getSheetName()),
+            Arg.string(cell.getAddress().formatAsString()), Arg.string(sb.toString())));
   }
 
   private void throwBizLogicExceptionForIllegalStateExceptionFailedToEvaluateCell(Exception ex,
