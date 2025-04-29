@@ -23,6 +23,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,14 +52,14 @@ public class ExcelWriteUtilTest {
     Cell cell;
 
     // numberString
-    
+
     // changesNumberString == false, dataFormat is "number"
     cell = sheet.getRow(1).getCell(2);
     writer.getReadyToEvaluateFormula(cell, false, false, false, null);
     // unchanged
     Assertions.assertEquals(CellType.STRING, cell.getCellType());
     Assertions.assertEquals("1", cell.getStringCellValue());
-    
+
     // changesNumberString == true, dataFormat is "number"
     cell = sheet.getRow(1).getCell(2);
     writer.getReadyToEvaluateFormula(cell, true, false, false, null);
@@ -66,23 +67,24 @@ public class ExcelWriteUtilTest {
     Assertions.assertEquals(CellType.NUMERIC, cell.getCellType());
     Assertions.assertEquals(1, cell.getNumericCellValue());
 
-    // changesNumberString == true, dataFormat is "text", changesCellsWithDataFormatIsString == false
+    // changesNumberString == true, dataFormat is "text", changesCellsWithDataFormatIsString ==
+    // false
     cell = sheet.getRow(2).getCell(2);
     writer.getReadyToEvaluateFormula(cell, true, false, false, null);
     // unchanged
     Assertions.assertEquals(CellType.STRING, cell.getCellType());
     Assertions.assertEquals("1", cell.getStringCellValue());
-    
+
     // changesNumberString == true, dataFormat is "text", changesCellsWithDataFormatIsString == true
     cell = sheet.getRow(2).getCell(2);
     writer.getReadyToEvaluateFormula(cell, true, false, true, null);
     // changed
     Assertions.assertEquals(CellType.NUMERIC, cell.getCellType());
     Assertions.assertEquals(1, cell.getNumericCellValue());
-    
-    
+
+
     // dateString
-    
+
     // changesDateString == false, dataFormat is "number"
     cell = sheet.getRow(3).getCell(2);
     writer.getReadyToEvaluateFormula(cell, false, false, false, new String[] {"yyyy/MM/dd"});
@@ -110,7 +112,7 @@ public class ExcelWriteUtilTest {
     // changed
     Assertions.assertEquals(CellType.NUMERIC, cell.getCellType());
     Assertions.assertEquals(45658, cell.getNumericCellValue());
-    
+
 
     // CellType != STRING
     cell = sheet.getRow(5).getCell(2);
@@ -118,5 +120,24 @@ public class ExcelWriteUtilTest {
     // ignored
     Assertions.assertEquals(CellType.NUMERIC, cell.getCellType());
     Assertions.assertEquals(1, cell.getNumericCellValue());
+  }
+
+  @Test
+  public void evaluateFormulaTest()
+      throws EncryptedDocumentException, IOException, BizLogicAppException {
+    String excelPath =
+        new File("src/test/resources").getAbsolutePath() + "/ExcelWriteUtilTest.xlsx";
+    Workbook wb = writer.openForWrite(excelPath);
+    Sheet sheet = wb.getSheet("evaluateFormulaTest");
+
+    // #NAME?
+    try {
+      writer.evaluateFormula(sheet.getRow(3).getCell(1), "testfile");
+      Assertions.fail();
+    } catch (BizLogicAppException ex) {
+      Assertions.assertEquals("jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
+          ex.getMessageId());
+    }
+
   }
 }
