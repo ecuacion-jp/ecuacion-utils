@@ -329,7 +329,7 @@ public class ExcelWriteUtil {
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
 
     try {
-      workbook.getCreationHelper().createFormulaEvaluator().evaluate(cell);
+      workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
 
     } catch (NotImplementedException ex) {
 
