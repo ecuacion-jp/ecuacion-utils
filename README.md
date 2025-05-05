@@ -13,6 +13,6 @@ This library is dependent on `ecuacion-lib`.
 
 (See `Documentation` part of `README` in each module)
 
-## Introduction
+## Installation
 
-(See `Introduction` part of `README` in each module)
+(See `Installation` part of `README` in each module)

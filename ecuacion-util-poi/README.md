@@ -47,9 +47,9 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 - [ecuacion-util-poi-sample](https://github.com/ecuacion-jp/ecuacion-utils/tree/main/ecuacion-util-poi-sample)
 
-## Introduction
+## Installation
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
+Check [Installation](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
 The description of dependent `ecuacion` modules is as follows.
 
 ```xml
