@@ -81,4 +81,9 @@ public class ExcelAppException extends BizLogicAppException {
     
     return this;
   }
+  
+  @Override
+  public ExcelAppException cause(Throwable th) {
+    return (ExcelAppException) super.cause(th);
+  }
 }
