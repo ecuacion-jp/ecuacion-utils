@@ -18,8 +18,12 @@ package jp.ecuacion.util.poi.util;
 import java.io.File;
 import java.io.IOException;
 import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.formula.CollaboratingWorkbooksEnvironment.WorkbookNotFoundException;
+import org.apache.poi.ss.formula.FormulaParseException;
+import org.apache.poi.ss.formula.eval.NotImplementedException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -123,21 +127,94 @@ public class ExcelWriteUtilTest {
   }
 
   @Test
-  public void evaluateFormulaTest()
-      throws EncryptedDocumentException, IOException, BizLogicAppException {
+  public void evaluateFormulaTest() throws EncryptedDocumentException, IOException {
     String excelPath =
         new File("src/test/resources").getAbsolutePath() + "/ExcelWriteUtilTest.xlsx";
     Workbook wb = writer.openForWrite(excelPath);
     Sheet sheet = wb.getSheet("evaluateFormulaTest");
 
-    // #NAME?
+    // an unimplemented function
     try {
       writer.evaluateFormula(sheet.getRow(3).getCell(1), "testfile");
       Assertions.fail();
-    } catch (BizLogicAppException ex) {
-      Assertions.assertEquals("jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
+
+    } catch (ExcelAppException ex) {
+      Assertions.assertEquals(true, ex.getCause() instanceof NotImplementedException);
+      Assertions.assertEquals(
+          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
           ex.getMessageId());
+      Assertions.assertEquals("B4", ex.getCell().getAddress().formatAsString());
     }
 
+    // #NAME?
+    try {
+      writer.evaluateFormula(sheet.getRow(4).getCell(1), "testfile");
+      Assertions.fail();
+
+    } catch (ExcelAppException ex) {
+      Assertions.assertEquals(true, ex.getCause() instanceof FormulaParseException);
+      Assertions.assertEquals("jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
+          ex.getMessageId());
+      Assertions.assertEquals("B5", ex.getCell().getAddress().formatAsString());
+    }
+
+    // #REF!
+    try {
+      writer.evaluateFormula(sheet.getRow(5).getCell(1), "testfile");
+      Assertions.fail();
+
+    } catch (ExcelAppException ex) {
+      Assertions.assertEquals(true,
+          ex.getCause().getCause().getCause() instanceof WorkbookNotFoundException);
+      Assertions.assertEquals(
+          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
+          ex.getMessageId());
+      Assertions.assertEquals("B6", ex.getCell().getAddress().formatAsString());
+    }
+
+    // #VALUE! (No Exception)
+    try {
+      writer.evaluateFormula(sheet.getRow(6).getCell(1), "testfile");
+
+    } catch (ExcelAppException ex) {
+      Assertions.fail();
+    }
+
+    // #DIV/0! (No Exception)
+    try {
+      writer.evaluateFormula(sheet.getRow(7).getCell(1), "testfile");
+
+    } catch (ExcelAppException ex) {
+      Assertions.fail();
+    }
+
+    // #N/A (No Exception)
+    try {
+      writer.evaluateFormula(sheet.getRow(7).getCell(1), "testfile");
+
+    } catch (ExcelAppException ex) {
+      Assertions.fail();
+    }
+
+    // #DIV/0! (No Exception)
+    try {
+      writer.evaluateFormula(sheet.getRow(8).getCell(1), "testfile");
+
+    } catch (ExcelAppException ex) {
+      Assertions.fail();
+    }
+
+    // Other 
+    try {
+      writer.evaluateFormula(sheet.getRow(9).getCell(1), "testfile");
+      Assertions.fail();
+
+    } catch (ExcelAppException ex) {
+      Assertions.assertEquals(true, ex.getCause() instanceof ClassCastException);
+      Assertions.assertEquals("jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
+          ex.getMessageId());
+      Assertions.assertEquals("B10", ex.getCell().getAddress().formatAsString());
+
+    }
   }
 }
