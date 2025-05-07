@@ -49,6 +49,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * Provides excel writing related {@code apache POI} utility methods.
  */
 public class ExcelWriteUtil {
+  private static final String MSG_PREFIX = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.";
 
   private DetailLogger detailLog = new DetailLogger(this);
   private ExceptionUtil exUtil = new ExceptionUtil();
@@ -270,7 +271,7 @@ public class ExcelWriteUtil {
         Iterator<Cell> cellIt = row.cellIterator();
         while (cellIt.hasNext()) {
           Cell cell = cellIt.next();
-          
+
           evaluateFormula(cell, fileInfo);
         }
       }
@@ -332,24 +333,19 @@ public class ExcelWriteUtil {
       workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
 
     } catch (NotImplementedException ex) {
-
-      String sheetAndCell = ex.getMessage().replace("Error evaluating cell ", "");
-      String sheet = sheetAndCell.split("!")[0];
-      String tmpCell = sheetAndCell.split("!")[1];
-
-      Arg reason = Arg.message("jp.ecuacion.util.poi.excel.ExcelWriteUtil"
-          + ".NotImplementedException.ReasonUnknown.message");
+      Arg reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
 
       if (ex.getCause() instanceof NotImplementedFunctionException) {
         NotImplementedFunctionException ex2 = (NotImplementedFunctionException) ex.getCause();
-        String msg = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException."
-            + "ReasonUnimplementedFunction.message";
+        String msg = MSG_PREFIX + "NotImplementedException.ReasonUnimplementedFunction.message";
         reason = Arg.message(msg, Arg.string(ex2.getMessage().replace("_xlfn.", "")));
       }
 
-      throw new ExcelAppException(
-          "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
-          ArrayUtils.addAll(ArrayUtils.addAll(Arg.strings(sheet, tmpCell), reason), fileInfoArg));
+      Arg[] args = ArrayUtils.addAll(
+          Arg.strings(cell.getSheet().getSheetName(), cell.getAddress().formatAsString()), reason,
+          fileInfoArg);
+      throw new ExcelAppException(MSG_PREFIX + "NotImplementedException.message", args).cell(cell)
+          .cause(ex);
 
     } catch (FormulaParseException ex) {
       throwBizLogicExceptionForUnknownException(ex, cell, fileInfo);
@@ -379,11 +375,10 @@ public class ExcelWriteUtil {
             String arg3Tmp1 = ex3.getMessage().replace(startsWith + "'", "");
             String fileInfoInFunction = arg3Tmp1.substring(0, arg3Tmp1.indexOf("'"));
 
-            throw new ExcelAppException(
-                "jp.ecuacion.util.poi.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
-                ArrayUtils.addAll(
-                    Arg.strings(sheetame, cellName, errorOccuredFunction, fileInfoInFunction),
-                    fileInfoArg));
+            Arg[] args = ArrayUtils.addAll(
+                Arg.strings(sheetame, cellName, errorOccuredFunction, fileInfoInFunction),
+                fileInfoArg);
+            throw new ExcelAppException(MSG_PREFIX + "WorkbookNotFoundException.message", args);
 
           } else {
             // In case of unknown cause.
@@ -415,8 +410,7 @@ public class ExcelWriteUtil {
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new ExcelAppException(
-        "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
+    throw new ExcelAppException(MSG_PREFIX + "DetailUnknown.message",
         ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(cell.getSheet().getSheetName()),
             Arg.string(cell.getAddress().formatAsString()), Arg.string(sb.toString())));
   }
@@ -430,16 +424,15 @@ public class ExcelWriteUtil {
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new ExcelAppException(
-        "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
-        ArrayUtils.addAll(
-            ArrayUtils.addAll(Arg.strings(sheetName, cellName, errorOccuredFunction), fileInfoArg),
-            Arg.strings(sb.toString())));
+    Arg[] args = ArrayUtils.addAll(
+        ArrayUtils.addAll(Arg.strings(sheetName, cellName, errorOccuredFunction), fileInfoArg),
+        Arg.strings(sb.toString()));
+    throw new ExcelAppException(MSG_PREFIX + "DetailUnknown.message", args);
   }
 
   private Arg getFileInfoString(String fileInfo) {
 
-    String infoNone = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.FileInfoLabel.None.message";
+    String infoNone = MSG_PREFIX + "FileInfoLabel.None.message";
     Arg fileInfoLabel = fileInfo == null ? Arg.message(infoNone) : Arg.string(fileInfo);
 
     return fileInfoLabel;
