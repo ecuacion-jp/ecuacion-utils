@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Set;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.exception.unchecked.UncheckedAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.lib.core.util.ValidationUtil;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
@@ -239,18 +239,18 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param sheet sheet
    * @param poiBasisDeterminedTableStartRowNumber poiBasisDeterminedTableStartRowNumber
    * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartRowNumber
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public @Nonnull Integer getTableColumnSize(@RequireNonnull Sheet sheet,
       int poiBasisDeterminedTableStartRowNumber, int poiBasisDeterminedTableStartColumnNumber,
-      boolean ignoresColumnSizeSetInReader) throws BizLogicAppException {
+      boolean ignoresColumnSizeSetInReader) throws ExcelAppException {
     ObjectsUtil.paramRequireNonNull(sheet);
 
     if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
       return tableColumnSizeGivenByConstructor;
     }
 
-    // the folloing is executed when tableColumnSize value needs to be analyzed dynamically.
+    // the following is executed when tableColumnSize value needs to be analyzed dynamically.
     int columnNumber = poiBasisDeterminedTableStartColumnNumber;
     Cell cell;
     while (true) {
@@ -283,9 +283,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
 
     if (size == 0) {
-      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
+      throw new ExcelAppException("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
           sheet.getSheetName(), Integer.toString(poiBasisDeterminedTableStartRowNumber + 1),
-          Integer.toString(poiBasisDeterminedTableStartColumnNumber + 1));
+          Integer.toString(poiBasisDeterminedTableStartColumnNumber + 1)).sheet(sheet);
     }
 
     return size;
@@ -379,7 +379,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
         return rtn;
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         throw new UncheckedAppException(ex);
       }
 

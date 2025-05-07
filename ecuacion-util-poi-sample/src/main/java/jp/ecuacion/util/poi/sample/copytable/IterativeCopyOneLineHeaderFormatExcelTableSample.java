@@ -46,7 +46,6 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
   private static String destPath;
 
   private static ExcelReadUtil readUtil = new ExcelReadUtil();
-  private static ExcelWriteUtil writeUtil = new ExcelWriteUtil();
 
   public static void main(String[] args) throws Exception {
 
@@ -71,7 +70,7 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
         itWriter.write(list);
       }
 
-      writeUtil.saveToFile(writeWb, out);
+      ExcelWriteUtil.saveToFile(writeWb, out);
     }
 
     logger.info("A new excel file created and table data copied to: " + destPath.toString());
@@ -96,7 +95,7 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
         .getResource("template.xlsx");
     String templatePath = Path.of(templateUrl.toURI()).toAbsolutePath().toString();
 
-    return writeUtil.openForWrite(templatePath);
+    return ExcelWriteUtil.openForWrite(templatePath);
   }
 
   private static FileOutputStream openToOutput() throws Exception {
@@ -109,6 +108,6 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
       Files.delete(Path.of(destPath));
     }
 
-    return writeUtil.openForOutput(destPath);
+    return ExcelWriteUtil.openForOutput(destPath);
   }
 }

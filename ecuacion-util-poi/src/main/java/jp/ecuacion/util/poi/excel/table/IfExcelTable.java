@@ -17,7 +17,7 @@ package jp.ecuacion.util.poi.excel.table;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 
 /**
  * Provides the methods the extending interfaces use.
@@ -92,10 +92,10 @@ public interface IfExcelTable<T> {
    * 
    * @param cellData data obtained from the cell
    * @return {@code String} value obtained from the {@code cellData}
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   @Nullable
-  public String getStringValue(@Nullable T cellData) throws BizLogicAppException;
+  public String getStringValue(@Nullable T cellData) throws ExcelAppException;
 
   /**
    * Decides whether header is top (normal table) or left. 

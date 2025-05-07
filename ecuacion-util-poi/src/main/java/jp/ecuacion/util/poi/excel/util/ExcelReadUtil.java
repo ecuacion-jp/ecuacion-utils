@@ -23,11 +23,11 @@ import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
@@ -113,9 +113,9 @@ public class ExcelReadUtil {
   *
   * @param cell the cell of the excel file
   * @return the string which expresses the value of the cell.
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
   */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) throws BizLogicAppException {
+  public @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
     return getStringFromCell(cell, defaultDateTimeFormat);
   }
 
@@ -127,10 +127,10 @@ public class ExcelReadUtil {
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat)
-      throws BizLogicAppException {
+      throws ExcelAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -159,10 +159,10 @@ public class ExcelReadUtil {
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   private @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      DateTimeFormatter dateTimeFormat) throws BizLogicAppException {
+      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -194,10 +194,10 @@ public class ExcelReadUtil {
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) throws BizLogicAppException {
+      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -254,7 +254,7 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
-      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
+      throw new ExcelAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
           cell.getRow().getSheet().getSheetName(), cell.getAddress().formatAsString(),
           cell.getAddress().formatAsR1C1String());
 
@@ -285,7 +285,7 @@ public class ExcelReadUtil {
   public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
       String sheetName, int tableStartColumnNumber,
       Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
-      throws BizLogicAppException {
+      throws ExcelAppException {
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
@@ -293,7 +293,7 @@ public class ExcelReadUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
+      throw new ExcelAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
     }
 
     Integer tableRowSize =
@@ -316,10 +316,10 @@ public class ExcelReadUtil {
   /**
    * Provides common procedure for read one line of a table.
    *
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
-      int rowNumber) throws BizLogicAppException {
+      int rowNumber) throws ExcelAppException {
     detailLog.debug(LogUtil.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
