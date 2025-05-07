@@ -18,7 +18,7 @@ package jp.ecuacion.util.poi.excel.table.reader;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
 
@@ -32,7 +32,7 @@ public interface IfFormatOneLineHeaderExcelTableReader<T>
 
   @Override
   public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> excelData)
-      throws BizLogicAppException {
+      throws ExcelAppException {
     List<List<String>> list = new ArrayList<>();
     
     if (excelData.size() == 0) {

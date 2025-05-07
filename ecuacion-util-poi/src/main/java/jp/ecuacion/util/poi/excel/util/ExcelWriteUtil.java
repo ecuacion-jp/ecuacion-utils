@@ -22,11 +22,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
@@ -103,7 +103,7 @@ public class ExcelWriteUtil {
    * Gets ready to write table data.
    */
   public <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
-      Workbook workbook, String sheetName, int tableStartColumnNumber) throws BizLogicAppException {
+      Workbook workbook, String sheetName, int tableStartColumnNumber) throws ExcelAppException {
 
     detailLog.debug(LogUtil.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
@@ -112,7 +112,7 @@ public class ExcelWriteUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new BizLogicAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
+      throw new ExcelAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
@@ -247,7 +247,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code BizLogicAppException} with an appropriate message.
+   *     and changes it to a {@code ExcelAppException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -255,9 +255,9 @@ public class ExcelWriteUtil {
    * 
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Workbook workbook, String fileInfo) throws BizLogicAppException {
+  public void evaluateFormula(Workbook workbook, String fileInfo) throws ExcelAppException {
     // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
@@ -280,7 +280,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code BizLogicAppException} with an appropriate message.
+   *     and changes it to a {@code ExcelAppException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -289,10 +289,10 @@ public class ExcelWriteUtil {
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public void evaluateFormula(Workbook workbook, String fileInfo, String... sheetNames)
-      throws BizLogicAppException {
+      throws ExcelAppException {
 
     for (String sheetName : sheetNames) {
       Sheet sheet = workbook.getSheet(sheetName);
@@ -314,7 +314,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code BizLogicAppException} with an appropriate message.
+   *     and changes it to a {@code ExcelAppException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -322,9 +322,9 @@ public class ExcelWriteUtil {
    * 
    * @param cell target cell you want to evaluate
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Cell cell, String fileInfo) throws BizLogicAppException {
+  public void evaluateFormula(Cell cell, String fileInfo) throws ExcelAppException {
     Arg fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
 
@@ -347,7 +347,7 @@ public class ExcelWriteUtil {
         reason = Arg.message(msg, Arg.string(ex2.getMessage().replace("_xlfn.", "")));
       }
 
-      throw new BizLogicAppException(
+      throw new ExcelAppException(
           "jp.ecuacion.util.poi.excel.ExcelWriteUtil.NotImplementedException.message",
           ArrayUtils.addAll(ArrayUtils.addAll(Arg.strings(sheet, tmpCell), reason), fileInfoArg));
 
@@ -379,7 +379,7 @@ public class ExcelWriteUtil {
             String arg3Tmp1 = ex3.getMessage().replace(startsWith + "'", "");
             String fileInfoInFunction = arg3Tmp1.substring(0, arg3Tmp1.indexOf("'"));
 
-            throw new BizLogicAppException(
+            throw new ExcelAppException(
                 "jp.ecuacion.util.poi.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
                 ArrayUtils.addAll(
                     Arg.strings(sheetame, cellName, errorOccuredFunction, fileInfoInFunction),
@@ -408,14 +408,14 @@ public class ExcelWriteUtil {
   }
 
   private void throwBizLogicExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
-      throws BizLogicAppException {
+      throws ExcelAppException {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new BizLogicAppException(
+    throw new ExcelAppException(
         "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
         ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(cell.getSheet().getSheetName()),
             Arg.string(cell.getAddress().formatAsString()), Arg.string(sb.toString())));
@@ -423,14 +423,14 @@ public class ExcelWriteUtil {
 
   private void throwBizLogicExceptionForIllegalStateExceptionFailedToEvaluateCell(Exception ex,
       String fileInfo, String sheetName, String cellName, String errorOccuredFunction)
-      throws BizLogicAppException {
+      throws ExcelAppException {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new BizLogicAppException(
+    throw new ExcelAppException(
         "jp.ecuacion.util.poi.excel.ExcelWriteUtil.DetailUnknown.message",
         ArrayUtils.addAll(
             ArrayUtils.addAll(Arg.strings(sheetName, cellName, errorOccuredFunction), fileInfoArg),

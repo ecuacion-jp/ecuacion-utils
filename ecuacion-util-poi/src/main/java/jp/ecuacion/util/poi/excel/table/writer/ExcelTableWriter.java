@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
@@ -146,7 +146,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
   private void writeTableValues(@RequireNonnull Workbook workbook,
       @RequireNonnull List<List<T>> data)
-      throws FileNotFoundException, IOException, BizLogicAppException {
+      throws FileNotFoundException, IOException, ExcelAppException {
 
     ContextContainer context =
         writeUtil.getReadyToWriteTableData(this, workbook, getSheetName(), tableStartColumnNumber);
