@@ -20,8 +20,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import jp.ecuacion.lib.core.exception.checked.AppException;
+import jp.ecuacion.lib.core.exception.checked.MultipleAppException;
+import jp.ecuacion.lib.core.exception.checked.SingleAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.LogUtil;
@@ -256,14 +260,15 @@ public class ExcelWriteUtil {
    * 
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws ExcelAppException ExcelAppException
+   * @throws AppException AppException
    */
-  public static void evaluateFormula(Workbook workbook, String fileInfo) throws ExcelAppException {
+  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError)
+      throws AppException {
     // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
       Sheet sheet = sheetIt.next();
-      evaluateFormula(sheet, fileInfo);
+      evaluateFormula(sheet, fileInfo, breaksOnError);
     }
   }
 
@@ -279,18 +284,20 @@ public class ExcelWriteUtil {
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate
-   * @throws ExcelAppException ExcelAppException
+   * @throws AppException AppException
    */
-  public static void evaluateFormula(Workbook workbook, String fileInfo, String... sheetNames)
-      throws ExcelAppException {
+  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError,
+      String... sheetNames) throws AppException {
 
     for (String sheetName : sheetNames) {
       Sheet sheet = workbook.getSheet(sheetName);
-      evaluateFormula(sheet, fileInfo);
+      evaluateFormula(sheet, fileInfo, breaksOnError);
     }
   }
 
-  private static void evaluateFormula(Sheet sheet, String fileInfo) throws ExcelAppException {
+  private static void evaluateFormula(Sheet sheet, String fileInfo, boolean breaksOnError)
+      throws AppException {
+    List<SingleAppException> exList = new ArrayList<>();
     Iterator<Row> rowIt = sheet.rowIterator();
     while (rowIt.hasNext()) {
       Row row = rowIt.next();
@@ -299,8 +306,22 @@ public class ExcelWriteUtil {
       while (cellIt.hasNext()) {
         Cell cell = cellIt.next();
 
-        evaluateFormula(cell, fileInfo);
+        try {
+          evaluateFormula(cell, fileInfo);
+
+        } catch (ExcelAppException ex) {
+          if (breaksOnError) {
+            throw ex;
+
+          } else {
+            exList.add(ex);
+          }
+        }
       }
+    }
+    
+    if (!breaksOnError && exList.size() > 0) {
+      throw new MultipleAppException(exList);
     }
   }
 
