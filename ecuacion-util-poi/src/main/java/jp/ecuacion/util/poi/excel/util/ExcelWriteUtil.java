@@ -246,8 +246,8 @@ public class ExcelWriteUtil {
 
   /**
    * Catches {@code Exception}s which are thrown 
-   *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code ExcelAppException} with an appropriate message.
+   *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
+   *     is called and changes it to a {@code ExcelAppException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -257,30 +257,20 @@ public class ExcelWriteUtil {
    * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Workbook workbook, String fileInfo) throws ExcelAppException {
+  public void evaluateFormula(Workbook workbook, String fileInfo)
+      throws ExcelAppException {
     // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
       Sheet sheet = sheetIt.next();
-
-      Iterator<Row> rowIt = sheet.rowIterator();
-      while (rowIt.hasNext()) {
-        Row row = rowIt.next();
-
-        Iterator<Cell> cellIt = row.cellIterator();
-        while (cellIt.hasNext()) {
-          Cell cell = cellIt.next();
-
-          evaluateFormula(cell, fileInfo);
-        }
-      }
+      evaluateFormula(sheet, fileInfo);
     }
   }
 
   /**
    * Catches {@code Exception}s which are thrown 
-   *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code ExcelAppException} with an appropriate message.
+   *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
+   *     is called and changes it to a {@code ExcelAppException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -296,17 +286,20 @@ public class ExcelWriteUtil {
 
     for (String sheetName : sheetNames) {
       Sheet sheet = workbook.getSheet(sheetName);
-      Iterator<Row> rowIt = sheet.rowIterator();
+      evaluateFormula(sheet, fileInfo);
+    }
+  }
 
-      while (rowIt.hasNext()) {
-        Row row = rowIt.next();
+  private void evaluateFormula(Sheet sheet, String fileInfo) throws ExcelAppException {
+    Iterator<Row> rowIt = sheet.rowIterator();
+    while (rowIt.hasNext()) {
+      Row row = rowIt.next();
 
-        Iterator<Cell> cellIt = row.cellIterator();
-        while (cellIt.hasNext()) {
-          Cell cell = cellIt.next();
+      Iterator<Cell> cellIt = row.cellIterator();
+      while (cellIt.hasNext()) {
+        Cell cell = cellIt.next();
 
-          evaluateFormula(cell, fileInfo);
-        }
+        evaluateFormula(cell, fileInfo);
       }
     }
   }
@@ -340,7 +333,7 @@ public class ExcelWriteUtil {
         NotImplementedFunctionException cause = (NotImplementedFunctionException) ex.getCause();
         String msg = MSG_PREFIX + "NotImplementedException.ReasonUnimplementedFunction.message";
         reason = Arg.message(msg, Arg.string(cause.getFunctionName().replace("_xlfn.", "")));
- 
+
       } else {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
