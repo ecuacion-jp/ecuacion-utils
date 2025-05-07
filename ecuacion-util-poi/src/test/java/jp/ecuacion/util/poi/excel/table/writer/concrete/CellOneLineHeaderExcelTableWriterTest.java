@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Test;
 public class CellOneLineHeaderExcelTableWriterTest {
 
   private ExcelReadUtil readUtil = new ExcelReadUtil();
-  private ExcelWriteUtil writeUtil = new ExcelWriteUtil();
   private final String origFilename = this.getClass().getSimpleName() + ".xlsx";
 
   private String getDestExcelFilePath(String filename) {
@@ -58,7 +57,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
     List<List<Cell>> rowList =
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
             .read(origExcelPath);
-    Workbook wb = writeUtil.openForWrite(origExcelPath);
+    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
     String copyToSheetName = "copy-to-normalTableTest";
 
     // try-finally added to save the tested excel file.
@@ -165,7 +164,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
         Files.delete(Path.of(destExcelFilePath));
       }
 
-      writeUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
+      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
     }
   }
 
@@ -179,7 +178,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
     List<List<Cell>> rowList =
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 8, 1, null)
             .read(origExcelPath);
-    Workbook wb = writeUtil.openForWrite(origExcelPath);
+    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
     String copyToSheetName = "copy-to-tableWithNullCellseTest";
 
     // try-finally added to save the tested excel file.
@@ -205,7 +204,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
         Files.delete(Path.of(destExcelFilePath));
       }
 
-      writeUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
+      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
     }
   }
 
@@ -219,7 +218,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
     List<List<Cell>> rowList =
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
             .read(origExcelPath);
-    Workbook wb = writeUtil.openForWrite(origExcelPath);
+    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
     String copyToSheetName = "copy-to-verticalHeaderTableTest";
 
     // try-finally added to save the tested excel file.
@@ -313,7 +312,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
         Files.delete(Path.of(destExcelFilePath));
       }
 
-      writeUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
+      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
     }
   }
 }

@@ -39,8 +39,6 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExcelTableWriter<T> {
 
-  private ExcelWriteUtil writeUtil = new ExcelWriteUtil();
-
   /**
    * Constructs a new instance with the sheet name, the position of the excel table.
    * 
@@ -66,7 +64,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     ObjectsUtil.paramRequireNonNull(templateFilePath);
     ObjectsUtil.paramRequireNonNull(destFilePath);
 
-    try (Workbook workbook = writeUtil.openForWrite(templateFilePath);
+    try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
         FileOutputStream out = new FileOutputStream(destFilePath);) {
 
       headerCheck(workbook);
@@ -89,7 +87,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   public Workbook write(@RequireNonnull String templateFilePath, @RequireNonnull List<List<T>> data)
       throws Exception {
 
-    try (Workbook workbook = writeUtil.openForWrite(templateFilePath);) {
+    try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);) {
 
       headerCheck(workbook);
 
@@ -127,8 +125,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     headerCheck(workbook);
 
     // get the IteratorWriter
-    ContextContainer context =
-        writeUtil.getReadyToWriteTableData(this, workbook, getSheetName(), tableStartColumnNumber);
+    ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
+        getSheetName(), tableStartColumnNumber);
 
     return new IterableWriter<T>(this, context, getNumberOfHeaderLines());
   }
@@ -148,13 +146,13 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
       @RequireNonnull List<List<T>> data)
       throws FileNotFoundException, IOException, ExcelAppException {
 
-    ContextContainer context =
-        writeUtil.getReadyToWriteTableData(this, workbook, getSheetName(), tableStartColumnNumber);
+    ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
+        getSheetName(), tableStartColumnNumber);
 
     final int startRowNumber = context.poiBasisTableStartRowNumber + getNumberOfHeaderLines();
     for (int rowNumber = startRowNumber; rowNumber < startRowNumber + data.size(); rowNumber++) {
       List<T> list = data.get(rowNumber - startRowNumber);
-      writeUtil.writeTableLine(this, context, rowNumber, list);
+      ExcelWriteUtil.writeTableLine(this, context, rowNumber, list);
     }
   }
 
@@ -179,8 +177,6 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     private ContextContainer context;
     private int rowNumber;
 
-    private ExcelWriteUtil writeUtil = new ExcelWriteUtil();
-
     /**
      * Constructs a new instance.
      */
@@ -198,7 +194,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
      */
     public void write(List<T> columnList) {
 
-      writeUtil.writeTableLine(writer, context, rowNumber, columnList);
+      ExcelWriteUtil.writeTableLine(writer, context, rowNumber, columnList);
 
       rowNumber++;
     }
