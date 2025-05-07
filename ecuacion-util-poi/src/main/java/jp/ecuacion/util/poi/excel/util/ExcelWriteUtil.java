@@ -50,8 +50,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class ExcelWriteUtil {
   private static final String MSG_PREFIX = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.";
 
-  private DetailLogger detailLog = new DetailLogger(this);
-  private ExceptionUtil exUtil = new ExceptionUtil();
+  private static DetailLogger detailLog = new DetailLogger(ExcelWriteUtil.class);
+  private static ExceptionUtil exUtil = new ExceptionUtil();
 
   /**
    * Creates new workbook with adding sheet of name {@code sheetName}.
@@ -59,7 +59,7 @@ public class ExcelWriteUtil {
    * @param sheetName sheetName
    * @return Workbook
    */
-  public Workbook createWorkbookWithSheet(String sheetName) {
+  public static Workbook createWorkbookWithSheet(String sheetName) {
     Workbook wb = new XSSFWorkbook();
     wb.createSheet(sheetName);
 
@@ -74,7 +74,8 @@ public class ExcelWriteUtil {
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
-  public Workbook openForWrite(String filePath) throws EncryptedDocumentException, IOException {
+  public static Workbook openForWrite(String filePath)
+      throws EncryptedDocumentException, IOException {
     return WorkbookFactory.create(new FileInputStream(filePath));
   }
 
@@ -86,7 +87,7 @@ public class ExcelWriteUtil {
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
-  public FileOutputStream openForOutput(String filePath)
+  public static FileOutputStream openForOutput(String filePath)
       throws EncryptedDocumentException, IOException {
     return new FileOutputStream(filePath);
   }
@@ -94,7 +95,7 @@ public class ExcelWriteUtil {
   /**
    * Opens the excel file and returns {@code Workbook} object.
    */
-  public void saveToFile(Workbook workbook, FileOutputStream out)
+  public static void saveToFile(Workbook workbook, FileOutputStream out)
       throws EncryptedDocumentException, IOException {
     workbook.write(out);
   }
@@ -102,7 +103,7 @@ public class ExcelWriteUtil {
   /**
    * Gets ready to write table data.
    */
-  public <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
+  public static <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
       Workbook workbook, String sheetName, int tableStartColumnNumber) throws ExcelAppException {
 
     detailLog.debug(LogUtil.PARTITION_LARGE);
@@ -120,7 +121,7 @@ public class ExcelWriteUtil {
         writer.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
 
     // Skip the header line if the writer is OneLineHeaderFormat
-    if (this instanceof IfFormatOneLineHeaderExcelTable) {
+    if (writer instanceof IfFormatOneLineHeaderExcelTable) {
       poiBasisTableStartRowNumber++;
     }
 
@@ -131,7 +132,7 @@ public class ExcelWriteUtil {
   /**
    * Provides common procedure for write one line of a table.
    */
-  public <T> void writeTableLine(ExcelTableWriter<T> writer, ContextContainer context,
+  public static <T> void writeTableLine(ExcelTableWriter<T> writer, ContextContainer context,
       int rowNumber, List<T> columnList) {
 
     if (context.sheet.getRow(rowNumber) == null) {
@@ -205,7 +206,7 @@ public class ExcelWriteUtil {
    *     By setting this value {@code true}, 
    *     the method applies the change even if the cell is "text" format.
    */
-  public void getReadyToEvaluateFormula(Cell cell, boolean changesNumberString,
+  public static void getReadyToEvaluateFormula(Cell cell, boolean changesNumberString,
       boolean changesDateString, boolean changesCellsWithTextDataFormat, String[] dateFormats) {
     boolean skipsBecauseOfDataFormat =
         !changesCellsWithTextDataFormat && cell.getCellStyle().getDataFormat() == 49;
@@ -257,8 +258,7 @@ public class ExcelWriteUtil {
    * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Workbook workbook, String fileInfo)
-      throws ExcelAppException {
+  public static void evaluateFormula(Workbook workbook, String fileInfo) throws ExcelAppException {
     // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
@@ -281,7 +281,7 @@ public class ExcelWriteUtil {
    * @param sheetNames array of sheet names you want to evaluate
    * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Workbook workbook, String fileInfo, String... sheetNames)
+  public static void evaluateFormula(Workbook workbook, String fileInfo, String... sheetNames)
       throws ExcelAppException {
 
     for (String sheetName : sheetNames) {
@@ -290,7 +290,7 @@ public class ExcelWriteUtil {
     }
   }
 
-  private void evaluateFormula(Sheet sheet, String fileInfo) throws ExcelAppException {
+  private static void evaluateFormula(Sheet sheet, String fileInfo) throws ExcelAppException {
     Iterator<Row> rowIt = sheet.rowIterator();
     while (rowIt.hasNext()) {
       Row row = rowIt.next();
@@ -317,7 +317,7 @@ public class ExcelWriteUtil {
    * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelAppException ExcelAppException
    */
-  public void evaluateFormula(Cell cell, String fileInfo) throws ExcelAppException {
+  public static void evaluateFormula(Cell cell, String fileInfo) throws ExcelAppException {
     Arg fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
     String sheetName = cell.getSheet().getSheetName();
@@ -359,7 +359,7 @@ public class ExcelWriteUtil {
     }
   }
 
-  private void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
+  private static void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
       throws ExcelAppException {
     StringBuilder sb = new StringBuilder();
     exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
@@ -373,7 +373,7 @@ public class ExcelWriteUtil {
     throw new ExcelAppException(MSG_PREFIX + "DetailUnknown.message", args).cell(cell).cause(ex);
   }
 
-  private Arg getFileInfoString(String fileInfo) {
+  private static Arg getFileInfoString(String fileInfo) {
     String infoNone = MSG_PREFIX + "FileInfoLabel.None.message";
     Arg fileInfoLabel = fileInfo == null ? Arg.message(infoNone) : Arg.string(fileInfo);
 
