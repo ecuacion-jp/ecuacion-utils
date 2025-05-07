@@ -17,8 +17,8 @@ package jp.ecuacion.util.poi.excel.table.reader;
 
 import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeStringExcelTable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
@@ -31,7 +31,7 @@ public interface IfDataTypeStringExcelTableReader
     extends IfDataTypeStringExcelTable, IfExcelTableReader<String> {
 
   @Override
-  public default String getCellData(Cell cell, int columnNumber) throws BizLogicAppException {
+  public default String getCellData(Cell cell, int columnNumber) throws ExcelAppException {
     return getExcelReadUtil().getStringFromCell(cell, getDateTimeFormat(columnNumber));
   }
 

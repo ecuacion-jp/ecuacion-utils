@@ -19,8 +19,8 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -47,10 +47,10 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    *     because the header with multiple lines may exist.<br>
    *     Pass a list with `size() == 0` 
    *     when it's a table with no header or nothing to validate.
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public default void validateHeaderData(@RequireNonnull List<List<T>> headerData)
-      throws BizLogicAppException {
+      throws ExcelAppException {
 
     for (int i = 0; i < ObjectsUtil.paramRequireNonNull(headerData).size(); i++) {
       List<T> headerList = headerData.get(i);
@@ -60,7 +60,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
 
       if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
           || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
-        throw new BizLogicAppException(
+        throw new ExcelAppException(
             "jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message", getSheetName(),
             Integer.toString(headerList.size()), Integer.toString(headerLabels.length));
       }
@@ -68,7 +68,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
       for (int j = 0; j < headerLabels.length; j++) {
         if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
           int positionFromUser = j + 1;
-          throw new BizLogicAppException(
+          throw new ExcelAppException(
               "jp.ecuacion.util.poi.excel.TableHeaderTitleWrong.message", getSheetName(),
               Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
               headerLabels[j]);
@@ -85,11 +85,11 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * 
    * @param tableData table data
    * @return header data
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   @Nullable
   public List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> tableData)
-      throws BizLogicAppException;
+      throws ExcelAppException;
 
   /**
    * Returns the obtained value from the cell.
@@ -103,10 +103,10 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    *     When the far left column of a table is 2 and you want to speciries the far left column,
    *     the columnNumber is 2.
    * @return the obtained value from the cell
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ExcelAppException ExcelAppException
    */
   public @Nullable T getCellData(@RequireNonnull Cell cell, int columnNumber)
-      throws BizLogicAppException;
+      throws ExcelAppException;
 
   /**
    * Returns whether the value of the cell is empty.
@@ -114,5 +114,5 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @param cellData cellData
    * @return whether the valule of the cell is empty.
    */
-  public boolean isCellDataEmpty(@Nullable T cellData) throws BizLogicAppException;
+  public boolean isCellDataEmpty(@Nullable T cellData) throws ExcelAppException;
 }
