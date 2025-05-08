@@ -28,7 +28,7 @@
 ### Manual Load Needed Libraries
 
 - `jakarta.validation:jakarta.validation-api`
-- (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
+- (any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
 - `jakarta.annotation:jakarta.annotation-api`
 - `org.slf4j:slf4j-api`
 - (if you use log4j2, add `org.apache.logging.log4j:log4j-slf4j-impl` and `org.apache.logging.log4j:log4j-core`,

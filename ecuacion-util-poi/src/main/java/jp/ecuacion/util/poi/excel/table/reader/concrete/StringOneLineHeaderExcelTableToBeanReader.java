@@ -41,7 +41,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    *     from an empty cell is {@code null}.
    * 
    * <p>In most cases {@code null} is recommended 
-   *     because {@code Bean Validation} annotations (like {@code Max}) 
+   *     because {@code Jakarta Validation} annotations (like {@code Max}) 
    *     returns valid for {@code null}, but invalid for {@code ""}.</p>
    *     
    * @param beanClass the class of the generic parameter {@code T} is hard to obtain 
@@ -113,7 +113,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
 
     if (validates) {
       for (T bean : rtnList) {
-        // bean validation. excel data is usually not shown on displays,
+        // jakarta validation. excel data is usually not shown on displays,
         // so "setMessageWithItemName(true)" is used.
         valUtil.setMessageWithItemName(true)
             .setMessagePostfix(Arg.message(msgId, Arg.strings(sheetName))).validateThenThrow(bean);
