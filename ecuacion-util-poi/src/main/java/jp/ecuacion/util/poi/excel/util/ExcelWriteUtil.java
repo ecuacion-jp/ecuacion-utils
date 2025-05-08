@@ -32,7 +32,6 @@ import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
-import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -124,10 +123,10 @@ public class ExcelWriteUtil {
     int poiBasisTableStartRowNumber =
         writer.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
 
-    // Skip the header line if the writer is OneLineHeaderFormat
-    if (writer instanceof IfFormatOneLineHeaderExcelTable) {
-      poiBasisTableStartRowNumber++;
-    }
+    // // Skip the header line if the writer is OneLineHeaderFormat
+    // if (writer instanceof IfFormatOneLineHeaderExcelTable) {
+    // poiBasisTableStartRowNumber++;
+    // }
 
     return new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
         null, null);
