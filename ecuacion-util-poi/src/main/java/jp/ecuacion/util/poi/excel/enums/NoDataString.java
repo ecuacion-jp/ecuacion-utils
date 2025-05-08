@@ -26,7 +26,7 @@ package jp.ecuacion.util.poi.excel.enums;
  * <p>{@code NULL} means {@code null}, {@code EMPTY_STRING} means {@code ""}.<br>
  * <b>{@code NULL} is recommended</b> 
  *     because usually values obtained from an excel file are validated 
- *     with {@code bean validation}, 
+ *     with {@code jakarta validation}, 
  *     and it consider {@code null} as valid, but {@code empty("")}  as invalid.</p>
  */
 public enum NoDataString {
