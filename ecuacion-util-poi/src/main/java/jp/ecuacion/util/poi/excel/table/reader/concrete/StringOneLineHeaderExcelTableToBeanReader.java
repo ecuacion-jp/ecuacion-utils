@@ -108,15 +108,13 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
     final String msgId = "jp.ecuacion.util.poi.excel.reader.ValidationMessagePostfix.message";
     List<T> rtnList = excelTableToBeanList(filePath);
 
-    // data check
-    ValidationUtil valUtil = new ValidationUtil();
-
     if (validates) {
       for (T bean : rtnList) {
         // jakarta validation. excel data is usually not shown on displays,
         // so "setMessageWithItemName(true)" is used.
-        valUtil.setMessageWithItemName(true)
-            .setMessagePostfix(Arg.message(msgId, Arg.strings(sheetName))).validateThenThrow(bean);
+        ValidationUtil.builder().messageWithItemName(true)
+            .messagePostfix(Arg.message(msgId, Arg.strings(sheetName))).build()
+            .validateThenThrow(bean);
 
         // dat整合性check
         bean.afterReading();

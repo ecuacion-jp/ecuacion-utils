@@ -23,8 +23,8 @@ import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
@@ -286,7 +286,7 @@ public class ExcelReadUtil {
       String sheetName, int tableStartColumnNumber,
       Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
       throws ExcelAppException {
-    detailLog.debug(LogUtil.PARTITION_LARGE);
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
 
@@ -320,7 +320,7 @@ public class ExcelReadUtil {
    */
   public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
       int rowNumber) throws ExcelAppException {
-    detailLog.debug(LogUtil.PARTITION_MEDIUM);
+    detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
     // 最大行数を超えたらエラー
@@ -377,7 +377,7 @@ public class ExcelReadUtil {
     // 空行時の処理
     if (isEmptyRow) {
       detailLog.debug("(no data in the line)");
-      detailLog.debug(LogUtil.PARTITION_MEDIUM);
+      detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
 
       if (context.tableRowSize == null) {
         // 空行発生時に読み込み終了の場合

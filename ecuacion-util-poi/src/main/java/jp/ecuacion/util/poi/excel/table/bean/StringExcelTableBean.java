@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
+import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.LogUtil;
 
 /**
  * Stores values obtained from excel tables with {@code StringFixedTableToBeanReader}.
@@ -104,7 +104,7 @@ public abstract class StringExcelTableBean {
     }
 
     try {
-      detailLog.debug(LogUtil.PARTITION_LARGE);
+      detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
       detailLog.debug("Setting values from excel file to bean started.");
       detailLog.debug("class name: " + this.getClass().getSimpleName());
 
@@ -144,7 +144,7 @@ public abstract class StringExcelTableBean {
       }
 
       detailLog.debug("Setting values from excel file to bean finished successfully.");
-      detailLog.debug(LogUtil.PARTITION_LARGE);
+      detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
 
     } catch (Exception ex) {
       throw new RuntimeException(ex);

@@ -25,10 +25,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
+import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.unchecked.UncheckedAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.lib.core.util.ValidationUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
@@ -94,8 +94,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     this.tableColumnSizeGivenByConstructor = tableColumnSize;
 
     // Validate the input values.
-    Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
-        new ValidationUtil().validate(this);
+    Set<ConstraintViolation<ExcelTableReader<T>>> violationSet = ValidationUtil.validate(this);
     if (violationSet != null && violationSet.size() > 0) {
 
       throw new RuntimeException("Validation failed at TableReader constructor.");
@@ -221,7 +220,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
 
     detailLog.debug("finishing to read excel file. sheet name :" + getSheetName());
-    detailLog.debug(LogUtil.PARTITION_LARGE);
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
 
     return rowList;
   }
