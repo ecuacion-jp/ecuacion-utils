@@ -23,12 +23,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.checked.MultipleAppException;
 import jp.ecuacion.lib.core.exception.checked.SingleAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
-import jp.ecuacion.lib.core.util.LogUtil;
 import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
@@ -54,7 +54,6 @@ public class ExcelWriteUtil {
   private static final String MSG_PREFIX = "jp.ecuacion.util.poi.excel.ExcelWriteUtil.";
 
   private static DetailLogger detailLog = new DetailLogger(ExcelWriteUtil.class);
-  private static ExceptionUtil exUtil = new ExceptionUtil();
 
   /**
    * Creates new workbook with adding sheet of name {@code sheetName}.
@@ -109,7 +108,7 @@ public class ExcelWriteUtil {
   public static <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
       Workbook workbook, String sheetName, int tableStartColumnNumber) throws ExcelAppException {
 
-    detailLog.debug(LogUtil.PARTITION_LARGE);
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
     detailLog.debug("sheet name :" + sheetName);
 
@@ -318,7 +317,7 @@ public class ExcelWriteUtil {
         }
       }
     }
-    
+
     if (!breaksOnError && exList.size() > 0) {
       throw new MultipleAppException(exList);
     }
@@ -382,7 +381,8 @@ public class ExcelWriteUtil {
   private static void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
       throws ExcelAppException {
     StringBuilder sb = new StringBuilder();
-    exUtil.getExceptionListWithMessages(ex).stream().forEach(e -> sb.append(e.getMessage() + "\n"));
+    ExceptionUtil.getExceptionListWithMessages(ex).stream()
+        .forEach(e -> sb.append(e.getMessage() + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
