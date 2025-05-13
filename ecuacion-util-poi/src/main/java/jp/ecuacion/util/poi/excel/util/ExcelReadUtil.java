@@ -38,8 +38,6 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  */
 public class ExcelReadUtil {
 
-  private boolean suppressesWarnLog = false;
-
   private DetailLogger detailLog = new DetailLogger(this);
 
   /* 空文字オブジェクトが複数作られると非効率なので定義しておく。 */
@@ -236,8 +234,8 @@ public class ExcelReadUtil {
           }
         }
 
-        if (warning && !suppressesWarnLog) {
-          detailLog.warn("The number actual and displayed in excel differs. actual: " + toStrVal
+        if (warning) {
+          detailLog.debug("The number actual and displayed in excel differs. actual: " + toStrVal
               + "、displayed: " + fmtVal);
         }
 
@@ -266,16 +264,5 @@ public class ExcelReadUtil {
   public static Workbook openForRead(String filePath)
       throws EncryptedDocumentException, IOException {
     return WorkbookFactory.create(new File(filePath), null, true);
-  }
-
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  public ExcelReadUtil suppressesWarnLog(boolean suppressesWarnLog) {
-    this.suppressesWarnLog = suppressesWarnLog;
-    return this;
   }
 }

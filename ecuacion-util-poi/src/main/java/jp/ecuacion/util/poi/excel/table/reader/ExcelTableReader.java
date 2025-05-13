@@ -502,17 +502,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
   }
 
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  public ExcelTableReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
-    readUtil.suppressesWarnLog(suppressesWarnLog);
-    return this;
-  }
-
   @Override
   public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
