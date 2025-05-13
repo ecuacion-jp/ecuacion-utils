@@ -167,23 +167,6 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
         dateTimeFormat);
   }
 
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * <p>This method is defined in {@code ExcelTableReader} 
-   *     and the one in this class has the same function as it.<br>
-   *     But this class use {@code readToBean} method to read excel tables
-   *     and {@code ExcelTableReader} doesn't have it so method chain link disconnected.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
-    super.suppressesWarnLog(suppressesWarnLog);
-    return this;
-  }
-
   @Override
   public StringOneLineHeaderExcelTableToBeanReader<T> ignoresAdditionalColumnsOfHeaderData(
       boolean value) {

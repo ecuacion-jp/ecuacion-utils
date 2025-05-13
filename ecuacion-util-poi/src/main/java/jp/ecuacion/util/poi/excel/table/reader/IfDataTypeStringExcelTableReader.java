@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeStringExcelTable;
+import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 
@@ -32,7 +33,7 @@ public interface IfDataTypeStringExcelTableReader
 
   @Override
   public default String getCellData(Cell cell, int columnNumber) throws ExcelAppException {
-    return getExcelReadUtil().getStringFromCell(cell, getDateTimeFormat(columnNumber));
+    return ExcelReadUtil.getStringFromCell(cell, null, getDateTimeFormat(columnNumber));
   }
 
   @Override

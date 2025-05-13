@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 
 public class CellOneLineHeaderExcelTableWriterTest {
 
-  private ExcelReadUtil readUtil = new ExcelReadUtil();
   private final String origFilename = this.getClass().getSimpleName() + ".xlsx";
 
   private String getDestExcelFilePath(String filename) {
@@ -69,19 +68,19 @@ public class CellOneLineHeaderExcelTableWriterTest {
           rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
 
-      Assertions.assertEquals("header1", readUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
-      Assertions.assertEquals("header2", readUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
-      Assertions.assertEquals("header3", readUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
+      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
+      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
+      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
       Assertions.assertEquals(null, sheet.getRow(1).getCell(3));
 
-      Assertions.assertEquals("data1-1", readUtil.getStringFromCell(sheet.getRow(2).getCell(0)));
-      Assertions.assertEquals("data1-2", readUtil.getStringFromCell(sheet.getRow(2).getCell(1)));
-      Assertions.assertEquals("data1-3", readUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
+      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(0)));
+      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(1)));
+      Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
       Assertions.assertEquals(null, sheet.getRow(2).getCell(3));
 
-      Assertions.assertEquals("data2-1", readUtil.getStringFromCell(sheet.getRow(3).getCell(0)));
-      Assertions.assertEquals("data2-2", readUtil.getStringFromCell(sheet.getRow(3).getCell(1)));
-      Assertions.assertEquals("data2-3", readUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
+      Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(0)));
+      Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(1)));
+      Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
       Assertions.assertEquals(null, sheet.getRow(2).getCell(3));
 
       // copy to whitespace (row == null)
@@ -190,13 +189,13 @@ public class CellOneLineHeaderExcelTableWriterTest {
           rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
 
-      Assertions.assertEquals("header1", readUtil.getStringFromCell(sheet.getRow(0).getCell(0)));
-      Assertions.assertEquals("header2", readUtil.getStringFromCell(sheet.getRow(0).getCell(1)));
-      Assertions.assertEquals("header3", readUtil.getStringFromCell(sheet.getRow(0).getCell(2)));
+      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(0)));
+      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(1)));
+      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(2)));
 
-      Assertions.assertEquals("data1-1", readUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
-      Assertions.assertEquals("data1-2", readUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
-      Assertions.assertEquals(null, readUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
+      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
+      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
+      Assertions.assertEquals(null, ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
 
     } finally {
       // delete previous test data.
@@ -230,17 +229,17 @@ public class CellOneLineHeaderExcelTableWriterTest {
           .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
       Sheet sheet = wb.getSheet(copyToSheetName);
 
-      Assertions.assertEquals("header1", readUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
-      Assertions.assertEquals("header2", readUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
-      Assertions.assertEquals("header3", readUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
+      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
+      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
+      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
 
-      Assertions.assertEquals("data1-1", readUtil.getStringFromCell(sheet.getRow(1).getCell(3)));
-      Assertions.assertEquals("data1-2", readUtil.getStringFromCell(sheet.getRow(2).getCell(3)));
-      Assertions.assertEquals("data1-3", readUtil.getStringFromCell(sheet.getRow(3).getCell(3)));
+      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(3)));
+      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(3)));
+      Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(3)));
 
-      Assertions.assertEquals("data2-1", readUtil.getStringFromCell(sheet.getRow(1).getCell(4)));
-      Assertions.assertEquals("data2-2", readUtil.getStringFromCell(sheet.getRow(2).getCell(4)));
-      Assertions.assertEquals("data2-3", readUtil.getStringFromCell(sheet.getRow(3).getCell(4)));
+      Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(4)));
+      Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(4)));
+      Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(4)));
 
       // copy to whitespace
 

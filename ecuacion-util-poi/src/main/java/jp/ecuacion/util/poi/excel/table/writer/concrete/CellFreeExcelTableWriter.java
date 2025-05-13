@@ -62,7 +62,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
 
   @Override
   public String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
-    return new ExcelReadUtil().getStringFromCell(cellData);
+    return ExcelReadUtil.getStringFromCell(cellData, null);
   }
 
   @Override
