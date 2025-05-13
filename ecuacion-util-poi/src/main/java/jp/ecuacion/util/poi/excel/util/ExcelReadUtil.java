@@ -22,7 +22,10 @@ import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -258,8 +261,12 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new ExcelAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
-          cell.getRow().getSheet().getSheetName(), cell.getAddress().formatAsString(),
-          cell.getAddress().formatAsR1C1String());
+          ArrayUtils.addAll(
+              Arg.strings(cell.getRow().getSheet().getSheetName(),
+                  cell.getAddress().formatAsString()),
+              StringUtils.isEmpty(filename) ? Arg.strings("", "")
+                  : new Arg[] {Arg.message("jp.ecuacion.util.poi.common.messageItemSeparator"),
+                      Arg.message("jp.ecuacion.util.poi.common.filename", filename)}));
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
