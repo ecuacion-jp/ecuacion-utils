@@ -28,6 +28,6 @@ public interface IfDataTypeCellExcelTable extends IfExcelTable<Cell> {
   @Override
   @Nullable
   public default String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
-    return cellData == null ? null : ExcelReadUtil.getStringFromCell(cellData);
+    return cellData == null ? null : ExcelReadUtil.getStringFromCell(cellData, null);
   }
 }

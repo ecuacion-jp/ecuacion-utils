@@ -15,12 +15,12 @@
  */
 package jp.ecuacion.util.poi.excel.util;
 
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import org.apache.poi.EncryptedDocumentException;
@@ -68,15 +68,30 @@ public class ExcelReadUtil {
   }
 
   /**
-  * Returns {@code String} format cell value
-  * in spite of the format or value kind of the cell.
-  *
-  * @param cell the cell of the excel file
-  * @return the string which expresses the value of the cell.
+   * Returns {@code String} format cell value
+   * in spite of the format or value kind of the cell.
+   *
+   * @param cell the cell of the excel file
+   * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
-  */
+   */
   public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
-    return getStringFromCell(cell, defaultDateTimeFormat);
+    return getStringFromCell(cell, null, defaultDateTimeFormat);
+  }
+
+  /**
+   * Returns {@code String} format cell value
+   * in spite of the format or value kind of the cell.
+   *
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
+   * @param cell the cell of the excel file
+   * @return the string which expresses the value of the cell.
+   * @throws ExcelAppException ExcelAppException
+   */
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename)
+      throws ExcelAppException {
+    return getStringFromCell(cell, filename, defaultDateTimeFormat);
   }
 
   /**
@@ -85,21 +100,25 @@ public class ExcelReadUtil {
    * 
    * <p>return value when row is null or cell is null, etc... is null.</p>
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell the cell of the excel file
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
    */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell,
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
       DateTimeFormatter dateTimeFormat) throws ExcelAppException {
-    return getStringFromCell(cell, dateTimeFormat, null);
+    return getStringFromCell(cell, filename, dateTimeFormat, null);
   }
 
   /**
    * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell the cell of the excel file
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
@@ -107,7 +126,7 @@ public class ExcelReadUtil {
    * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
    */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell,
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
       DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
@@ -124,7 +143,7 @@ public class ExcelReadUtil {
     detailLog.debug("-----");
     detailLog.debug("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell, dateTimeFormat, noDataString);
+    String value = internalGetStringFromCell(cell, filename, dateTimeFormat, noDataString);
 
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
@@ -134,13 +153,16 @@ public class ExcelReadUtil {
   /**
    * Returns the value of the cell.
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    * @throws ExcelAppException ExcelAppException
    */
   private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
+      @Nullable String filename, DateTimeFormatter dateTimeFormat, String noDataString)
+      throws ExcelAppException {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -150,11 +172,11 @@ public class ExcelReadUtil {
     CellType cellType = cell.getCellType();
 
     if (cellType == CellType.FORMULA) {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell,
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename,
           cell.getCachedFormulaResultType(), noDataString, dateTimeFormat);
 
     } else {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename, cell.getCellType(),
           noDataString, dateTimeFormat);
     }
   }
@@ -168,6 +190,8 @@ public class ExcelReadUtil {
    *     the 2nd argumenet is {@code cell.getCachedFormulaResultType()},
    *     the resulting cellType of the formula cell.</p>
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell cell
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
@@ -175,8 +199,8 @@ public class ExcelReadUtil {
    * @throws ExcelAppException ExcelAppException
    */
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
-      @Nonnull Cell cell, @Nullable CellType cellType, String noDataString,
-      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+      @RequireNonnull Cell cell, @Nullable String filename, @Nullable CellType cellType,
+      String noDataString, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {

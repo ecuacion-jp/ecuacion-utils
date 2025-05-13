@@ -34,13 +34,13 @@ public class CellOneLineHeaderExcelTableReaderTest {
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
             .read(origExcelPath);
 
-    Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(rowList.get(0).get(0)));
-    Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(rowList.get(0).get(1)));
-    Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(rowList.get(0).get(2)));
+    Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(rowList.get(0).get(0), null));
+    Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(rowList.get(0).get(1), null));
+    Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(rowList.get(0).get(2), null));
 
-    Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(rowList.get(1).get(0)));
-    Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(rowList.get(1).get(1)));
-    Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(rowList.get(1).get(2)));
+    Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(rowList.get(1).get(0), null));
+    Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(rowList.get(1).get(1), null));
+    Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(rowList.get(1).get(2), null));
   }
 
   @Test
@@ -52,12 +52,12 @@ public class CellOneLineHeaderExcelTableReaderTest {
         new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, null, 17, null)
             .isVerticalAndHorizontalOpposite(true).read(origExcelPath);
 
-    Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(rowList.get(0).get(0)));
-    Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(rowList.get(0).get(1)));
-    Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(rowList.get(0).get(2)));
+    Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(rowList.get(0).get(0), null));
+    Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(rowList.get(0).get(1), null));
+    Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(rowList.get(0).get(2), null));
 
-    Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(rowList.get(1).get(0)));
-    Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(rowList.get(1).get(1)));
-    Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(rowList.get(1).get(2)));
+    Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(rowList.get(1).get(0), null));
+    Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(rowList.get(1).get(1), null));
+    Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(rowList.get(1).get(2), null));
   }
 }

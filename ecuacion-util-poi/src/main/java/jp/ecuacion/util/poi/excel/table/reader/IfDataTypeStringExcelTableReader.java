@@ -33,7 +33,7 @@ public interface IfDataTypeStringExcelTableReader
 
   @Override
   public default String getCellData(Cell cell, int columnNumber) throws ExcelAppException {
-    return ExcelReadUtil.getStringFromCell(cell, getDateTimeFormat(columnNumber));
+    return ExcelReadUtil.getStringFromCell(cell, null, getDateTimeFormat(columnNumber));
   }
 
   @Override

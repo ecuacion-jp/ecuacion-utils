@@ -39,7 +39,7 @@ public interface IfDataTypeCellExcelTableReader
       return true;
     }
 
-    String value = ExcelReadUtil.getStringFromCell(cellData);
+    String value = ExcelReadUtil.getStringFromCell(cellData, null);
 
     return value == null || value.equals("");
   }
