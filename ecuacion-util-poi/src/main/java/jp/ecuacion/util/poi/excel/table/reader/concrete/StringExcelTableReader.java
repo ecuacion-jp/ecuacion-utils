@@ -29,6 +29,8 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
     implements IfDataTypeStringExcelTableReader {
 
   protected Map<Integer, DateTimeFormatter> columnDateTimeFormatMap = new HashMap<>();
+  
+  protected DateTimeFormatter dateTimeFormat;
 
   /**
    * Constructs a new instance.
@@ -47,7 +49,7 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
    * @return StringExcelTableReader (for method chain)
    */
   public StringExcelTableReader defaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
-    getExcelReadUtil().setDefaultDateTimeFormat(dateTimeFormat);
+    this.dateTimeFormat = dateTimeFormat;
     return this;
   }
 

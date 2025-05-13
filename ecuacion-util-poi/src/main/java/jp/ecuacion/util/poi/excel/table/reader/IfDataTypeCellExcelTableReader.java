@@ -18,6 +18,7 @@ package jp.ecuacion.util.poi.excel.table.reader;
 import jakarta.annotation.Nullable;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeCellExcelTable;
+import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
 
 /**
@@ -38,7 +39,7 @@ public interface IfDataTypeCellExcelTableReader
       return true;
     }
 
-    String value = getExcelReadUtil().getStringFromCell(cellData);
+    String value = ExcelReadUtil.getStringFromCell(cellData);
 
     return value == null || value.equals("");
   }

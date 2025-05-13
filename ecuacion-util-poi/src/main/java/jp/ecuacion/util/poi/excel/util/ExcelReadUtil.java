@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -38,47 +36,18 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  */
 public class ExcelReadUtil {
 
-  private DetailLogger detailLog = new DetailLogger(this);
+  private static DetailLogger detailLog = new DetailLogger(ExcelReadUtil.class);
 
   /* 空文字オブジェクトが複数作られると非効率なので定義しておく。 */
   private static final String EMPTY_STRING = "";
 
-  private String noDataString;
-
-  private DateTimeFormatter defaultDateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-  /**
-   * Constructs a new instance with {@code NoDataString = NULL}.
-   * 
-   * <p>{@code NoDataString = NULL} is recommended. 
-   *     See {@link jp.ecuacion.util.poi.excel.enums.NoDataString}.</p>
-   */
-  public ExcelReadUtil() {
-    this.noDataString = null;
-  }
+  private static DateTimeFormatter defaultDateTimeFormat =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   /**
-   * Constructs a new instance with designated {@code NoDataString}.
-   * 
-   * <p>{@code NoDataString = NULL} is recommended. 
-   *     See {@link jp.ecuacion.util.poi.excel.enums.NoDataString}.</p>
-   *     
-   * @param noDataString noDataString
+   * Prevents other classes from instantiating it.
    */
-  public ExcelReadUtil(@Nonnull NoDataString noDataString) {
-    ObjectsUtil.paramRequireNonNull(noDataString);
-
-    this.noDataString = (noDataString == NoDataString.EMPTY_STRING) ? EMPTY_STRING : null;
-  }
-
-  /**
-   * Sets defaultDateTimeFormat.
-   * 
-   * @param dateTimeFormat dateTimeFormat
-   */
-  public void setDefaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
-    this.defaultDateTimeFormat = dateTimeFormat;
-  }
+  private ExcelReadUtil() {}
 
   /** 
    * Returns proper {@code NoDataString} value if the argument value is 
@@ -88,8 +57,9 @@ public class ExcelReadUtil {
    * @return the argument value or the empty string designated by {@code noDataString} 
    *     when the argument value is empty.
    */
-  public @Nullable String getNoDataStringIfNoData(@Nullable String value) {
-    if (value == null || value.equals("")) {
+  public static @Nullable String getNoDataStringIfNoData(@Nullable String value,
+      String noDataString) {
+    if (value == null || value.equals(EMPTY_STRING)) {
       return noDataString;
 
     } else {
@@ -105,8 +75,25 @@ public class ExcelReadUtil {
   * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
   */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
+  public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
     return getStringFromCell(cell, defaultDateTimeFormat);
+  }
+
+  /**
+   * Returns {@code String} format cell value 
+   *     in spite of the format or value kind of the cell.
+   * 
+   * <p>return value when row is null or cell is null, etc... is null.</p>
+   * 
+   * @param cell the cell of the excel file
+   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   *     in which case {@code defaultDateTimeFormat} is used.
+   * @return the string which expresses the value of the cell.
+   * @throws ExcelAppException ExcelAppException
+   */
+  public static @Nullable String getStringFromCell(@Nullable Cell cell,
+      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+    return getStringFromCell(cell, dateTimeFormat, null);
   }
 
   /**
@@ -116,11 +103,12 @@ public class ExcelReadUtil {
    * @param cell the cell of the excel file
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
+   * @param noDataString return value when row is null or cell is null, etc...
    * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat)
-      throws ExcelAppException {
+  public static @Nullable String getStringFromCell(@Nullable Cell cell,
+      DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -136,7 +124,7 @@ public class ExcelReadUtil {
     detailLog.debug("-----");
     detailLog.debug("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell, dateTimeFormat);
+    String value = internalGetStringFromCell(cell, dateTimeFormat, noDataString);
 
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
@@ -151,8 +139,8 @@ public class ExcelReadUtil {
    * @return the string value of the cell, may be {@code null}.
    * @throws ExcelAppException ExcelAppException
    */
-  private @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+  private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
+      DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -163,11 +151,11 @@ public class ExcelReadUtil {
 
     if (cellType == CellType.FORMULA) {
       return internalGetStringFromCellOtherThanFormulaCellType(cell,
-          cell.getCachedFormulaResultType(), dateTimeFormat);
+          cell.getCachedFormulaResultType(), noDataString, dateTimeFormat);
 
     } else {
       return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
-          dateTimeFormat);
+          noDataString, dateTimeFormat);
     }
   }
 
@@ -186,8 +174,9 @@ public class ExcelReadUtil {
    * @return String value of the cell, may be null when the value in the cell is empty.
    * @throws ExcelAppException ExcelAppException
    */
-  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+  private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
+      @Nonnull Cell cell, @Nullable CellType cellType, String noDataString,
+      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -195,7 +184,7 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.STRING) {
       // 文字列形式
-      return getNoDataStringIfNoData(cell.getStringCellValue());
+      return getNoDataStringIfNoData(cell.getStringCellValue(), noDataString);
 
     } else if (cellType == CellType.NUMERIC) {
       // 数値 / 日付形式

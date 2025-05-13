@@ -45,8 +45,6 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
   
   private static String destPath;
 
-  private static ExcelReadUtil readUtil = new ExcelReadUtil();
-
   public static void main(String[] args) throws Exception {
 
     Logger logger = LoggerFactory.getLogger(IterativeCopyOneLineHeaderFormatExcelTableSample.class);
@@ -84,7 +82,7 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
         .getResource("sample.xlsx");
     String sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath().toString();
 
-    return readUtil.openForRead(sourcePath);
+    return ExcelReadUtil.openForRead(sourcePath);
   }
 
   private static Workbook openToWrite() throws Exception {

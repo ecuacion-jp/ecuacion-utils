@@ -50,7 +50,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExcelTableReader<T> {
 
   private static DetailLogger detailLog = new DetailLogger(ExcelTableReader.class);
-  protected ExcelReadUtil readUtil = new ExcelReadUtil();
 
   /**
    * Is the row size of the table. 
@@ -303,11 +302,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   public void setTableColumnSize(int tableColumnSize) {
     this.tableColumnSizeGivenByConstructor = tableColumnSize;
-  }
-
-  @Override
-  public ExcelReadUtil getExcelReadUtil() {
-    return readUtil;
   }
 
   /**
