@@ -112,9 +112,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
       for (T bean : rtnList) {
         // jakarta validation. excel data is usually not shown on displays,
         // so "setMessageWithItemName(true)" is used.
-        ValidationUtil.builder().messageWithItemName(true)
-            .messagePostfix(Arg.message(msgId, Arg.strings(sheetName))).build()
-            .validateThenThrow(bean);
+        ValidationUtil.validateThenThrow(bean, true, null,
+            Arg.message(msgId, Arg.strings(sheetName)));
 
         // dat整合性check
         bean.afterReading();
