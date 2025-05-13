@@ -15,29 +15,22 @@
  */
 package jp.ecuacion.util.poi.excel.util;
 
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import jp.ecuacion.lib.core.constant.EclibCoreConstants;
+import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.poi.excel.enums.NoDataString;
+import jp.ecuacion.lib.core.util.PropertyFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
-import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
-import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
-import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
@@ -46,49 +39,18 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  */
 public class ExcelReadUtil {
 
-  private boolean suppressesWarnLog = false;
-
-  private DetailLogger detailLog = new DetailLogger(this);
+  private static DetailLogger detailLog = new DetailLogger(ExcelReadUtil.class);
 
   /* 空文字オブジェクトが複数作られると非効率なので定義しておく。 */
   private static final String EMPTY_STRING = "";
 
-  private String noDataString;
-
-  private DateTimeFormatter defaultDateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-  /**
-   * Constructs a new instance with {@code NoDataString = NULL}.
-   * 
-   * <p>{@code NoDataString = NULL} is recommended. 
-   *     See {@link jp.ecuacion.util.poi.excel.enums.NoDataString}.</p>
-   */
-  public ExcelReadUtil() {
-    this.noDataString = null;
-  }
+  private static DateTimeFormatter defaultDateTimeFormat =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   /**
-   * Constructs a new instance with designated {@code NoDataString}.
-   * 
-   * <p>{@code NoDataString = NULL} is recommended. 
-   *     See {@link jp.ecuacion.util.poi.excel.enums.NoDataString}.</p>
-   *     
-   * @param noDataString noDataString
+   * Prevents other classes from instantiating it.
    */
-  public ExcelReadUtil(@Nonnull NoDataString noDataString) {
-    ObjectsUtil.paramRequireNonNull(noDataString);
-
-    this.noDataString = (noDataString == NoDataString.EMPTY_STRING) ? EMPTY_STRING : null;
-  }
-
-  /**
-   * Sets defaultDateTimeFormat.
-   * 
-   * @param dateTimeFormat dateTimeFormat
-   */
-  public void setDefaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
-    this.defaultDateTimeFormat = dateTimeFormat;
-  }
+  private ExcelReadUtil() {}
 
   /** 
    * Returns proper {@code NoDataString} value if the argument value is 
@@ -98,8 +60,9 @@ public class ExcelReadUtil {
    * @return the argument value or the empty string designated by {@code noDataString} 
    *     when the argument value is empty.
    */
-  public @Nullable String getNoDataStringIfNoData(@Nullable String value) {
-    if (value == null || value.equals("")) {
+  public static @Nullable String getNoDataStringIfNoData(@Nullable String value,
+      String noDataString) {
+    if (value == null || value.equals(EMPTY_STRING)) {
       return noDataString;
 
     } else {
@@ -108,29 +71,66 @@ public class ExcelReadUtil {
   }
 
   /**
-  * Returns {@code String} format cell value
-  * in spite of the format or value kind of the cell.
-  *
-  * @param cell the cell of the excel file
-  * @return the string which expresses the value of the cell.
+   * Returns {@code String} format cell value
+   * in spite of the format or value kind of the cell.
+   *
+   * @param cell the cell of the excel file
+   * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
-  */
-  public @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
-    return getStringFromCell(cell, defaultDateTimeFormat);
+   */
+  public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
+    return getStringFromCell(cell, null, defaultDateTimeFormat);
+  }
+
+  /**
+   * Returns {@code String} format cell value
+   * in spite of the format or value kind of the cell.
+   *
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
+   * @param cell the cell of the excel file
+   * @return the string which expresses the value of the cell.
+   * @throws ExcelAppException ExcelAppException
+   */
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename)
+      throws ExcelAppException {
+    return getStringFromCell(cell, filename, defaultDateTimeFormat);
   }
 
   /**
    * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
    * 
+   * <p>return value when row is null or cell is null, etc... is null.</p>
+   * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell the cell of the excel file
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    * @throws ExcelAppException ExcelAppException
    */
-  public @Nullable String getStringFromCell(@Nullable Cell cell, DateTimeFormatter dateTimeFormat)
-      throws ExcelAppException {
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
+      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+    return getStringFromCell(cell, filename, dateTimeFormat, null);
+  }
+
+  /**
+   * Returns {@code String} format cell value 
+   *     in spite of the format or value kind of the cell.
+   * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
+   * @param cell the cell of the excel file
+   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   *     in which case {@code defaultDateTimeFormat} is used.
+   * @param noDataString return value when row is null or cell is null, etc...
+   * @return the string which expresses the value of the cell.
+   * @throws ExcelAppException ExcelAppException
+   */
+  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
+      DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -146,7 +146,7 @@ public class ExcelReadUtil {
     detailLog.debug("-----");
     detailLog.debug("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell, dateTimeFormat);
+    String value = internalGetStringFromCell(cell, filename, dateTimeFormat, noDataString);
 
     detailLog.debug("value: " + (value == null ? "(null)" : value));
 
@@ -156,13 +156,16 @@ public class ExcelReadUtil {
   /**
    * Returns the value of the cell.
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    * @throws ExcelAppException ExcelAppException
    */
-  private @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+  private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
+      @Nullable String filename, DateTimeFormatter dateTimeFormat, String noDataString)
+      throws ExcelAppException {
 
     // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
@@ -172,12 +175,12 @@ public class ExcelReadUtil {
     CellType cellType = cell.getCellType();
 
     if (cellType == CellType.FORMULA) {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell,
-          cell.getCachedFormulaResultType(), dateTimeFormat);
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename,
+          cell.getCachedFormulaResultType(), noDataString, dateTimeFormat);
 
     } else {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
-          dateTimeFormat);
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename, cell.getCellType(),
+          noDataString, dateTimeFormat);
     }
   }
 
@@ -190,14 +193,17 @@ public class ExcelReadUtil {
    *     the 2nd argumenet is {@code cell.getCachedFormulaResultType()},
    *     the resulting cellType of the formula cell.</p>
    * 
+   * @param filename Used for error message, 
+   *     may be {@code null} in which case the error message shows no filename.
    * @param cell cell
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
    * @throws ExcelAppException ExcelAppException
    */
-  private @Nullable String internalGetStringFromCellOtherThanFormulaCellType(@Nonnull Cell cell,
-      @Nullable CellType cellType, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+  private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
+      @RequireNonnull Cell cell, @Nullable String filename, @Nullable CellType cellType,
+      String noDataString, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -205,7 +211,7 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.STRING) {
       // 文字列形式
-      return getNoDataStringIfNoData(cell.getStringCellValue());
+      return getNoDataStringIfNoData(cell.getStringCellValue(), noDataString);
 
     } else if (cellType == CellType.NUMERIC) {
       // 数値 / 日付形式
@@ -214,7 +220,7 @@ public class ExcelReadUtil {
 
       // fmtにより細かい表示形式の判別が可能
       detailLog.debug("Format: " + ((fmt == null) ? "(null)" : fmt.getClass().getSimpleName()));
-      
+
       if (fmt == null) {
         // DataFormatter#createFormat(Cell) is nullable.
         // In that case return the value without formatting.
@@ -244,8 +250,8 @@ public class ExcelReadUtil {
           }
         }
 
-        if (warning && !suppressesWarnLog) {
-          detailLog.warn("The number actual and displayed in excel differs. actual: " + toStrVal
+        if (warning) {
+          detailLog.debug("The number actual and displayed in excel differs. actual: " + toStrVal
               + "、displayed: " + fmtVal);
         }
 
@@ -255,8 +261,12 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new ExcelAppException("jp.ecuacion.util.poi.excel.CellContainsError.message",
-          cell.getRow().getSheet().getSheetName(), cell.getAddress().formatAsString(),
-          cell.getAddress().formatAsR1C1String());
+          ArrayUtils.addAll(
+              Arg.strings(cell.getRow().getSheet().getSheetName(),
+                  cell.getAddress().formatAsString()),
+              StringUtils.isEmpty(filename) ? Arg.strings("", "")
+                  : new Arg[] {Arg.message("jp.ecuacion.util.poi.common.messageItemSeparator"),
+                      Arg.message("jp.ecuacion.util.poi.common.filename", filename)}));
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
@@ -271,135 +281,8 @@ public class ExcelReadUtil {
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
-  public Workbook openForRead(String filePath) throws EncryptedDocumentException, IOException {
+  public static Workbook openForRead(String filePath)
+      throws EncryptedDocumentException, IOException {
     return WorkbookFactory.create(new File(filePath), null, true);
-  }
-
-  /**
-   * Gets ready to read table data.
-   * 
-   * @param ignoresColumnSizeSetInReader It is {@code true} means 
-   *     that even if the reader determines the column size,
-   *     this method obtains all the columns as long as the header column exists.
-   */
-  public <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader, Workbook workbook,
-      String sheetName, int tableStartColumnNumber,
-      Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
-      throws ExcelAppException {
-    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
-    detailLog.debug("starting to read excel file.");
-    detailLog.debug("sheet name :" + sheetName);
-
-    Sheet sheet = workbook.getSheet(sheetName);
-
-    if (sheet == null) {
-      throw new ExcelAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
-    }
-
-    Integer tableRowSize =
-        numberOfHeaderLinesIfReadsHeaderOnlyOrNull == null ? reader.getTableRowSize()
-            : numberOfHeaderLinesIfReadsHeaderOnlyOrNull;
-
-    // poiBasis means the top-left position is (0, 0)
-    // while tableStartRowNumber / tableStartColumnNumber >= 1.
-    final int poiBasisTableStartRowNumber =
-        reader.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
-    final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
-    ContextContainer context =
-        new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
-            tableRowSize, reader.getTableColumnSize(sheet, poiBasisTableStartRowNumber,
-                poiBasisTableStartColumnNumber, ignoresColumnSizeSetInReader));
-
-    return context;
-  }
-
-  /**
-   * Provides common procedure for read one line of a table.
-   *
-   * @throws ExcelAppException ExcelAppException
-   */
-  public <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
-      int rowNumber) throws ExcelAppException {
-    detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
-    detailLog.debug("row number：" + rowNumber);
-
-    // 最大行数を超えたらエラー
-    if (rowNumber == ContextContainer.max) {
-      throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
-    }
-
-    // 指定行数読み込み完了時の処理
-    if (context.tableRowSize != null
-        && rowNumber >= context.poiBasisTableStartRowNumber + context.tableRowSize) {
-      throw new LoopBreakException();
-    }
-
-    List<T> colList = new ArrayList<>();
-    // excel上でtable範囲が終わった場合は、明示的に「row = null」となる。その場合、対象行は空行扱い。
-    boolean isEmptyRow = true;
-
-    // excelデータを読み込み。
-    for (int j = context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
-        + context.tableColumnSize; j++) {
-
-      if (reader.isVerticalAndHorizontalOpposite()) {
-        Row row = context.sheet.getRow(j);
-        if (row == null || row.getCell(rowNumber) == null) {
-          colList.add(null);
-
-        } else {
-          Cell cell = row.getCell(rowNumber);
-          T cellData = reader.getCellData(cell, j + 1);
-          colList.add(cellData);
-        }
-
-      } else {
-        Row row = context.sheet.getRow(rowNumber);
-        if (row == null || row.getCell(j) == null) {
-          colList.add(null);
-
-        } else {
-          Cell cell = row.getCell(j);
-          T cellData = reader.getCellData(cell, j + 1);
-          colList.add(cellData);
-        }
-      }
-    }
-
-    // 空行チェック。全項目が空欄の場合は空行を意味する。
-    for (T colData : colList) {
-      if (!reader.isCellDataEmpty(colData)) {
-        isEmptyRow = false;
-        break;
-      }
-    }
-
-    // 空行時の処理
-    if (isEmptyRow) {
-      detailLog.debug("(no data in the line)");
-      detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
-
-      if (context.tableRowSize == null) {
-        // 空行発生時に読み込み終了の場合
-        throw new LoopBreakException();
-
-      } else {
-        // 空行は、それとわかるように要素数ゼロのlistとしておく
-        return new ArrayList<>();
-      }
-    }
-
-    return colList;
-  }
-
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  public ExcelReadUtil suppressesWarnLog(boolean suppressesWarnLog) {
-    this.suppressesWarnLog = suppressesWarnLog;
-    return this;
   }
 }

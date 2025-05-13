@@ -112,9 +112,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
       for (T bean : rtnList) {
         // jakarta validation. excel data is usually not shown on displays,
         // so "setMessageWithItemName(true)" is used.
-        ValidationUtil.builder().messageWithItemName(true)
-            .messagePostfix(Arg.message(msgId, Arg.strings(sheetName))).build()
-            .validateThenThrow(bean);
+        ValidationUtil.validateThenThrow(bean, true, null,
+            Arg.message(msgId, Arg.strings(sheetName)));
 
         // dat整合性check
         bean.afterReading();
@@ -166,23 +165,6 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
       DateTimeFormatter dateTimeFormat) {
     return (StringOneLineHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
         dateTimeFormat);
-  }
-
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * <p>This method is defined in {@code ExcelTableReader} 
-   *     and the one in this class has the same function as it.<br>
-   *     But this class use {@code readToBean} method to read excel tables
-   *     and {@code ExcelTableReader} doesn't have it so method chain link disconnected.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  @Override
-  public StringOneLineHeaderExcelTableToBeanReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
-    super.suppressesWarnLog(suppressesWarnLog);
-    return this;
   }
 
   @Override

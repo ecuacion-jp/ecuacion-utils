@@ -56,6 +56,11 @@ public class ExcelWriteUtil {
   private static DetailLogger detailLog = new DetailLogger(ExcelWriteUtil.class);
 
   /**
+   * Prevents other classes from instantiating it.
+   */
+  private ExcelWriteUtil() {}
+
+  /**
    * Creates new workbook with adding sheet of name {@code sheetName}.
    * 
    * @param sheetName sheetName

@@ -22,7 +22,6 @@ import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
-import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
 
 /**
@@ -31,13 +30,6 @@ import org.apache.poi.ss.usermodel.Cell;
  * @param <T> See {@link IfExcelTable}.
  */
 public interface IfExcelTableReader<T> extends IfExcelTable<T> {
-
-  /**
-   * Returns an instance of {@code ExcelReadUtil}.
-   * 
-   * @return {@code ExcelReadUtil} instance
-   */
-  public ExcelReadUtil getExcelReadUtil();
 
   /**
    * Validates the excel table header.

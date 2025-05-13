@@ -49,8 +49,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExcelTableReader<T> {
 
-  private DetailLogger detailLog = new DetailLogger(this);
-  protected ExcelReadUtil readUtil = new ExcelReadUtil();
+  private static DetailLogger detailLog = new DetailLogger(ExcelTableReader.class);
 
   /**
    * Is the row size of the table. 
@@ -118,7 +117,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       throws EncryptedDocumentException, AppException, IOException {
     ObjectsUtil.paramRequireNonNull(filePath);
 
-    try (Workbook excel = readUtil.openForRead(filePath);) {
+    try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
       return read(excel);
     }
   }
@@ -180,7 +179,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     updateAndGetHeaderData(rtnData);
 
     // get the IteratorReader
-    ContextContainer context = readUtil.getReadyToReadTableData(this, workbook, getSheetName(),
+    ContextContainer context = getReadyToReadTableData(this, workbook, getSheetName(),
         tableStartColumnNumber, null, false);
 
     return new IterableReader<T>(this, context, getNumberOfHeaderLines());
@@ -203,7 +202,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     // when readsHeaderOnly == true, return data is used to validate the header labels,
     // so ignoresColumnSizeSetInReader should also be true.
     ContextContainer context =
-        readUtil.getReadyToReadTableData(this, workbook, getSheetName(), tableStartColumnNumber,
+        getReadyToReadTableData(this, workbook, getSheetName(), tableStartColumnNumber,
             (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
 
     // データを取得
@@ -212,7 +211,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     try {
       for (int rowNumber =
           context.poiBasisTableStartRowNumber; rowNumber <= ContextContainer.max; rowNumber++) {
-        List<T> colList = readUtil.readTableLine(this, context, rowNumber);
+        List<T> colList = readTableLine(this, context, rowNumber);
         rowList.add(colList);
       }
     } catch (LoopBreakException ex) {
@@ -305,9 +304,123 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     this.tableColumnSizeGivenByConstructor = tableColumnSize;
   }
 
-  @Override
-  public ExcelReadUtil getExcelReadUtil() {
-    return readUtil;
+  /**
+   * Provides common procedure for read one line of a table.
+   * 
+   * <p>It's called from both ExcelTableReader and IteratorReader so it's defined as 
+   *
+   * @throws ExcelAppException ExcelAppException
+   */
+  static <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
+      int rowNumber) throws ExcelAppException {
+    detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
+    detailLog.debug("row number：" + rowNumber);
+
+    // 最大行数を超えたらエラー
+    if (rowNumber == ContextContainer.max) {
+      throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
+    }
+
+    // 指定行数読み込み完了時の処理
+    if (context.tableRowSize != null
+        && rowNumber >= context.poiBasisTableStartRowNumber + context.tableRowSize) {
+      throw new LoopBreakException();
+    }
+
+    List<T> colList = new ArrayList<>();
+    // excel上でtable範囲が終わった場合は、明示的に「row = null」となる。その場合、対象行は空行扱い。
+    boolean isEmptyRow = true;
+
+    // excelデータを読み込み。
+    for (int j = context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
+        + context.tableColumnSize; j++) {
+
+      if (reader.isVerticalAndHorizontalOpposite()) {
+        Row row = context.sheet.getRow(j);
+        if (row == null || row.getCell(rowNumber) == null) {
+          colList.add(null);
+
+        } else {
+          Cell cell = row.getCell(rowNumber);
+          T cellData = reader.getCellData(cell, j + 1);
+          colList.add(cellData);
+        }
+
+      } else {
+        Row row = context.sheet.getRow(rowNumber);
+        if (row == null || row.getCell(j) == null) {
+          colList.add(null);
+
+        } else {
+          Cell cell = row.getCell(j);
+          T cellData = reader.getCellData(cell, j + 1);
+          colList.add(cellData);
+        }
+      }
+    }
+
+    // 空行チェック。全項目が空欄の場合は空行を意味する。
+    for (T colData : colList) {
+      if (!reader.isCellDataEmpty(colData)) {
+        isEmptyRow = false;
+        break;
+      }
+    }
+
+    // 空行時の処理
+    if (isEmptyRow) {
+      detailLog.debug("(no data in the line)");
+      detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
+
+      if (context.tableRowSize == null) {
+        // 空行発生時に読み込み終了の場合
+        throw new LoopBreakException();
+
+      } else {
+        // 空行は、それとわかるように要素数ゼロのlistとしておく
+        return new ArrayList<>();
+      }
+    }
+
+    return colList;
+  }
+
+  /**
+   * Gets ready to read table data.
+   * 
+   * @param ignoresColumnSizeSetInReader It is {@code true} means 
+   *     that even if the reader determines the column size,
+   *     this method obtains all the columns as long as the header column exists.
+   */
+  public static <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader,
+      Workbook workbook, String sheetName, int tableStartColumnNumber,
+      Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
+      throws ExcelAppException {
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
+    detailLog.debug("starting to read excel file.");
+    detailLog.debug("sheet name :" + sheetName);
+
+    Sheet sheet = workbook.getSheet(sheetName);
+
+    if (sheet == null) {
+      throw new ExcelAppException("jp.ecuacion.util.poi.excel.SheetNotExist.message", sheetName);
+    }
+
+    Integer tableRowSize =
+        numberOfHeaderLinesIfReadsHeaderOnlyOrNull == null ? reader.getTableRowSize()
+            : numberOfHeaderLinesIfReadsHeaderOnlyOrNull;
+
+    // poiBasis means the top-left position is (0, 0)
+    // while tableStartRowNumber / tableStartColumnNumber >= 1.
+    final int poiBasisTableStartRowNumber =
+        reader.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
+    final int poiBasisTableStartColumnNumber = reader.getPoiBasisDeterminedTableStartColumnNumber();
+    ContextContainer context =
+        new ContextContainer(sheet, poiBasisTableStartRowNumber, poiBasisTableStartColumnNumber,
+            tableRowSize, reader.getTableColumnSize(sheet, poiBasisTableStartRowNumber,
+                poiBasisTableStartColumnNumber, ignoresColumnSizeSetInReader));
+
+    return context;
   }
 
   /**
@@ -343,8 +456,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     private boolean hasNext = true;
     private int rowNumber;
 
-    private ExcelReadUtil readUtil = new ExcelReadUtil();
-
     /**
      * Constructs a new instance.
      */
@@ -365,13 +476,13 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       List<T> rtn = null;
 
       try {
-        rtn = readUtil.readTableLine(reader, context, rowNumber);
+        rtn = readTableLine(reader, context, rowNumber);
 
         rowNumber++;
 
         // check for hasNext
         try {
-          readUtil.readTableLine(reader, context, rowNumber);
+          readTableLine(reader, context, rowNumber);
         } catch (LoopBreakException ex) {
           hasNext = false;
         }
@@ -383,17 +494,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       }
 
     }
-  }
-
-  /**
-   * Sets {@code suppressesWarnLog}.
-   * 
-   * @param suppressesWarnLog suppressesWarnLog
-   * @return {@code ExcelTableReader<T>}
-   */
-  public ExcelTableReader<T> suppressesWarnLog(boolean suppressesWarnLog) {
-    readUtil.suppressesWarnLog(suppressesWarnLog);
-    return this;
   }
 
   @Override
