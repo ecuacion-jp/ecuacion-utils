@@ -118,7 +118,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       throws EncryptedDocumentException, AppException, IOException {
     ObjectsUtil.paramRequireNonNull(filePath);
 
-    try (Workbook excel = new ExcelReadUtil().openForRead(filePath);) {
+    try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
       return read(excel);
     }
   }

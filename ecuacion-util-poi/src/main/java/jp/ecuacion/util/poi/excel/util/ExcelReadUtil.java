@@ -263,7 +263,8 @@ public class ExcelReadUtil {
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
-  public Workbook openForRead(String filePath) throws EncryptedDocumentException, IOException {
+  public static Workbook openForRead(String filePath)
+      throws EncryptedDocumentException, IOException {
     return WorkbookFactory.create(new File(filePath), null, true);
   }
 
