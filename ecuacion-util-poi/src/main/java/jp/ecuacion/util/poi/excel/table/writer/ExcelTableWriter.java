@@ -61,8 +61,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    */
   public void write(@RequireNonnull String templateFilePath, @RequireNonnull String destFilePath,
       @RequireNonnull List<List<T>> data) throws Exception {
-    ObjectsUtil.paramRequireNonNull(templateFilePath);
-    ObjectsUtil.paramRequireNonNull(destFilePath);
+    ObjectsUtil.requireNonNull(templateFilePath);
+    ObjectsUtil.requireNonNull(destFilePath);
 
     try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
         FileOutputStream out = new FileOutputStream(destFilePath);) {

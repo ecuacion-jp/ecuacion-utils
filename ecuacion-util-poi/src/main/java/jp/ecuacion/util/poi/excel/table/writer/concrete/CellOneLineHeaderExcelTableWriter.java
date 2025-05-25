@@ -59,7 +59,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber);
 
-    this.headerLabels = ObjectsUtil.paramRequireNonNull(headerLabels);
+    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
   }
 
   @Override

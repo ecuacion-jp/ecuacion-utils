@@ -66,7 +66,7 @@ public class StringFreeExcelTableReaderTest {
   private static class Reader extends StringFreeExcelTableReader {
 
     public Reader(Integer tableRowSize, @RequireNonnull NoDataString noDataString) {
-      super("Sheet1", 3, 2, tableRowSize, 4, ObjectsUtil.paramRequireNonNull(noDataString));
+      super("Sheet1", 3, 2, tableRowSize, 4, ObjectsUtil.requireNonNull(noDataString));
     }
   }
 }

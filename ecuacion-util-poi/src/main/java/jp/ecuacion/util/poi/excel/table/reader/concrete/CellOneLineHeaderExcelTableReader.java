@@ -59,7 +59,7 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
 
-    this.headerLabels = ObjectsUtil.paramRequireNonNull(headerLabels);
+    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
 
     // Since "Cannot refer to an instance method while explicitly invoking a constructor",
     // First set "null" in "super(...)" and then set the actual value here.
