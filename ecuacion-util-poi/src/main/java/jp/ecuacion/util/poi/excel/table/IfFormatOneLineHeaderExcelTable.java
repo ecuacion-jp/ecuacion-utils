@@ -53,9 +53,9 @@ public interface IfFormatOneLineHeaderExcelTable<T>
   public default String getFarLeftAndTopHeaderLabel() {
 
     String[] headerLabels = getHeaderLabels();
-    ObjectsUtil.paramSizeNonZero(headerLabels);
+    ObjectsUtil.requireSizeNonZero(headerLabels);
     
     String farLeftHeaderLabel = headerLabels[0];
-    return ObjectsUtil.paramRequireNonNull(farLeftHeaderLabel);
+    return ObjectsUtil.requireNonNull(farLeftHeaderLabel);
   }
 }

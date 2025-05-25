@@ -115,7 +115,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   @Nonnull
   public List<List<T>> read(@RequireNonnull String filePath)
       throws EncryptedDocumentException, AppException, IOException {
-    ObjectsUtil.paramRequireNonNull(filePath);
+    ObjectsUtil.requireNonNull(filePath);
 
     try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
       return read(excel);
@@ -242,7 +242,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   public @Nonnull Integer getTableColumnSize(@RequireNonnull Sheet sheet,
       int poiBasisDeterminedTableStartRowNumber, int poiBasisDeterminedTableStartColumnNumber,
       boolean ignoresColumnSizeSetInReader) throws ExcelAppException {
-    ObjectsUtil.paramRequireNonNull(sheet);
+    ObjectsUtil.requireNonNull(sheet);
 
     if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
       return tableColumnSizeGivenByConstructor;

@@ -84,13 +84,13 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   public ExcelTable(@RequireNonnull String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
-    this.sheetName = ObjectsUtil.paramRequireNonNull(sheetName);
+    this.sheetName = ObjectsUtil.requireNonNull(sheetName);
     this.tableStartRowNumber = tableStartRowNumber;
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
 
   public @Nonnull String getSheetName() {
-    return ObjectsUtil.returnRequireNonNull(sheetName);
+    return ObjectsUtil.requireNonNull(sheetName);
   }
 
   /**
@@ -111,7 +111,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet,
       int excelBasisTableStartColumnNumber) {
-    ObjectsUtil.paramRequireNonNull(sheet);
+    ObjectsUtil.requireNonNull(sheet);
     int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
 
     if (tableStartRowNumber != null) {
