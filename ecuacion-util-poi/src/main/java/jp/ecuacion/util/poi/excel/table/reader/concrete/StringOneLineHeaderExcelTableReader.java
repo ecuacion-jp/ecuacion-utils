@@ -83,7 +83,7 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
       @Nonnull NoDataString noDataString) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
 
-    this.headerLabels = ObjectsUtil.paramRequireNonNull(headerLabels);
+    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
     this.noDataString = noDataString;
 
     // Since "Cannot refer to an instance method while explicitly invoking a constructor",
