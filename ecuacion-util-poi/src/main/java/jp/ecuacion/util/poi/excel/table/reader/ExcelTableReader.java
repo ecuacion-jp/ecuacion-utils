@@ -18,6 +18,7 @@ package jp.ecuacion.util.poi.excel.table.reader;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.exception.unchecked.UncheckedAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.lib.core.util.ValidationUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.exception.LoopBreakException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -93,7 +93,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     this.tableColumnSizeGivenByConstructor = tableColumnSize;
 
     // Validate the input values.
-    Set<ConstraintViolation<ExcelTableReader<T>>> violationSet = ValidationUtil.validate(this);
+    Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
+        Validation.buildDefaultValidatorFactory().getValidator().validate(this);
     if (violationSet != null && violationSet.size() > 0) {
 
       throw new RuntimeException("Validation failed at TableReader constructor.");
