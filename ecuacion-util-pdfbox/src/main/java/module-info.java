@@ -26,13 +26,12 @@ module jp.ecuacion.util.pdfbox {
       with jp.ecuacion.util.pdfbox.spi.impl.internal.MessagesUtilPdfboxProviderImpl;
 
   requires jakarta.annotation;
-  requires java.desktop;
   requires jp.ecuacion.lib.core;
 
   requires transitive org.apache.poi.poi;
   requires org.apache.poi.ooxml;
   requires org.apache.pdfbox;
   requires org.apache.commons.lang3;
-  requires java.desktop;
   requires org.apache.fontbox;
+  requires java.desktop;
 }
