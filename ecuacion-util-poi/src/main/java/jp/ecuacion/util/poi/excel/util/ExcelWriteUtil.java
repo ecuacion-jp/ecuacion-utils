@@ -386,8 +386,7 @@ public class ExcelWriteUtil {
   private static void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
       throws ExcelAppException {
     StringBuilder sb = new StringBuilder();
-    ExceptionUtil.getExceptionListWithMessages(ex).stream()
-        .forEach(e -> sb.append(e.getMessage() + "\n"));
+    ExceptionUtil.getMessageList(ex).stream().forEach(msg -> sb.append(msg + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
     Arg fileInfoArg = getFileInfoString(fileInfo);
