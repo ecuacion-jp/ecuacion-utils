@@ -58,12 +58,12 @@ import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFTextParagraph;
 import org.apache.poi.xssf.usermodel.XSSFTextRun;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTGeomGuide;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCol;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTLineProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTPresetGeometry2D;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTShapeProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTSolidColorFillProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.STShapeType;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCol;
 
 /**
  * Renders an Excel sheet into one or more PDF pages in a {@link PDDocument}.
