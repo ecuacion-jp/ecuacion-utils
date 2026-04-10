@@ -1,0 +1,9 @@
+<ruleset xmlns="http://mojo.codehaus.org/versions-maven-plugin/rule/2.0.0">
+  <rules>
+    <rule groupId="jp.ecuacion.lib" artifactId="*">
+      <ignoreVersions>
+        <ignoreVersion type="regex">.*-b\d+</ignoreVersion>
+      </ignoreVersions>
+    </rule>
+  </rules>
+</ruleset>

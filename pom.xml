@@ -33,6 +33,23 @@
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
 	</properties>
 	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- Needed for ignoring x.x.x-bx version in maven central -->
+				<!-- versions-maven-plugin -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>2.21.0</version>
+					<configuration>
+						<rulesUri>file://${maven.multiModuleProjectDirectory}/.mvn/version-rules.xml</rulesUri>
+					</configuration>
+				</plugin>
+			</plugins>		
+		</pluginManagement>
+	</build>
+	
 	<dependencyManagement>
 
 		<dependencies>
