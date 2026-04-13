@@ -16,12 +16,12 @@
 package jp.ecuacion.util.poi.spi.impl.internal;
 
 import jp.ecuacion.lib.core.spi.MessagesUtilPoiProvider;
-import jp.ecuacion.lib.core.spi.impl.AbstractPropertyFileProviderImpl;
+import jp.ecuacion.lib.core.spi.impl.AbstractPropertiesFileProviderImpl;
 
 /**
  * Provides the implementation of the Service Provider Interface.
  */
-public class MessagesUtilPoiProviderImpl extends AbstractPropertyFileProviderImpl
+public class MessagesUtilPoiProviderImpl extends AbstractPropertiesFileProviderImpl
     implements MessagesUtilPoiProvider {
 
 }
