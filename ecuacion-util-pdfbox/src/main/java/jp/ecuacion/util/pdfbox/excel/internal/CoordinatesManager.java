@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.pdfbox.excel.internal;
 
-import org.apache.poi.ss.usermodel.PageMargin;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -37,22 +36,9 @@ import org.apache.poi.ss.usermodel.Workbook;
  * <p>
  */
 public class CoordinatesManager {
-  
-  private Workbook workbook;
-  private Sheet sheet;
-  
-  public CoordinatesManager(Workbook workbook, Sheet sheet) {
-    String printArea = workbook.getPrintArea(workbook.getSheetIndex(sheet));
-    short scale = sheet.getPrintSetup().getScale();
-    boolean isLandscape = sheet.getPrintSetup().getLandscape();
-    double headerMargin = sheet.getPrintSetup().getHeaderMargin();
-    double footerMargin = sheet.getPrintSetup().getFooterMargin();
-    double leftMargin = sheet.getMargin(PageMargin.LEFT);
-    double rightMargin = sheet.getMargin(PageMargin.RIGHT);
-    double topMargin = sheet.getMargin(PageMargin.TOP);
-    double bottomMargin = sheet.getMargin(PageMargin.BOTTOM);
-    int paperSize = sheet.getPrintSetup().getPaperSize();
-  }
+
+  /** Creates a new instance. */
+  public CoordinatesManager(Workbook workbook, Sheet sheet) {}
   
   public float getPdfCoordinatesYaxisValue(float excelCoordinatesYaxisValue) {
     return 1;

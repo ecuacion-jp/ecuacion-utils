@@ -458,9 +458,9 @@ public class SheetRenderer {
           if (region != null && region.getLastColumn() > region.getFirstColumn()) {
             Cell rightBoundary = (row != null) ? row.getCell(region.getLastColumn()) : null;
             if (rightBoundary != null) {
-              CellStyle rStyle = rightBoundary.getCellStyle();
-              XSSFCellStyle rxssf = (rStyle instanceof XSSFCellStyle s) ? s : null;
-              renderBorderLine(cs, rStyle.getBorderRight(),
+              CellStyle rightStyle = rightBoundary.getCellStyle();
+              XSSFCellStyle rxssf = (rightStyle instanceof XSSFCellStyle s) ? s : null;
+              renderBorderLine(cs, rightStyle.getBorderRight(),
                   xssfColorToAwt(rxssf != null ? rxssf.getRightBorderXSSFColor() : null),
                   currentX + cellWidth, cellBottomY,
                   currentX + cellWidth, cellBottomY + cellHeight);
@@ -471,9 +471,9 @@ public class SheetRenderer {
             Cell bottomBoundary = (lastMergeRow != null)
                 ? lastMergeRow.getCell(region.getFirstColumn()) : null;
             if (bottomBoundary != null) {
-              CellStyle bStyle = bottomBoundary.getCellStyle();
-              XSSFCellStyle bxssf = (bStyle instanceof XSSFCellStyle s) ? s : null;
-              renderBorderLine(cs, bStyle.getBorderBottom(),
+              CellStyle bottomStyle = bottomBoundary.getCellStyle();
+              XSSFCellStyle bxssf = (bottomStyle instanceof XSSFCellStyle s) ? s : null;
+              renderBorderLine(cs, bottomStyle.getBorderBottom(),
                   xssfColorToAwt(bxssf != null ? bxssf.getBottomBorderXSSFColor() : null),
                   currentX, cellBottomY, currentX + cellWidth, cellBottomY);
             }
@@ -762,21 +762,21 @@ public class SheetRenderer {
     float topInset = CELL_PADDING;
     var bodyPr = (txBody != null) ? txBody.getBodyPr() : null;
     if (bodyPr != null) {
-      long lIns = 91440L;
-      long rIns = 91440L;
-      long tIns = 45720L;
+      long leftIns = 91440L;
+      long rightIns = 91440L;
+      long topIns = 45720L;
       if (bodyPr.isSetLIns()) {
-        lIns = ((Number) bodyPr.getLIns()).longValue();
+        leftIns = ((Number) bodyPr.getLIns()).longValue();
       }
       if (bodyPr.isSetRIns()) {
-        rIns = ((Number) bodyPr.getRIns()).longValue();
+        rightIns = ((Number) bodyPr.getRIns()).longValue();
       }
       if (bodyPr.isSetTIns()) {
-        tIns = ((Number) bodyPr.getTIns()).longValue();
+        topIns = ((Number) bodyPr.getTIns()).longValue();
       }
-      leftInset = lIns / 12700f * scaleFactor;
-      rightInset = rIns / 12700f * scaleFactor;
-      topInset = tIns / 12700f * scaleFactor;
+      leftInset = leftIns / 12700f * scaleFactor;
+      rightInset = rightIns / 12700f * scaleFactor;
+      topInset = topIns / 12700f * scaleFactor;
     }
 
     // Start rendering from inside the top inset of the shape
@@ -1106,10 +1106,10 @@ public class SheetRenderer {
 
     // Compute baseline Y of the first line from vertical alignment
     float startY;
-    VerticalAlignment vAlign = style.getVerticalAlignment();
-    if (vAlign == VerticalAlignment.TOP) {
+    VerticalAlignment vertAlign = style.getVerticalAlignment();
+    if (vertAlign == VerticalAlignment.TOP) {
       startY = y + height - CELL_PADDING - ascent;
-    } else if (vAlign == VerticalAlignment.CENTER) {
+    } else if (vertAlign == VerticalAlignment.CENTER) {
       startY = y + (height - totalTextHeight) / 2f - descent;
     } else { // BOTTOM
       startY = y + CELL_PADDING - descent + totalTextHeight - lineHeight;
