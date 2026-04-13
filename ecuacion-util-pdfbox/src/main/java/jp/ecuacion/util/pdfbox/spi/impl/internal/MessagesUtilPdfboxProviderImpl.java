@@ -16,12 +16,12 @@
 package jp.ecuacion.util.pdfbox.spi.impl.internal;
 
 import jp.ecuacion.lib.core.spi.MessagesUtilPdfboxProvider;
-import jp.ecuacion.lib.core.spi.impl.AbstractPropertyFileProviderImpl;
+import jp.ecuacion.lib.core.spi.impl.AbstractPropertiesFileProviderImpl;
 
 /**
  * Provides the implementation of the Service Provider Interface.
  */
-public class MessagesUtilPdfboxProviderImpl extends AbstractPropertyFileProviderImpl
+public class MessagesUtilPdfboxProviderImpl extends AbstractPropertiesFileProviderImpl
     implements MessagesUtilPdfboxProvider {
 
 }
