@@ -23,9 +23,9 @@
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
-		<artifactId>ecuacion-lib-dependency-jakartaee</artifactId>
+		<artifactId>ecuacion-lib-dependencies</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../ecuacion-lib/ecuacion-lib-dependency-jakartaee</relativePath>
+		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies</relativePath>
 	</parent>
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
@@ -49,6 +49,14 @@
 			</plugins>		
 		</pluginManagement>
 	</build>
+
+	<repositories> 
+	    <repository>
+	        <id>ecuacion-repo-http</id>
+	        <name>ecuacion-repo-http</name>
+	        <url>https://maven-repo.ecuacion.jp/public</url>
+	    </repository>
+	</repositories>
 	
 	<dependencyManagement>
 
