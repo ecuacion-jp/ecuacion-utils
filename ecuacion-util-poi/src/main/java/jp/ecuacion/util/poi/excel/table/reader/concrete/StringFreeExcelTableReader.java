@@ -18,7 +18,6 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
@@ -45,9 +44,9 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
    *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
    */
-  public StringFreeExcelTableReader(@RequireNonnull String sheetName,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize) {
+  public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
+      int tableStartColumnNumber, @Nullable Integer tableRowSize,
+      @Nullable Integer tableColumnSize) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
   }
 
@@ -60,9 +59,8 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
    *     
    * @param noDataString noDataString
    */
-  public StringFreeExcelTableReader(@RequireNonnull String sheetName,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize,
+  public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
+      int tableStartColumnNumber, @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize,
       @Nonnull NoDataString noDataString) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
 

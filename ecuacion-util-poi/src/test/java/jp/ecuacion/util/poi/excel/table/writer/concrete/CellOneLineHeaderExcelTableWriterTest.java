@@ -20,7 +20,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
@@ -90,7 +90,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
             ex.getMessageId());
       }
@@ -102,7 +102,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
             ex.getMessageId());
       }
@@ -115,7 +115,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -128,7 +128,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .ignoresAdditionalColumnsOfHeaderData(true).write(wb, rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -141,7 +141,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -153,7 +153,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
         new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 17, 1)
             .ignoresAdditionalColumnsOfHeaderData(true).write(wb, rowList);
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.fail();
       }
 
@@ -248,7 +248,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.reader.ColumnSizeIsZero.message",
             ex.getMessageId());
       }
@@ -261,7 +261,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -275,7 +275,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .write(wb, rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -288,7 +288,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
         Assertions.fail();
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.assertEquals("jp.ecuacion.util.poi.excel.NumberOfTableHeadersDiffer.message",
             ex.getMessageId());
       }
@@ -301,7 +301,7 @@ public class CellOneLineHeaderExcelTableWriterTest {
             .ignoresAdditionalColumnsOfHeaderData(true).isVerticalAndHorizontalOpposite(true)
             .write(wb, rowList);
 
-      } catch (BizLogicAppException ex) {
+      } catch (ExcelAppException ex) {
         Assertions.fail();
       }
 

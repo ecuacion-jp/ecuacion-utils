@@ -133,5 +133,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- eclipse null analysis -->
+		<dependency>
+			<groupId>org.lastnpe.eea</groupId>
+			<artifactId>jdk-eea</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
 	</dependencies>
 </project>

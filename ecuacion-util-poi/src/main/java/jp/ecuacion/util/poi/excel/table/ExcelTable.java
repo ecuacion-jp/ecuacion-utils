@@ -20,7 +20,6 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
@@ -82,7 +81,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
    */
-  public ExcelTable(@RequireNonnull String sheetName, @Nullable Integer tableStartRowNumber,
+  public ExcelTable(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
     this.sheetName = ObjectsUtil.requireNonNull(sheetName);
     this.tableStartRowNumber = tableStartRowNumber;
@@ -109,7 +108,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * @param sheet excel sheet
    * @return the row number the table starts, greater than or equal to {@code 1}.
    */
-  public int getPoiBasisDeterminedTableStartRowNumber(@RequireNonnull Sheet sheet,
+  public int getPoiBasisDeterminedTableStartRowNumber(Sheet sheet,
       int excelBasisTableStartColumnNumber) {
     ObjectsUtil.requireNonNull(sheet);
     int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
@@ -123,18 +122,18 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     // A列に特定の文字列があることを確認
     for (int i = 0; i < 100; i++) {
       Cell cell;
-      
+
       if (isVerticalAndHorizontalOpposite) {
         // ith row
         Row row = sheet.getRow(poiBasisTableStartColumnNumber);
-        
+
         // when row == null there can be a table heade label
         if (row == null) {
           break;
         }
-        
+
         cell = row.getCell(i);
-        
+
       } else {
         // i行目
         Row row = sheet.getRow(i);
@@ -146,7 +145,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
         // cell of poiBasisTableStartColumnNumber
         cell = row.getCell(poiBasisTableStartColumnNumber);
       }
-      
+
       // cell can be null
       if (cell == null) {
         continue;

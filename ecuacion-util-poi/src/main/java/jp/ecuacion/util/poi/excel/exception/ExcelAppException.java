@@ -15,16 +15,19 @@
  */
 package jp.ecuacion.util.poi.excel.exception;
 
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.lib.core.exception.ViolationException;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
+import jp.ecuacion.lib.core.violation.BusinessViolation;
+import jp.ecuacion.lib.core.violation.Violations;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.NonNull;
 
 /**
- * Provides {@code BizLogicAppException} with location and exception of cause.
+ * Provides {@code ViolationException} for Excel errors with workbook, sheet, and cell context.
  */
-public class ExcelAppException extends BizLogicAppException {
+public class ExcelAppException extends ViolationException {
 
   private static final long serialVersionUID = 1L;
 
@@ -34,25 +37,45 @@ public class ExcelAppException extends BizLogicAppException {
 
   /**
    * Constructs an instance.
+   *
+   * @param messageId messageId
+   * @param messageArgs messageArgs
    */
-  public ExcelAppException(String messageId, String... messageArgs) {
-    super(messageId, messageArgs);
+  public ExcelAppException(@NonNull String messageId, String... messageArgs) {
+    super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
   /**
    * Constructs an instance.
+   *
+   * @param messageId messageId
+   * @param messageArgs messageArgs
    */
-  public ExcelAppException(String messageId, Arg... messageArgs) {
-    super(messageId, messageArgs);
+  public ExcelAppException(@NonNull String messageId, Arg... messageArgs) {
+    super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
+  /**
+   * Gets messageId.
+   *
+   * @return messageId
+   */
+  public String getMessageId() {
+    return getViolations().getBusinessViolations().get(0).getMessageId();
+  }
+
+  /**
+   * Gets workbook.
+   *
+   * @return workbook
+   */
   public Workbook getWorkbook() {
     return workbook;
   }
 
   /**
-   * Sets workdbook and returns ExcelAppException for method chain.
-   * 
+   * Sets workbook and returns ExcelAppException for method chain.
+   *
    * @param workbook workbook to set.
    * @return ExcelAppException
    */
@@ -62,30 +85,40 @@ public class ExcelAppException extends BizLogicAppException {
     return this;
   }
 
+  /**
+   * Gets sheet.
+   *
+   * @return sheet
+   */
   public Sheet getSheet() {
     return sheet;
   }
 
   /**
-   * Sets workdbook and returns ExcelAppException for method chain.
-   * 
+   * Sets sheet and returns ExcelAppException for method chain.
+   *
    * @param sheet sheet to set.
    * @return ExcelAppException
    */
   public ExcelAppException sheet(Sheet sheet) {
     this.sheet = sheet;
     this.workbook = sheet.getWorkbook();
-    
+
     return this;
   }
 
+  /**
+   * Gets cell.
+   *
+   * @return cell
+   */
   public Cell getCell() {
     return cell;
   }
 
   /**
-   * Sets workdbook and returns ExcelAppException for method chain.
-   * 
+   * Sets cell and returns ExcelAppException for method chain.
+   *
    * @param cell cell to set.
    * @return ExcelAppException
    */
@@ -93,14 +126,18 @@ public class ExcelAppException extends BizLogicAppException {
     this.cell = cell;
     this.sheet = cell.getSheet();
     this.workbook = sheet.getWorkbook();
-    
+
     return this;
   }
 
   /**
-   * Sets cause exception and return self for method chain.
+   * Sets cause exception and returns self for method chain.
+   *
+   * @param th throwable to set as cause
+   * @return ExcelAppException
    */
   public ExcelAppException cause(Throwable th) {
-    return (ExcelAppException) super.cause(th);
+    initCause(th);
+    return this;
   }
 }
