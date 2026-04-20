@@ -17,7 +17,6 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import java.io.IOException;
 import java.util.List;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
@@ -65,7 +64,7 @@ public class StringFreeExcelTableReaderTest {
 
   private static class Reader extends StringFreeExcelTableReader {
 
-    public Reader(Integer tableRowSize, @RequireNonnull NoDataString noDataString) {
+    public Reader(Integer tableRowSize, NoDataString noDataString) {
       super("Sheet1", 3, 2, tableRowSize, 4, ObjectsUtil.requireNonNull(noDataString));
     }
   }

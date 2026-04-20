@@ -18,7 +18,6 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeCellExcelTableReader;
@@ -53,9 +52,9 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
    *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
    */
-  public CellOneLineHeaderExcelTableReader(@RequireNonnull String sheetName,
-      @RequireNonnull String[] headerLabels, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber, @Nullable Integer tableRowSize) {
+  public CellOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
+      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize) {
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
 

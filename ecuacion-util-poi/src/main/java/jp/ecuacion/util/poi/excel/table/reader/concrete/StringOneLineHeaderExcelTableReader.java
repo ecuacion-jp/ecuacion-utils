@@ -18,7 +18,6 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
@@ -53,9 +52,8 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
    *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
    */
-  public StringOneLineHeaderExcelTableReader(@RequireNonnull String sheetName,
-      @RequireNonnull String[] headerLabels, Integer tableStartRowNumber,
-      int tableStartColumnNumber, @Nullable Integer tableRowSize) {
+  public StringOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
+      Integer tableStartRowNumber, int tableStartColumnNumber, @Nullable Integer tableRowSize) {
     this(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         NoDataString.NULL);
   }
@@ -77,10 +75,9 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
    * @param tableRowSize tableRowSize
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
-  public StringOneLineHeaderExcelTableReader(@RequireNonnull String sheetName,
-      @RequireNonnull String[] headerLabels, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber, @Nullable Integer tableRowSize,
-      @Nonnull NoDataString noDataString) {
+  public StringOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
+      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, @Nonnull NoDataString noDataString) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
 
     this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);

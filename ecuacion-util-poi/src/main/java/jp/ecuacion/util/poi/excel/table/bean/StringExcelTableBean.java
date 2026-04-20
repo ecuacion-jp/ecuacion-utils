@@ -23,7 +23,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
@@ -92,7 +91,7 @@ public abstract class StringExcelTableBean {
    *     
    * @param colList the list of strings which consists of data of a line from the excel table
    */
-  public StringExcelTableBean(@RequireNonnull List<String> colList) {
+  public StringExcelTableBean(List<String> colList) {
     String[] fieldNameArray = getFieldNameArray();
 
     // colListの件数とfieldNameArraryの件数が異なる場合はエラー

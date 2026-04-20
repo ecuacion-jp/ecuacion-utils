@@ -24,11 +24,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.exception.checked.AppException;
-import jp.ecuacion.lib.core.exception.unchecked.UncheckedAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
@@ -84,7 +83,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param tableRowSize See {@link ExcelTableReader#tableRowSizeGivenByConstructor}.
    * @param tableColumnSize See {@link ExcelTableReader#tableColumnSizeGivenByConstructor}.
    */
-  public ExcelTableReader(@RequireNonnull String sheetName, @Nullable Integer tableStartRowNumber,
+  public ExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber, @Nullable Integer tableRowSize,
       @Nullable Integer tableColumnSize) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber);
@@ -114,7 +113,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
-  public List<List<T>> read(@RequireNonnull String filePath)
+  public List<List<T>> read(String filePath)
       throws EncryptedDocumentException, AppException, IOException {
     ObjectsUtil.requireNonNull(filePath);
 
@@ -139,7 +138,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
-  public List<List<T>> read(@RequireNonnull Workbook workbook)
+  public List<List<T>> read(Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
 
     // validate the header line
@@ -168,7 +167,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
-  public Iterable<List<T>> getIterable(@RequireNonnull Workbook workbook)
+  public Iterable<List<T>> getIterable(Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
 
     // validate the header line
@@ -197,7 +196,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * get Table Values in the form of the list of the lists.
    */
   @Nonnull
-  private List<List<T>> readTableData(@RequireNonnull Workbook workbook, boolean readsHeaderOnly)
+  private List<List<T>> readTableData(Workbook workbook, boolean readsHeaderOnly)
       throws AppException {
 
     // when readsHeaderOnly == true, return data is used to validate the header labels,
@@ -240,9 +239,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartRowNumber
    * @throws ExcelAppException ExcelAppException
    */
-  public @Nonnull Integer getTableColumnSize(@RequireNonnull Sheet sheet,
-      int poiBasisDeterminedTableStartRowNumber, int poiBasisDeterminedTableStartColumnNumber,
-      boolean ignoresColumnSizeSetInReader) throws ExcelAppException {
+  public @Nonnull Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
+      int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader)
+      throws ExcelAppException {
     ObjectsUtil.requireNonNull(sheet);
 
     if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
@@ -474,6 +473,10 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     @Override
     public List<T> next() {
+      if (!hasNext) {
+        throw new NoSuchElementException();
+      }
+
       List<T> rtn = null;
 
       try {
@@ -491,7 +494,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         return rtn;
 
       } catch (ExcelAppException ex) {
-        throw new UncheckedAppException(ex);
+        throw ex;
       }
 
     }
