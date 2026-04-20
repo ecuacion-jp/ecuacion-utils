@@ -20,16 +20,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
-import jp.ecuacion.lib.core.exception.checked.AppException;
-import jp.ecuacion.lib.core.exception.checked.MultipleAppException;
-import jp.ecuacion.lib.core.exception.checked.SingleAppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
+import jp.ecuacion.lib.core.violation.Violations;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.poi.excel.table.writer.ExcelTableWriter;
@@ -263,10 +260,9 @@ public class ExcelWriteUtil {
    * 
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws AppException AppException
+   * @throws ExcelAppException ExcelAppException
    */
-  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError)
-      throws AppException {
+  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError) {
     // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
@@ -287,10 +283,10 @@ public class ExcelWriteUtil {
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate
-   * @throws AppException AppException
+   * @throws ExcelAppException ExcelAppException
    */
   public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError,
-      String... sheetNames) throws AppException {
+      String... sheetNames) {
 
     for (String sheetName : sheetNames) {
       Sheet sheet = workbook.getSheet(sheetName);
@@ -298,9 +294,8 @@ public class ExcelWriteUtil {
     }
   }
 
-  private static void evaluateFormula(Sheet sheet, String fileInfo, boolean breaksOnError)
-      throws AppException {
-    List<SingleAppException> exList = new ArrayList<>();
+  private static void evaluateFormula(Sheet sheet, String fileInfo, boolean breaksOnError) {
+    Violations violations = new Violations();
     Iterator<Row> rowIt = sheet.rowIterator();
     while (rowIt.hasNext()) {
       Row row = rowIt.next();
@@ -317,15 +312,13 @@ public class ExcelWriteUtil {
             throw ex;
 
           } else {
-            exList.add(ex);
+            violations.add(ex.getViolations().getBusinessViolations().get(0));
           }
         }
       }
     }
 
-    if (!breaksOnError && exList.size() > 0) {
-      throw new MultipleAppException(exList);
-    }
+    violations.throwIfAny();
   }
 
   /**

@@ -19,7 +19,6 @@ import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -54,7 +53,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
   */
-  public CellFreeExcelTableWriter(@RequireNonnull String sheetName, Integer tableStartRowNumber,
+  public CellFreeExcelTableWriter(String sheetName, Integer tableStartRowNumber,
       int tableStartColumnNumber) {
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber);
@@ -66,7 +65,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  protected void headerCheck(@RequireNonnull Workbook workbook)
+  protected void headerCheck(Workbook workbook)
       throws EncryptedDocumentException, AppException, IOException {
 
   }

@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeCellExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
@@ -41,7 +40,7 @@ public class CellFreeExcelTableReader extends ExcelTableReader<Cell>
   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
   */
-  public CellFreeExcelTableReader(@RequireNonnull String sheetName,
+  public CellFreeExcelTableReader(String sheetName,
       Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
       Integer tableColumnSize) {
 

@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
@@ -202,7 +201,7 @@ public class ExcelReadUtil {
    * @throws ExcelAppException ExcelAppException
    */
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
-      @RequireNonnull Cell cell, @Nullable String filename, @Nullable CellType cellType,
+      Cell cell, @Nullable String filename, @Nullable CellType cellType,
       String noDataString, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す

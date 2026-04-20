@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.lib.core.annotation.RequireNonnull;
 import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.lib.core.util.ValidationUtil;
@@ -50,10 +49,9 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    *     new StringOneLineHeaderExcelTableToBeanReader<Foo>(...)}.<br>
    *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    */
-  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass,
-      @RequireNonnull String sheetName, @RequireNonnull String[] headerLabels,
-      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
-      @SuppressWarnings("unchecked") T... parameterClass) {
+  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
+      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
+      Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
     this.beanClass = beanClass;
   }
@@ -68,10 +66,9 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
-  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass,
-      @RequireNonnull String sheetName, @RequireNonnull String[] headerLabels,
-      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
-      @Nonnull NoDataString noDataString) {
+  public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
+      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
+      Integer tableRowSize, @Nonnull NoDataString noDataString) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         noDataString);
     this.beanClass = beanClass;

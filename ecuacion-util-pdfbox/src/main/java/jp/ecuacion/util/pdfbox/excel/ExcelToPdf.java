@@ -17,7 +17,9 @@ package jp.ecuacion.util.pdfbox.excel;
 
 import java.io.File;
 import java.io.IOException;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
+import jp.ecuacion.lib.core.exception.ViolationException;
+import jp.ecuacion.lib.core.violation.BusinessViolation;
+import jp.ecuacion.lib.core.violation.Violations;
 import jp.ecuacion.util.pdfbox.excel.internal.CoordinatesManager;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -44,10 +46,9 @@ public class ExcelToPdf {
    * @param excelPath input excel file path
    * @param sheetNames excel sheet names to print
    * @throws IOException IOException
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ViolationException ViolationException
    */
-  public void execute(String excelPath, String[] sheetNames)
-      throws IOException, BizLogicAppException {
+  public void execute(String excelPath, String[] sheetNames) throws IOException {
     String excelName = new File(excelPath).getName();
     String pdfPath = new File(excelPath).getParent()
         .concat(excelName.substring(0, excelName.lastIndexOf(".")) + ".pdf");
@@ -62,10 +63,9 @@ public class ExcelToPdf {
    * @param excelPath input excel file path
    * @param sheetNames excel sheet names to print
    * @throws IOException IOException
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ViolationException ViolationException
    */
-  public void execute(String pdfPath, String excelPath, String[] sheetNames)
-      throws IOException, BizLogicAppException {
+  public void execute(String pdfPath, String excelPath, String[] sheetNames) throws IOException {
     PrintTarget[] printTargets = new PrintTarget[sheetNames.length];
     for (int i = 0; i < sheetNames.length; i++) {
       printTargets[i] = new PrintTarget(sheetNames[i]);
@@ -81,10 +81,10 @@ public class ExcelToPdf {
    * @param excelPath input excel file path
    * @param printTargets printTargets to print
    * @throws IOException IOException
-   * @throws BizLogicAppException BizLogicAppException
+   * @throws ViolationException ViolationException
    */
   public void execute(String pdfPath, String excelPath, PrintTarget[] printTargets)
-      throws IOException, BizLogicAppException {
+      throws IOException {
 
     Workbook wb = WorkbookFactory.create(new File(excelPath), null, true);
 
@@ -93,7 +93,9 @@ public class ExcelToPdf {
     for (PrintTarget printTarget : printTargets) {
       Sheet sheet = wb.getSheet(printTarget.getSheetName());
       if (sheet == null) {
-        throw new BizLogicAppException("jp.ecuacion.util.pdfbox.excel.SheetNotExist.message");
+        throw new ViolationException(
+            new Violations().add(new BusinessViolation(
+                "jp.ecuacion.util.pdfbox.excel.SheetNotExist.message")));
       }
 
       CoordinatesManager manager = new CoordinatesManager(wb, sheet);

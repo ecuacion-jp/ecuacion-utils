@@ -17,7 +17,6 @@ package jp.ecuacion.util.poi.util;
 
 import java.io.File;
 import java.io.IOException;
-import jp.ecuacion.lib.core.exception.checked.BizLogicAppException;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
@@ -45,7 +44,7 @@ public class ExcelWriteUtilTest {
 
   @Test
   public void getReadyToEvaluateFormulaTest()
-      throws EncryptedDocumentException, IOException, BizLogicAppException {
+      throws EncryptedDocumentException, IOException {
     String excelPath =
         new File("src/test/resources").getAbsolutePath() + "/ExcelWriteUtilTest.xlsx";
 
