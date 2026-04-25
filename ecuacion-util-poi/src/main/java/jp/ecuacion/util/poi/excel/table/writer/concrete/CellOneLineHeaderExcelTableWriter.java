@@ -20,7 +20,6 @@ import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatOneLineHeaderExcelTable;
@@ -69,7 +68,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
   @Override
   protected void headerCheck(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
 
     new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
         tableStartRowNumber, tableStartColumnNumber, 1)

@@ -21,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -117,7 +116,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    */
   @Nonnull
   public IterableWriter<T> getIterable(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
     // Header check first, and then iterating data.
     headerCheck(workbook);
 
@@ -133,11 +132,10 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * 
    * @param workbook workbook.
    * @throws IOException IOException
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   protected abstract void headerCheck(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException;
+      throws EncryptedDocumentException, IOException;
 
   private void writeTableValues(Workbook workbook, List<List<T>> data)
       throws FileNotFoundException, IOException, ExcelAppException {

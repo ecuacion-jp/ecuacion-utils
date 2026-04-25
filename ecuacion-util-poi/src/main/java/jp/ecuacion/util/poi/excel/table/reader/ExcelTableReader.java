@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
@@ -109,12 +108,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    *
    * @param filePath filePath
    * @throws IOException IOException
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
   public List<List<T>> read(String filePath)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
     ObjectsUtil.requireNonNull(filePath);
 
     try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
@@ -134,12 +132,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    *     so if getting the filePath is hard, filename or whatever else is fine.
    *     
    * @throws IOException IOException
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
   public List<List<T>> read(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
 
     // validate the header line
     List<List<T>> headerData = readTableData(workbook, true);
@@ -163,12 +160,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    *     so if getting the filePath is hard, filename or whatever else is fine.
    *     
    * @throws IOException IOException
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   @Nonnull
   public Iterable<List<T>> getIterable(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
 
     // validate the header line
     List<List<T>> headerData = readTableData(workbook, true);
@@ -188,7 +184,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   /*
    * get Table Values in the form of the list of the lists.
    */
-  private List<List<T>> readTableData(Workbook workbook) throws AppException {
+  private List<List<T>> readTableData(Workbook workbook) {
     return readTableData(workbook, false);
   }
 
@@ -196,8 +192,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * get Table Values in the form of the list of the lists.
    */
   @Nonnull
-  private List<List<T>> readTableData(Workbook workbook, boolean readsHeaderOnly)
-      throws AppException {
+  private List<List<T>> readTableData(Workbook workbook, boolean readsHeaderOnly) {
 
     // when readsHeaderOnly == true, return data is used to validate the header labels,
     // so ignoresColumnSizeSetInReader should also be true.

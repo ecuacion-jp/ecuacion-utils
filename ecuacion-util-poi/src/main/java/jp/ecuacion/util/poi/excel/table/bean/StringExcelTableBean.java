@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 
 /**
@@ -42,7 +41,7 @@ public abstract class StringExcelTableBean {
    *     Validations for each field are supposed to be done by bean vaildation.
    *     This method covers selective-requirement, or other inter-fields validations.</p>
    */
-  public void afterReading() throws AppException {
+  public void afterReading() {
 
   }
 

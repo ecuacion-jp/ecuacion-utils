@@ -19,7 +19,6 @@ import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatFreeExcelTable;
@@ -66,7 +65,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
 
   @Override
   protected void headerCheck(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
+      throws EncryptedDocumentException, IOException {
 
   }
 
