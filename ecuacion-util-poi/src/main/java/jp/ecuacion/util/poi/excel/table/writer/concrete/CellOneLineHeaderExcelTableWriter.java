@@ -15,8 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer.concrete;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +28,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with known number of columns, one line header labels if it has a header line.
@@ -39,7 +38,6 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
   private boolean copiesDataFormatOnly;
 
-  @Nonnull
   private String[] headerLabels;
 
   /**
@@ -61,7 +59,6 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
-  @Nonnull
   public String[] getHeaderLabels() {
     return headerLabels;
   }

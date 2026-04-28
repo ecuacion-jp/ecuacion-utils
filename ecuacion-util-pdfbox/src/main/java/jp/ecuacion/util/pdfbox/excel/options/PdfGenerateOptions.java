@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.pdfbox.excel.options;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Holds optional parameters for PDF generation.

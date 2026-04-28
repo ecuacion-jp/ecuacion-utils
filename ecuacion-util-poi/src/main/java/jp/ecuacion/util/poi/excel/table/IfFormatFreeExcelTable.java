@@ -15,11 +15,9 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nonnull;
-
 /**
  * Is a reader interface which treats free format tables.
- * 
+ *
  * @param <T> See {@link IfExcelTable}.
  */
 public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
@@ -28,15 +26,13 @@ public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
   public default int getNumberOfHeaderLines() {
     return 0;
   }
-  
+
   @Override
-  @Nonnull
   public default String[][] getHeaderLabelData() {
     throw new NullPointerException();
   }
 
   @Override
-  @Nonnull
   public default String getFarLeftAndTopHeaderLabel() {
     throw new NullPointerException();
   }

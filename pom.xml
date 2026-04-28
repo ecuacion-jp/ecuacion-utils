@@ -29,6 +29,8 @@
 	</parent>
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
+		<org.apache.maven.plugins.maven-gpg-plugin.version>3.2.7</org.apache.maven.plugins.maven-gpg-plugin.version>
+		<org.sonatype.central.central-publishing-maven-plugin.version>0.10.0</org.sonatype.central.central-publishing-maven-plugin.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
 	</properties>
@@ -54,6 +56,13 @@
 				<artifactId>ecuacion-util-pdfbox</artifactId>
 				<version>${ecuacion-utils.version}</version>
 			</dependency>
+			
+			<dependency>
+				<groupId>jakarta.annotation</groupId>
+				<artifactId>jakarta.annotation-api</artifactId>
+				<version>3.0.0</version>
+			</dependency>
+			
 		</dependencies>
 
 	</dependencyManagement>
@@ -62,4 +71,49 @@
 		<module>ecuacion-util-poi</module>
 		<module>ecuacion-util-pdfbox</module>
 	</modules>
+
+	<profiles>
+		<profile>
+			<id>maven-central</id>
+			<build>
+				<plugins>
+
+					<!-- maven-gpg-plugin (signs artifacts for Maven Central) -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${org.apache.maven.plugins.maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</plugin>
+
+					<!-- central-publishing-maven-plugin (publishes to Maven Central) -->
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${org.sonatype.central.central-publishing-maven-plugin.version}</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>central</publishingServerId>
+							<autoPublish>false</autoPublish>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

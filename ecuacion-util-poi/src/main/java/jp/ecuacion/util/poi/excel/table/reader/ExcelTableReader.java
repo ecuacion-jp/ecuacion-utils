@@ -15,8 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.constraints.Min;
@@ -39,6 +37,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Is a parent of excel table reader classes.
@@ -59,19 +58,19 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    *     When the table has a header, the row size includes the header line,
    */
   @Min(1)
-  protected Integer tableRowSizeGivenByConstructor;
+  protected @Nullable Integer tableRowSizeGivenByConstructor;
 
   /**
    * Is the column size of the table.
-   * 
+   *
    * <p>It's equal to or greater than {@code 1}. <br>
    *     {@code 0} or the number smaller than that is not acceptable.<br>
-   *     {@code null} is acceptable, which means {@code tableColumnSize} is 
-   *     decided by the length of the header. 
+   *     {@code null} is acceptable, which means {@code tableColumnSize} is
+   *     decided by the length of the header.
    *     Empty header cell means it's the end of the header.<br>
    *     When the table has a header, the row size includes the header line,   */
   @Min(1)
-  protected Integer tableColumnSizeGivenByConstructor;
+  protected @Nullable Integer tableColumnSizeGivenByConstructor;
 
   /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
@@ -110,7 +109,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  @Nonnull
   public List<List<T>> read(String filePath)
       throws EncryptedDocumentException, IOException {
     ObjectsUtil.requireNonNull(filePath);
@@ -134,7 +132,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  @Nonnull
   public List<List<T>> read(Workbook workbook)
       throws EncryptedDocumentException, IOException {
 
@@ -162,7 +159,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  @Nonnull
   public Iterable<List<T>> getIterable(Workbook workbook)
       throws EncryptedDocumentException, IOException {
 
@@ -191,7 +187,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   /*
    * get Table Values in the form of the list of the lists.
    */
-  @Nonnull
   private List<List<T>> readTableData(Workbook workbook, boolean readsHeaderOnly) {
 
     // when readsHeaderOnly == true, return data is used to validate the header labels,
@@ -234,7 +229,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartRowNumber
    * @throws ExcelAppException ExcelAppException
    */
-  public @Nonnull Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
+  public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
       int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader)
       throws ExcelAppException {
     ObjectsUtil.requireNonNull(sheet);
@@ -327,8 +322,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     boolean isEmptyRow = true;
 
     // excelデータを読み込み。
-    for (int j = context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
-        + context.tableColumnSize; j++) {
+    int tableColumnSize = java.util.Objects.requireNonNull(context.tableColumnSize);
+    for (int j = context.poiBasisTableStartColumnNumber;
+        j < context.poiBasisTableStartColumnNumber + tableColumnSize; j++) {
 
       if (reader.isVerticalAndHorizontalOpposite()) {
         Row row = context.sheet.getRow(j);
@@ -389,7 +385,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   public static <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader,
       Workbook workbook, String sheetName, int tableStartColumnNumber,
-      Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull, boolean ignoresColumnSizeSetInReader)
+      @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
+      boolean ignoresColumnSizeSetInReader)
       throws ExcelAppException {
     detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");

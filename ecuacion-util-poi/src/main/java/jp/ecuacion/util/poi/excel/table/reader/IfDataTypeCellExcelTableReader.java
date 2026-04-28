@@ -15,11 +15,11 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader;
 
-import jakarta.annotation.Nullable;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfDataTypeCellExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the excel table reader interface 

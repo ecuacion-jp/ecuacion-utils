@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nonnull;
 import jakarta.validation.Validation;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +25,7 @@ import jp.ecuacion.lib.core.violation.Violations;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.bean.StringExcelTableBean;
 import org.apache.poi.EncryptedDocumentException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stores the excel table data into a bean.
@@ -50,8 +50,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    */
   public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
-      Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
+      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
     this.beanClass = beanClass;
   }
@@ -67,8 +67,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
   public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
-      Integer tableRowSize, @Nonnull NoDataString noDataString) {
+      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, NoDataString noDataString) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         noDataString);
     this.beanClass = beanClass;

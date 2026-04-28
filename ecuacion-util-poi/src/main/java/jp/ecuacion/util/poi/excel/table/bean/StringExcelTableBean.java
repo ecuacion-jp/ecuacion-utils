@@ -15,8 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.bean;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -25,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stores values obtained from excel tables with {@code StringFixedTableToBeanReader}.
@@ -81,7 +80,6 @@ public abstract class StringExcelTableBean {
    * <p>If you don't need data in "age" column, you can set null like </p>
    * <code>new String[] {"name", null, "phoneNumber"}</code>
    */
-  @Nonnull
   protected abstract String[] getFieldNameArray();
 
   /**
@@ -150,7 +148,6 @@ public abstract class StringExcelTableBean {
   }
 
   /** Returns {@code empty} if the argument value is null or returns the argument value. */
-  @Nonnull
   protected String nullToEmpty(@Nullable String value) {
     return value == null ? "" : value;
   }

@@ -15,9 +15,9 @@
  */
 
 /**
- * Stores the data obtained by {@code StringExcelTableToBeanReader}.
+ * Provides internal implementation classes for PDF generation.
  */
 @NullMarked
-package jp.ecuacion.util.poi.excel.table.bean;
+package jp.ecuacion.util.pdfbox.excel.internal;
 
 import org.jspecify.annotations.NullMarked;

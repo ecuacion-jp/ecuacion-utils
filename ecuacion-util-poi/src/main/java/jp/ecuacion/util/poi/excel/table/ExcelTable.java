@@ -15,8 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
@@ -25,6 +23,7 @@ import jp.ecuacion.util.poi.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stores properties in an excel table.
@@ -37,7 +36,6 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * Is the sheet name of the excel file.
    */
   @NotNull
-  @Nonnull
   protected String sheetName;
 
   /**
@@ -88,7 +86,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
 
-  public @Nonnull String getSheetName() {
+  public String getSheetName() {
     return ObjectsUtil.requireNonNull(sheetName);
   }
 
@@ -186,8 +184,8 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     public final Sheet sheet;
     public final int poiBasisTableStartRowNumber;
     public final int poiBasisTableStartColumnNumber;
-    public final Integer tableRowSize;
-    public final Integer tableColumnSize;
+    public final @Nullable Integer tableRowSize;
+    public final @Nullable Integer tableColumnSize;
 
     public static final int max = 10000;
 
@@ -201,7 +199,8 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
      * @param tableRowSize tableRowSize
      */
     public ContextContainer(Sheet sheet, int poiBasisTableStartRowNumber,
-        int poiBasisTableStartColumnNumber, Integer tableRowSize, Integer tableColumnSize) {
+        int poiBasisTableStartColumnNumber, @Nullable Integer tableRowSize,
+        @Nullable Integer tableColumnSize) {
       this.sheet = sheet;
       this.poiBasisTableStartRowNumber = poiBasisTableStartRowNumber;
       this.poiBasisTableStartColumnNumber = poiBasisTableStartColumnNumber;

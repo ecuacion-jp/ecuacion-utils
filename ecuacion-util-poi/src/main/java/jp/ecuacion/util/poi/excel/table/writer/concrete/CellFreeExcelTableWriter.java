@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer.concrete;
 
-import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +28,7 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with unknown number of columns, unknown whether it have a header line,
@@ -52,14 +52,14 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
   */
-  public CellFreeExcelTableWriter(String sheetName, Integer tableStartRowNumber,
+  public CellFreeExcelTableWriter(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber);
   }
 
   @Override
-  public String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
+  public @Nullable String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
     return ExcelReadUtil.getStringFromCell(cellData, null);
   }
 

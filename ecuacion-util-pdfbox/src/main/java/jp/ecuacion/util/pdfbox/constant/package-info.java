@@ -15,9 +15,9 @@
  */
 
 /**
- * Stores the data obtained by {@code StringExcelTableToBeanReader}.
+ * Provides constants for ecuacion-util-pdfbox.
  */
 @NullMarked
-package jp.ecuacion.util.poi.excel.table.bean;
+package jp.ecuacion.util.pdfbox.constant;
 
 import org.jspecify.annotations.NullMarked;

@@ -15,9 +15,9 @@
  */
 
 /**
- * Stores the data obtained by {@code StringExcelTableToBeanReader}.
+ * Provides SPI implementation classes for ecuacion-util-pdfbox.
  */
 @NullMarked
-package jp.ecuacion.util.poi.excel.table.bean;
+package jp.ecuacion.util.pdfbox.spi.impl.internal;
 
 import org.jspecify.annotations.NullMarked;

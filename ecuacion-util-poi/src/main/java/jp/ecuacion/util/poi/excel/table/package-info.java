@@ -15,7 +15,10 @@
  */
 
 /**
- * Provides abstract classes and interfaces 
+ * Provides abstract classes and interfaces
  *     which are related to excel table reading and writing.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table;
+
+import org.jspecify.annotations.NullMarked;
