@@ -15,9 +15,9 @@
  */
 
 /**
- * Stores the data obtained by {@code StringExcelTableToBeanReader}.
+ * Provides exceptions for excel processing.
  */
 @NullMarked
-package jp.ecuacion.util.poi.excel.table.bean;
+package jp.ecuacion.util.poi.excel.exception;
 
 import org.jspecify.annotations.NullMarked;

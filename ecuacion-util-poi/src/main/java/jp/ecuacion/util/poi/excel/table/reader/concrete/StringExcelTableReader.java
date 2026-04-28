@@ -15,12 +15,12 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeStringExcelTableReader;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adds String feature to {@link ExcelTableReader}.
@@ -29,16 +29,17 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
     implements IfDataTypeStringExcelTableReader {
 
   protected Map<Integer, DateTimeFormatter> columnDateTimeFormatMap = new HashMap<>();
-  
-  protected DateTimeFormatter dateTimeFormat;
+
+  protected @Nullable DateTimeFormatter dateTimeFormat;
 
   /**
    * Constructs a new instance.
    * 
    * {@see ExcelTableReader}
    */
-  public StringExcelTableReader(String sheetName, Integer tableStartRowNumber,
-      int tableStartColumnNumber, Integer tableRowSize, Integer tableColumnSize) {
+  public StringExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
+      int tableStartColumnNumber, @Nullable Integer tableRowSize,
+      @Nullable Integer tableColumnSize) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
   }
 

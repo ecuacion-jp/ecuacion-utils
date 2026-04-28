@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the excel table interface 

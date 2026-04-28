@@ -17,4 +17,7 @@
 /**
  * Provides excel table reader concrete classes.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
+
+import org.jspecify.annotations.NullMarked;

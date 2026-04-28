@@ -19,6 +19,7 @@ import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeCellExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with unknown number of columns, unknown whether it have a header line,
@@ -41,8 +42,8 @@ public class CellFreeExcelTableReader extends ExcelTableReader<Cell>
   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
   */
   public CellFreeExcelTableReader(String sheetName,
-      Integer tableStartRowNumber, int tableStartColumnNumber, Integer tableRowSize,
-      Integer tableColumnSize) {
+      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize) {
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
   }

@@ -57,6 +57,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFTextParagraph;
 import org.apache.poi.xssf.usermodel.XSSFTextRun;
+import org.jspecify.annotations.Nullable;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTGeomGuide;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTLineProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTPresetGeometry2D;
@@ -703,7 +704,7 @@ public class SheetRenderer {
     cs.closePath();
   }
 
-  private Color getShapeFillColor(XSSFSimpleShape shape) {
+  private @Nullable Color getShapeFillColor(XSSFSimpleShape shape) {
     CTShapeProperties spPr = shape.getCTShape().getSpPr();
     if (spPr == null || spPr.isSetNoFill() || !spPr.isSetSolidFill()) {
       return null;
@@ -716,7 +717,7 @@ public class SheetRenderer {
     return new Color(rgb[0] & 0xFF, rgb[1] & 0xFF, rgb[2] & 0xFF);
   }
 
-  private Color getShapeLineColor(XSSFSimpleShape shape) {
+  private @Nullable Color getShapeLineColor(XSSFSimpleShape shape) {
     CTShapeProperties spPr = shape.getCTShape().getSpPr();
     if (spPr == null || !spPr.isSetLn()) {
       return null;
@@ -864,7 +865,7 @@ public class SheetRenderer {
   // Cell rendering
   // -------------------------------------------------------------------------
 
-  private void renderCell(PDPageContentStream cs, Cell cell,
+  private void renderCell(PDPageContentStream cs, @Nullable Cell cell,
       float x, float y, float width, float height, float scaleFactor) throws IOException {
 
     CellStyle style = (cell != null) ? cell.getCellStyle() : null;
@@ -1040,14 +1041,14 @@ public class SheetRenderer {
   // Background color
   // -------------------------------------------------------------------------
 
-  private Color getBackgroundColor(CellStyle style) {
+  private @Nullable Color getBackgroundColor(CellStyle style) {
     if (style.getFillPattern() != FillPatternType.SOLID_FOREGROUND) {
       return null;
     }
     return toAwtColor(style.getFillForegroundColorColor());
   }
 
-  private Color toAwtColor(org.apache.poi.ss.usermodel.Color poiColor) {
+  private @Nullable Color toAwtColor(org.apache.poi.ss.usermodel.Color poiColor) {
     if (poiColor instanceof XSSFColor xssfColor) {
       // getRGBWithTint() returns the actual displayed color after applying theme tints.
       // Fall back to getRGB() when tint information is unavailable.
@@ -1243,7 +1244,7 @@ public class SheetRenderer {
         x + width, y, x + width, y + height);
   }
 
-  private Color xssfColorToAwt(XSSFColor xssfColor) {
+  private Color xssfColorToAwt(@Nullable XSSFColor xssfColor) {
     if (xssfColor == null) {
       return Color.BLACK;
     }

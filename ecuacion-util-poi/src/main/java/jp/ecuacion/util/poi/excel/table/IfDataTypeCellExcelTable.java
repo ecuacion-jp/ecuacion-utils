@@ -15,10 +15,10 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nullable;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the excel table interface with object type obtained from the excel data is {@code Cell}.

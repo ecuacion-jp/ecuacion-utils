@@ -17,7 +17,6 @@ package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
 import java.io.IOException;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import org.apache.poi.EncryptedDocumentException;
@@ -27,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class StringFreeExcelTableReaderTest {
 
   @Test
-  public void tableRowSizeNullTest() throws EncryptedDocumentException, AppException, IOException {
+  public void tableRowSizeNullTest() throws EncryptedDocumentException, IOException {
 
     String excelPath = "src/test/resources/StringFreeTableReaderTest.xlsx";
     List<List<String>> rowList = new Reader(6, NoDataString.NULL).read(excelPath);

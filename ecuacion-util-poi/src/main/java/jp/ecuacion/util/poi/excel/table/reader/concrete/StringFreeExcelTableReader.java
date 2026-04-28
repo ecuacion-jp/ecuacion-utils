@@ -15,12 +15,11 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with unknown number of columns, unknown whether it have a header line,
@@ -35,7 +34,7 @@ import jp.ecuacion.util.poi.excel.table.reader.IfFormatFreeExcelTableReader;
 public class StringFreeExcelTableReader extends StringExcelTableReader
     implements IfFormatFreeExcelTableReader<String> {
 
-  private NoDataString noDataString;
+  private NoDataString noDataString = NoDataString.NULL;
 
   /**
    * Constructs a new instance.
@@ -61,7 +60,7 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
    */
   public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber, @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize,
-      @Nonnull NoDataString noDataString) {
+      NoDataString noDataString) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
 
     this.noDataString = noDataString;

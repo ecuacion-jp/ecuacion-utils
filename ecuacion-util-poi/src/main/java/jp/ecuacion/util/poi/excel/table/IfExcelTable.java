@@ -15,9 +15,8 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the methods the extending interfaces use.
@@ -33,7 +32,6 @@ public interface IfExcelTable<T> {
    * 
    * @return the sheet name of the excel file
    */
-  @Nonnull
   public String getSheetName();
 
   /**
@@ -57,7 +55,6 @@ public interface IfExcelTable<T> {
    * @return far left and top header label<br>
    *     "top" means the upper side of the header line when the table has multiple header lines.
    */
-  @Nonnull
   public String getFarLeftAndTopHeaderLabel();
 
   /**
@@ -68,7 +65,6 @@ public interface IfExcelTable<T> {
    * 
    * @return table header label strings
    */
-  @Nonnull
   public String[][] getHeaderLabelData();
 
   /**

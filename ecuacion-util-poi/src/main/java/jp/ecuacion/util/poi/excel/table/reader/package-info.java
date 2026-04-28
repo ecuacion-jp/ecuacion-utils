@@ -17,4 +17,7 @@
 /**
  * Provides excel table reader abstract classes and interfaces.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table.reader;
+
+import org.jspecify.annotations.NullMarked;

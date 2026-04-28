@@ -15,13 +15,12 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatOneLineHeaderExcelTableReader;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with known number of columns, known header labels 
@@ -36,7 +35,6 @@ import jp.ecuacion.util.poi.excel.table.reader.IfFormatOneLineHeaderExcelTableRe
 public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
     implements IfFormatOneLineHeaderExcelTableReader<String> {
 
-  @Nonnull
   private String[] headerLabels;
   private NoDataString noDataString;
 
@@ -53,7 +51,8 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
    */
   public StringOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
-      Integer tableStartRowNumber, int tableStartColumnNumber, @Nullable Integer tableRowSize) {
+      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize) {
     this(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         NoDataString.NULL);
   }
@@ -77,7 +76,7 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
    */
   public StringOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, @Nonnull NoDataString noDataString) {
+      @Nullable Integer tableRowSize, NoDataString noDataString) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
 
     this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
@@ -89,7 +88,6 @@ public class StringOneLineHeaderExcelTableReader extends StringExcelTableReader
   }
 
   @Override
-  @Nonnull
   public String[] getHeaderLabels() {
     return headerLabels;
   }

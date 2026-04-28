@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.pdfbox.excel.util;
 
-import jakarta.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,6 +28,7 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides utility methods for generating PDF files from Excel files.
@@ -57,8 +57,8 @@ public class ExcelToPdfUtil {
    * @param options optional parameters (passwords, etc.); may be {@code null}
    * @throws PdfGenerateException if an error occurs during PDF generation
    */
-  public static void generate(@Nonnull Path excelPath, @Nonnull List<String> sheetNames,
-      @Nonnull Path outputPath, PdfGenerateOptions options) throws PdfGenerateException {
+  public static void generate(Path excelPath, List<String> sheetNames,
+      Path outputPath, @Nullable PdfGenerateOptions options) throws PdfGenerateException {
 
     String excelPassword = (options != null) ? options.getExcelPassword() : null;
     String pdfPassword = (options != null) ? options.getPdfPassword() : null;
@@ -95,7 +95,7 @@ public class ExcelToPdfUtil {
     }
   }
 
-  private static Workbook openWorkbook(File file, String password) throws IOException {
+  private static Workbook openWorkbook(File file, @Nullable String password) throws IOException {
     if (password != null) {
       return WorkbookFactory.create(file, password, true);
     }

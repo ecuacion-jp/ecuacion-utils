@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table;
 
-import jakarta.annotation.Nonnull;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 
 /**
@@ -36,7 +35,6 @@ public interface IfFormatOneLineHeaderExcelTable<T>
    * 
    * <p>It can be like {@code new String[] {"first name", "last name", "age"}}.</p>
    */
-  @Nonnull
   public String[] getHeaderLabels();
 
   @Override
@@ -49,7 +47,6 @@ public interface IfFormatOneLineHeaderExcelTable<T>
 
 
   @Override
-  @Nonnull
   public default String getFarLeftAndTopHeaderLabel() {
 
     String[] headerLabels = getHeaderLabels();

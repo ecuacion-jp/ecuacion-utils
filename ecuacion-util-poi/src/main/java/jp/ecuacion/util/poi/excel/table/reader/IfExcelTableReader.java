@@ -15,13 +15,12 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the excel table reader methods.
@@ -76,8 +75,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @return header data
    * @throws ExcelAppException ExcelAppException
    */
-  @Nullable
-  public List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> tableData)
+  public @Nullable List<List<String>> updateAndGetHeaderData(List<List<T>> tableData)
       throws ExcelAppException;
 
   /**

@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.util;
 
-import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.text.Format;
@@ -32,6 +31,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides excel reading related {@code apache POI} utility methods.
@@ -60,7 +60,7 @@ public class ExcelReadUtil {
    *     when the argument value is empty.
    */
   public static @Nullable String getNoDataStringIfNoData(@Nullable String value,
-      String noDataString) {
+      @Nullable String noDataString) {
     if (value == null || value.equals(EMPTY_STRING)) {
       return noDataString;
 
@@ -111,7 +111,7 @@ public class ExcelReadUtil {
    * @throws ExcelAppException ExcelAppException
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
-      DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+      @Nullable DateTimeFormatter dateTimeFormat) throws ExcelAppException {
     return getStringFromCell(cell, filename, dateTimeFormat, null);
   }
 
@@ -129,7 +129,8 @@ public class ExcelReadUtil {
    * @throws ExcelAppException ExcelAppException
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
-      DateTimeFormatter dateTimeFormat, String noDataString) throws ExcelAppException {
+      @Nullable DateTimeFormatter dateTimeFormat, @Nullable String noDataString)
+      throws ExcelAppException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -163,7 +164,8 @@ public class ExcelReadUtil {
    * @throws ExcelAppException ExcelAppException
    */
   private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      @Nullable String filename, DateTimeFormatter dateTimeFormat, String noDataString)
+      @Nullable String filename, @Nullable DateTimeFormatter dateTimeFormat,
+      @Nullable String noDataString)
       throws ExcelAppException {
 
     // cellがnullの場合もnoDataStringを返す
@@ -202,7 +204,8 @@ public class ExcelReadUtil {
    */
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
       Cell cell, @Nullable String filename, @Nullable CellType cellType,
-      String noDataString, DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+      @Nullable String noDataString, @Nullable DateTimeFormatter dateTimeFormat)
+      throws ExcelAppException {
 
     // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
     if (cellType == CellType.BLANK) {
@@ -268,7 +271,7 @@ public class ExcelReadUtil {
                       Arg.message("jp.ecuacion.util.poi.common.filename", filename)}));
 
     } else {
-      throw new RuntimeException("cell type not found. cellType: " + cellType.toString());
+      throw new RuntimeException("cell type not found. cellType: " + cellType);
     }
   }
 

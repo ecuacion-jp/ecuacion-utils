@@ -17,4 +17,7 @@
 /**
  * Provides enums.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.enums;
+
+import org.jspecify.annotations.NullMarked;
