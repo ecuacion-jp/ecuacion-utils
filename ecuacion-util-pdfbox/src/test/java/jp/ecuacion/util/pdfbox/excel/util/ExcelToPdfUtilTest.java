@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -380,8 +381,10 @@ public class ExcelToPdfUtilTest {
     @Test
     @DisplayName("&D and &T are replaced with the current date and time")
     void dateAndTime(@TempDir Path tempDir) throws IOException, PdfGenerateException {
-      String expectedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/M/d"));
-      String expectedTime = LocalTime.now().format(DateTimeFormatter.ofPattern("H:mm"));
+      String expectedDate =
+          LocalDate.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy/M/d"));
+      String expectedTime =
+          LocalTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("H:mm"));
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "&D &T", null);
       Path pdf = tempDir.resolve("out.pdf");
 
@@ -913,10 +916,9 @@ public class ExcelToPdfUtilTest {
     private static final int T_SAFE_Y  = 132;  // (T_TOP+T_BOTTOM)/2
 
     // Expected pixel positions given CELL_PADDING=2pt=4px at 144 DPI.
-    private static final int T_PAD_LEFT   = T_LEFT   + 4; // 40
-    private static final int T_PAD_RIGHT  = T_RIGHT  - 4; // 192
-    private static final int T_PAD_TOP    = T_TOP    + 4; // 76
-    private static final int T_PAD_BOTTOM = T_BOTTOM - 4; // 188
+    private static final int T_PAD_LEFT  = T_LEFT  + 4; // 40
+    private static final int T_PAD_RIGHT = T_RIGHT - 4; // 192
+    private static final int T_PAD_TOP   = T_TOP   + 4; // 76
 
     // Blue text color used in pixel-inspection tests.
     private static final int BLUE_RGB = 0x0070C0;
@@ -1754,9 +1756,8 @@ public class ExcelToPdfUtilTest {
     // left=18pt→36px, top=36pt→72px, row=60pt→120px, col=2048units(42pt)→84px
     private static final int C_DPI    = 144;
     private static final int C_LEFT   = 36;
-    private static final int C_TOP    = 72;
     private static final int C_SAFE_X = 78;   // (C_LEFT + C_RIGHT) / 2, C_RIGHT=120
-    private static final int C_SAFE_Y = 132;  // (C_TOP + C_BOTTOM) / 2, C_BOTTOM=192
+    private static final int C_SAFE_Y = 132;  // (72 + C_BOTTOM) / 2, C_BOTTOM=192
 
     @Test
     @DisplayName("solid fill RGB is reflected exactly in the PDF (±2 per channel)")
@@ -1943,7 +1944,6 @@ public class ExcelToPdfUtilTest {
         // Entire cell: some non-blue pixels exist (text rendered in red on top)
         boolean hasNonBlue = false;
         for (int x = C_LEFT + 4; x < C_LEFT + 50 && !hasNonBlue; x++) {
-          int px = img.getRGB(x, C_SAFE_Y) & 0xFFFFFF;
           if (!isBlueish(img.getRGB(x, C_SAFE_Y))) {
             hasNonBlue = true;
           }
@@ -2144,7 +2144,6 @@ public class ExcelToPdfUtilTest {
         BufferedImage rendered = new PDFRenderer(doc).renderImageWithDPI(0, IM_DPI);
         // No red pixels anywhere (image was outside print area)
         boolean hasRed = false;
-        outer:
         for (int y = 0; y < rendered.getHeight() && !hasRed; y++) {
           for (int x = 0; x < rendered.getWidth() && !hasRed; x++) {
             if (isReddish(rendered.getRGB(x, y))) {
@@ -2297,9 +2296,8 @@ public class ExcelToPdfUtilTest {
       Path pdf = tempDir.resolve("out.pdf");
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
 
-      // At 144 DPI: right edge = 36 + 3×100 = 336px, row center = 72 + 30 = 102px
+      // At 144 DPI: right edge = 36 + 3×100 = 336px
       int rightEdge = MB_LM + 3 * MB_DPI / 72 * M_COL; // 36 + 300 = 336
-      int centerY   = MB_TM + MB_DPI / 72 * M_ROW;     // 72 + 60  = 132... wait
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, MB_DPI);
         assertThat(avgGray(img.getRGB(rightEdge, MB_TM + 30)))
