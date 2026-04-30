@@ -140,3 +140,6 @@ products/
 
 # mac
 .DS_Store
+
+# allure
+.allure
