@@ -15,10 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: actions/checkout@v5
+        with:
+          repository: ecuacion-jp/ecuacion-lib
+          path: ecuacion-lib
+
       - uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Build ecuacion-lib
+        working-directory: ecuacion-lib
+        run: mvn install -DskipTests -q
 
       - name: Verify
         run: mvn verify -Dwagon.skip=true
