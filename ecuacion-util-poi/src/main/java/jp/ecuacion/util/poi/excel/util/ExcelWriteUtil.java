@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.poi.excel.util;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -80,14 +80,14 @@ public class ExcelWriteUtil {
    */
   public static Workbook openForWrite(String filePath)
       throws EncryptedDocumentException, IOException {
-    return WorkbookFactory.create(new FileInputStream(filePath));
+    return WorkbookFactory.create(new File(filePath));
   }
 
   /**
-   * Opens the excel file and returns {@code Workbook} object.
-   * 
+   * Opens a {@link FileOutputStream} for the specified file path.
+   *
    * @param filePath filePath
-   * @return workbook
+   * @return FileOutputStream
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
@@ -97,7 +97,12 @@ public class ExcelWriteUtil {
   }
 
   /**
-   * Opens the excel file and returns {@code Workbook} object.
+   * Writes the workbook to the specified {@link FileOutputStream} and flushes it.
+   *
+   * @param workbook workbook
+   * @param out FileOutputStream
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
   public static void saveToFile(Workbook workbook, FileOutputStream out)
       throws EncryptedDocumentException, IOException {
@@ -263,7 +268,6 @@ public class ExcelWriteUtil {
    * @throws ExcelAppException ExcelAppException
    */
   public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError) {
-    // 関数値を更新（使用量などの貼りつけの際に使用するパラメータがマスタ貼りつけにより埋め込まれており反映には本処理が必要なため）
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
       Sheet sheet = sheetIt.next();

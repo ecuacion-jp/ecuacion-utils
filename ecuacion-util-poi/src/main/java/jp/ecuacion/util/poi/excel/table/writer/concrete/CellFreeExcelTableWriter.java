@@ -31,14 +31,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Reads tables with unknown number of columns, unknown whether it have a header line,
- * unknown header labels if it has a header line.
- * 
- * <p>It obtains cell values as {@code Cell} object.</p>
- * 
- * <p>The header line is not necessary. 
- *     This class reads the table at the designated position and designated lines and columns.<br>
- *     Finish reading if all the columns are empty in one line.</p>
+ * Writes tables with unknown number of columns and no header line.
+ *
+ * <p>It writes cell values as {@code Cell} object.</p>
+ *
+ * <p>The header line is not required.
+ *     This class writes to the table at the designated position.</p>
  */
 public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
     implements IfFormatFreeExcelTable<Cell>, IfDataTypeCellExcelTableWriter {

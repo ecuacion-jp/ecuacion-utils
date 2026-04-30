@@ -17,6 +17,7 @@ package jp.ecuacion.util.poi.excel.table.reader;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,12 +90,12 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     this.tableRowSizeGivenByConstructor = tableRowSize;
     this.tableColumnSizeGivenByConstructor = tableColumnSize;
 
-    // Validate the input values.
-    Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
-        Validation.buildDefaultValidatorFactory().getValidator().validate(this);
-    if (violationSet != null && violationSet.size() > 0) {
-
-      throw new RuntimeException("Validation failed at TableReader constructor.");
+    try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+      Set<ConstraintViolation<ExcelTableReader<T>>> violationSet =
+          factory.getValidator().validate(this);
+      if (!violationSet.isEmpty()) {
+        throw new RuntimeException("Validation failed at TableReader constructor.");
+      }
     }
   }
 
@@ -119,16 +120,13 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Reads a table data in an excel file at {@code filePath} 
-   *     and Return it in the form of {@code List<List<T>>}.
-   * 
+   * Reads a table data from {@code workbook}
+   *     and returns it in the form of {@code List<List<T>>}.
+   *
    * <p>The internal {@code List<T>} stores data in one line.<br>
    * The external {@code List} stores lines of {@code List<T>}.</p>
    *
    * @param workbook workbook
-   *     It's used only to write down to the log 
-   *     so if getting the filePath is hard, filename or whatever else is fine.
-   *     
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
@@ -147,15 +145,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides an {@code Iterable} reader.
-   * 
-   * <p>The internal {@code List<T>} stores data in one line.<br>
-   * The external {@code List} stores lines of {@code List<T>}.</p>
+   * Provides an {@code Iterable} reader over the data rows of the table.
    *
    * @param workbook workbook
-   *     It's used only to write down to the log 
-   *     so if getting the filePath is hard, filename or whatever else is fine.
-   *     
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
@@ -195,8 +187,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         getReadyToReadTableData(this, workbook, getSheetName(), tableStartColumnNumber,
             (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
 
-    // データを取得
-    // 2重のlistに格納する
     List<List<T>> rowList = new ArrayList<>();
     try {
       for (int rowNumber =
@@ -222,11 +212,12 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Returns tableColumnSize. 
-   * 
+   * Returns tableColumnSize.
+   *
    * @param sheet sheet
    * @param poiBasisDeterminedTableStartRowNumber poiBasisDeterminedTableStartRowNumber
-   * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartRowNumber
+   * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartColumnNumber
+   * @param ignoresColumnSizeSetInReader ignoresColumnSizeSetInReader
    * @throws ExcelAppException ExcelAppException
    */
   public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
@@ -295,10 +286,14 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides common procedure for read one line of a table.
-   * 
-   * <p>It's called from both ExcelTableReader and IteratorReader so it's defined as 
+   * Provides common procedure for reading one line of a table.
    *
+   * <p>It's called from both {@code ExcelTableReader} and {@code IteratorReader},
+   *     so it is defined as a static method.</p>
+   *
+   * @param reader reader
+   * @param context context
+   * @param rowNumber rowNumber
    * @throws ExcelAppException ExcelAppException
    */
   static <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
@@ -306,22 +301,18 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
-    // 最大行数を超えたらエラー
     if (rowNumber == ContextContainer.max) {
       throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
     }
 
-    // 指定行数読み込み完了時の処理
     if (context.tableRowSize != null
         && rowNumber >= context.poiBasisTableStartRowNumber + context.tableRowSize) {
       throw new LoopBreakException();
     }
 
     List<T> colList = new ArrayList<>();
-    // excel上でtable範囲が終わった場合は、明示的に「row = null」となる。その場合、対象行は空行扱い。
     boolean isEmptyRow = true;
 
-    // excelデータを読み込み。
     int tableColumnSize = java.util.Objects.requireNonNull(context.tableColumnSize);
     for (int j = context.poiBasisTableStartColumnNumber;
         j < context.poiBasisTableStartColumnNumber + tableColumnSize; j++) {
@@ -350,7 +341,6 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       }
     }
 
-    // 空行チェック。全項目が空欄の場合は空行を意味する。
     for (T colData : colList) {
       if (!reader.isCellDataEmpty(colData)) {
         isEmptyRow = false;
@@ -358,17 +348,15 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       }
     }
 
-    // 空行時の処理
     if (isEmptyRow) {
       detailLog.debug("(no data in the line)");
       detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
 
       if (context.tableRowSize == null) {
-        // 空行発生時に読み込み終了の場合
         throw new LoopBreakException();
 
       } else {
-        // 空行は、それとわかるように要素数ゼロのlistとしておく
+        // An empty row within a fixed row size is represented as an empty list.
         return new ArrayList<>();
       }
     }
@@ -426,8 +414,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
      * Constructs a new instance.
      */
     public IterableReader(ExcelTableReader<T> reader, ContextContainer context,
-        int numberOfheaderLines) {
-      this.iterator = new IteratorReader<T>(reader, context, numberOfheaderLines);
+        int numberOfHeaderLines) {
+      this.iterator = new IteratorReader<T>(reader, context, numberOfHeaderLines);
     }
 
     @Override
@@ -452,10 +440,10 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
      * Constructs a new instance.
      */
     public IteratorReader(ExcelTableReader<T> reader, ContextContainer context,
-        int numberOfheaderLines) {
+        int numberOfHeaderLines) {
       this.reader = reader;
       this.context = context;
-      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
+      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfHeaderLines;
     }
 
     @Override

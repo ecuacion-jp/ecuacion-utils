@@ -91,7 +91,6 @@ public abstract class StringExcelTableBean {
   public StringExcelTableBean(List<String> colList) {
     String[] fieldNameArray = getFieldNameArray();
 
-    // colListの件数とfieldNameArraryの件数が異なる場合はエラー
     if (colList.size() != fieldNameArray.length) {
       throw new RuntimeException(
           "Number of elements in fieldNameArray and colList differ.\n" + "fieldNameArray ("
@@ -107,12 +106,12 @@ public abstract class StringExcelTableBean {
       for (int i = 0; i < fieldNameArray.length; i++) {
         String fieldName = fieldNameArray[i];
 
-        // nullの場合は、excelの対象列から値を取得しておらず、設定する変数もないという意味なのでskip
+        // null means this column is intentionally skipped (no corresponding field).
         if (fieldName == null) {
           continue;
         }
 
-        // 親クラスのfieldも取得できるよう、親クラスを際気的に検索してfieldを取得
+        // Walk up the class hierarchy to find the field, including inherited fields.
         Field field = null;
         Class<?> clazz = this.getClass();
         while (clazz != null) {
@@ -120,11 +119,9 @@ public abstract class StringExcelTableBean {
             field = clazz.getDeclaredField(fieldName);
             break;
 
-          } catch (NoSuchFieldException e) {
-            // 親のクラスのfieldを探す
+          } catch (NoSuchFieldException ignored) {
             clazz = clazz.getSuperclass();
 
-            // clazz == nullの場合は、一番親まで遡ったがfieldが存在しない、つまりfieldNameの指定が間違い
             if (clazz == null) {
               throw new RuntimeException("Trying to set a string value to the field in the bean, "
                   + "but the fieldName not found in the bean. \nbeanName: "
