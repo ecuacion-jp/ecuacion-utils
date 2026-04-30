@@ -1689,7 +1689,7 @@ public class SheetRenderer {
     };
   }
 
-  private @Nullable float[] getDashPattern(BorderStyle style) {
+  private float @Nullable [] getDashPattern(BorderStyle style) {
     return switch (style) {
       case DASHED, MEDIUM_DASHED -> new float[] {4f, 3f};
       case DOTTED -> new float[] {1f, 2f};

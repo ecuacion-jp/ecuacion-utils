@@ -57,6 +57,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -2706,7 +2707,7 @@ public class ExcelToPdfUtilTest {
   }
 
   private Path createWorkbookWithHeader(Path dir, String fileName,
-      String left, String center, String right) throws IOException {
+      @Nullable String left, String center, @Nullable String right) throws IOException {
     try (XSSFWorkbook wb = new XSSFWorkbook()) {
       var sheet = wb.createSheet("Sheet1");
       sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
@@ -2981,7 +2982,7 @@ public class ExcelToPdfUtilTest {
 
   private Path createTextWorkbook(Path dir, String fileName, String text,
       int fontSize, boolean bold, boolean italic, boolean strikeout,
-      boolean superscript, boolean subscript, boolean wrapText, XSSFColor textColor,
+      boolean superscript, boolean subscript, boolean wrapText, @Nullable XSSFColor textColor,
       HorizontalAlignment hAlign, VerticalAlignment vAlign,
       float rowHeightPt, int colWidthPoiUnits) throws IOException {
     return createTextWorkbook(dir, fileName, text, fontSize, bold, italic, strikeout,
@@ -2991,7 +2992,7 @@ public class ExcelToPdfUtilTest {
 
   private Path createTextWorkbook(Path dir, String fileName, String text,
       int fontSize, boolean bold, boolean italic, boolean strikeout,
-      boolean superscript, boolean subscript, boolean wrapText, XSSFColor textColor,
+      boolean superscript, boolean subscript, boolean wrapText, @Nullable XSSFColor textColor,
       HorizontalAlignment hAlign, VerticalAlignment vAlign,
       float rowHeightPt, int colWidthPoiUnits, boolean shrinkToFit) throws IOException {
     return createTextWorkbook(dir, fileName, text, fontSize, bold, italic, strikeout,
@@ -3001,7 +3002,7 @@ public class ExcelToPdfUtilTest {
 
   private Path createTextWorkbook(Path dir, String fileName, String text,
       int fontSize, boolean bold, boolean italic, boolean strikeout,
-      boolean superscript, boolean subscript, boolean wrapText, XSSFColor textColor,
+      boolean superscript, boolean subscript, boolean wrapText, @Nullable XSSFColor textColor,
       HorizontalAlignment hAlign, VerticalAlignment vAlign,
       float rowHeightPt, int colWidthPoiUnits,
       boolean shrinkToFit, short rotation) throws IOException {
@@ -3507,7 +3508,8 @@ public class ExcelToPdfUtilTest {
 
   private Path createMergedWorkbook(Path dir, String fileName,
       int firstRow, int lastRow, int firstCol, int lastCol,
-      XSSFColor bgColor, HorizontalAlignment hAlign, String text) throws IOException {
+      XSSFColor bgColor, @Nullable HorizontalAlignment hAlign, @Nullable String text)
+      throws IOException {
     try (XSSFWorkbook wb = new XSSFWorkbook()) {
       var sheet = wb.createSheet("Sheet1");
       sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
@@ -3634,7 +3636,7 @@ public class ExcelToPdfUtilTest {
   }
 
   private Path createBgWorkbook(Path dir, String fileName,
-      XSSFColor bgColor, FillPatternType pattern) throws IOException {
+      @Nullable XSSFColor bgColor, FillPatternType pattern) throws IOException {
     try (XSSFWorkbook wb = new XSSFWorkbook()) {
       var sheet = wb.createSheet("Sheet1");
       sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
@@ -3849,7 +3851,7 @@ public class ExcelToPdfUtilTest {
 
   private Path createBorderWorkbook(Path dir, String fileName,
       BorderStyle top, BorderStyle bottom, BorderStyle left, BorderStyle right,
-      XSSFColor borderColor) throws IOException {
+      @Nullable XSSFColor borderColor) throws IOException {
     try (XSSFWorkbook wb = new XSSFWorkbook()) {
       var sheet = wb.createSheet("Sheet1");
       sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
