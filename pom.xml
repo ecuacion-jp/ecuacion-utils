@@ -29,6 +29,7 @@
 	</parent>
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
+		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
 		<org.apache.maven.plugins.maven-gpg-plugin.version>3.2.7</org.apache.maven.plugins.maven-gpg-plugin.version>
 		<org.sonatype.central.central-publishing-maven-plugin.version>0.10.0</org.sonatype.central.central-publishing-maven-plugin.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
@@ -50,6 +51,16 @@
 	<dependencyManagement>
 
 		<dependencies>
+
+			<!-- ecuacion-lib-parent: compatible version with this release of ecuacion-utils -->
+			<dependency>
+				<type>pom</type>
+				<scope>import</scope>
+				<groupId>jp.ecuacion.lib</groupId>
+				<artifactId>ecuacion-lib-parent</artifactId>
+				<version>${ecuacion-lib.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-poi</artifactId>
