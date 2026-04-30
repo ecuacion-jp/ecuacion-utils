@@ -143,3 +143,6 @@ products/
 
 # allure
 .allure
+
+# VSCode
+.vscode

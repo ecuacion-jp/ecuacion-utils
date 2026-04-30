@@ -1,4 +1,4 @@
-# ecuacion-util-poi
+# ecuacion-util-pdfbox
 
 ## What is it?
 
@@ -51,7 +51,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Introduction
 
-Check [Introduction](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
+Check [Installation](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
 The description of dependent `ecuacion` modules is as follows.
 
 ```xml
