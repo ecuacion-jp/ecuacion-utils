@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          path: ecuacion-utils
 
       - uses: actions/checkout@v5
         with:
@@ -30,6 +32,7 @@ jobs:
         run: mvn install -DskipTests -q
 
       - name: Verify
+        working-directory: ecuacion-utils
         run: mvn verify -Dwagon.skip=true
 
       - name: Upload coverage to Codecov
@@ -37,6 +40,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: >-
-            ecuacion-util-poi/target/site/jacoco/jacoco.xml,
-            ecuacion-util-pdfbox/target/site/jacoco/jacoco.xml
+            ecuacion-utils/ecuacion-util-poi/target/site/jacoco/jacoco.xml,
+            ecuacion-utils/ecuacion-util-pdfbox/target/site/jacoco/jacoco.xml
           fail_ci_if_error: false
