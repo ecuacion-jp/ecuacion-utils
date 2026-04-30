@@ -61,6 +61,10 @@ jobs:
           </settings>
           EOF
 
+      - name: Build ecuacion-lib
+        working-directory: ecuacion-lib
+        run: mvn install -DskipTests -q
+
       - name: Update versions
         working-directory: ecuacion-utils
         run: |
