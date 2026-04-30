@@ -16,20 +16,33 @@
 package jp.ecuacion.util.pdfbox.excel.internal;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.imageio.ImageIO;
 import jp.ecuacion.util.pdfbox.excel.exception.PdfGenerateException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -52,11 +65,15 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFPicture;
+import org.apache.poi.xssf.usermodel.XSSFPictureData;
 import org.apache.poi.xssf.usermodel.XSSFShape;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFTextParagraph;
 import org.apache.poi.xssf.usermodel.XSSFTextRun;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
 import org.jspecify.annotations.Nullable;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTGeomGuide;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTLineProperties;
@@ -64,35 +81,49 @@ import org.openxmlformats.schemas.drawingml.x2006.main.CTPresetGeometry2D;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTShapeProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTSolidColorFillProperties;
 import org.openxmlformats.schemas.drawingml.x2006.main.STShapeType;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTBorder;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCol;
 
 /**
  * Renders an Excel sheet into one or more PDF pages in a {@link PDDocument}.
  *
  * <p>Rendering respects the sheet's print area, page setup (paper size, orientation, margins,
- * scale), manual page breaks, cell background colors, borders, and text styles.</p>
+ * scale), manual page breaks, cell background colors, borders (including dashed styles and
+ * diagonal lines), text styles, and embedded pictures (PNG, JPEG, and other common
+ * formats supported by {@link javax.imageio.ImageIO}).</p>
  */
 public class SheetRenderer {
 
   /** Pixels-to-points conversion factor (96 DPI screen to 72 DPI points). */
   private static final float PX_TO_PT = 72f / 96f;
 
+  /** Start date of the Reiwa era. Dates before this are not supported for era formatting. */
+  private static final LocalDate REIWA_START = LocalDate.of(2019, 5, 1);
+
   /** Horizontal padding inside a cell, in points. */
   private static final float CELL_PADDING = 2f;
 
   private final PDDocument document;
   private final FontManager fontManager;
-  private final DataFormatter dataFormatter = new DataFormatter();
+  private final DataFormatter dataFormatter = new DataFormatter(Locale.US);
+  private final @Nullable Path sourcePath;
+
+  /** Represents a single formatted text run in a header or footer section. */
+  private record HfRun(String text, boolean bold, float fontSize, Color color, boolean underline,
+      boolean doubleUnderline, boolean strikethrough, boolean superscript, boolean subscript) {
+  }
 
   /**
    * Constructs a {@code SheetRenderer}.
    *
    * @param document the target PDF document
    * @param fontManager the font manager providing embedded fonts
+   * @param sourcePath the source Excel file path, used for {@code &F} and {@code &Z} codes
    */
-  public SheetRenderer(PDDocument document, FontManager fontManager) {
+  public SheetRenderer(PDDocument document, FontManager fontManager, @Nullable Path sourcePath) {
     this.document = document;
     this.fontManager = fontManager;
+    this.sourcePath = sourcePath;
   }
 
   /**
@@ -114,14 +145,16 @@ public class SheetRenderer {
 
     PrintSetup ps = sheet.getPrintSetup();
     PDRectangle basePageSize = getPageSize(ps);
-    PDRectangle pageSize = ps.getLandscape()
-        ? new PDRectangle(basePageSize.getHeight(), basePageSize.getWidth())
-        : basePageSize;
+    PDRectangle pageSize =
+        ps.getLandscape() ? new PDRectangle(basePageSize.getHeight(), basePageSize.getWidth())
+            : basePageSize;
 
     float leftMargin = (float) (sheet.getMargin(PageMargin.LEFT) * 72);
     float rightMargin = (float) (sheet.getMargin(PageMargin.RIGHT) * 72);
     float topMargin = (float) (sheet.getMargin(PageMargin.TOP) * 72);
     float bottomMargin = (float) (sheet.getMargin(PageMargin.BOTTOM) * 72);
+    final float headerMarginPt = (float) (sheet.getMargin(PageMargin.HEADER) * 72);
+    final float footerMarginPt = (float) (sheet.getMargin(PageMargin.FOOTER) * 72);
     float printableWidth = pageSize.getWidth() - leftMargin - rightMargin;
     float printableHeight = pageSize.getHeight() - topMargin - bottomMargin;
 
@@ -143,25 +176,89 @@ public class SheetRenderer {
       rowHeights[r - firstRow] = h * scaleFactor;
     }
 
-    Map<String, CellRangeAddress> mergedRegionMap = buildMergedRegionMap(sheet);
+    final Map<String, CellRangeAddress> mergedRegionMap = buildMergedRegionMap(sheet);
 
-    List<int[]> rowPages = buildPageRanges(firstRow, lastRow, sheet.getRowBreaks(),
-        rowHeights, printableHeight);
+    // Detect print title rows (rows that repeat at the top of every page).
+    CellRangeAddress repeatingRowsRef = sheet.getRepeatingRows();
+    int repeatFirst = -1;
+    int repeatLast = -1;
+    float repeatingRowsHeight = 0f;
+    if (repeatingRowsRef != null) {
+      int rf = Math.max(repeatingRowsRef.getFirstRow(), firstRow);
+      int rl = Math.min(repeatingRowsRef.getLastRow(), lastRow);
+      if (rf <= rl) {
+        repeatFirst = rf;
+        repeatLast = rl;
+        for (int r = repeatFirst; r <= repeatLast; r++) {
+          repeatingRowsHeight += rowHeights[r - firstRow];
+        }
+      }
+    }
+    // Content rows are those that are NOT title rows.
+    // Each page can hold (printableHeight − repeatingRowsHeight) of content rows.
+    int contentFirstRow = (repeatFirst >= 0) ? repeatLast + 1 : firstRow;
+    float contentPageHeight = printableHeight - repeatingRowsHeight;
+
+    List<int[]> rowPages;
+    if (repeatFirst >= 0 && contentFirstRow <= lastRow && contentPageHeight > 0) {
+      rowPages = buildPageRanges(contentFirstRow, lastRow, sheet.getRowBreaks(), rowHeights,
+          contentPageHeight);
+    } else {
+      repeatFirst = -1; // disable; fall back to normal pagination
+      rowPages =
+          buildPageRanges(firstRow, lastRow, sheet.getRowBreaks(), rowHeights, printableHeight);
+    }
+    // Detect print title columns (columns that repeat at the left of every page).
+    CellRangeAddress repeatingColsRef = sheet.getRepeatingColumns();
+    int repeatFirstCol = -1;
+    int repeatLastCol = -1;
+    float repeatingColsWidth = 0f;
+    if (repeatingColsRef != null) {
+      int cf = Math.max(repeatingColsRef.getFirstColumn(), firstCol);
+      int cl = Math.min(repeatingColsRef.getLastColumn(), lastCol);
+      if (cf <= cl) {
+        repeatFirstCol = cf;
+        repeatLastCol = cl;
+        for (int c = repeatFirstCol; c <= repeatLastCol; c++) {
+          repeatingColsWidth += colWidths[c - firstCol];
+        }
+      }
+    }
+    int contentFirstCol = (repeatFirstCol >= 0) ? repeatLastCol + 1 : firstCol;
+    float contentPageWidth = printableWidth - repeatingColsWidth;
+
     // When no manual column breaks are defined and the natural (unscaled) column total
     // fits within the printable width, treat the sheet as single-column-page. An explicit
     // scale > 1 may push the scaled total slightly over the boundary, but the intent is
     // to print all columns on one page — consistent with Excel's behavior.
-    float colPageWidth = (sheet.getColumnBreaks().length == 0
-        && naturalColTotal <= printableWidth)
-        ? Float.MAX_VALUE : printableWidth;
-    List<int[]> colPages = buildPageRanges(firstCol, lastCol, sheet.getColumnBreaks(),
-        colWidths, colPageWidth);
+    List<int[]> colPages;
+    if (repeatFirstCol >= 0 && contentFirstCol <= lastCol && contentPageWidth > 0) {
+      float naturalContentColTotal = naturalColTotal - repeatingColsWidth / scaleFactor;
+      float colPageWidth =
+          (sheet.getColumnBreaks().length == 0 && naturalContentColTotal <= contentPageWidth)
+              ? Float.MAX_VALUE
+              : contentPageWidth;
+      colPages = buildPageRanges(contentFirstCol, lastCol, sheet.getColumnBreaks(), colWidths,
+          colPageWidth);
+    } else {
+      repeatFirstCol = -1;
+      float colPageWidth =
+          (sheet.getColumnBreaks().length == 0 && naturalColTotal <= printableWidth)
+              ? Float.MAX_VALUE
+              : printableWidth;
+      colPages =
+          buildPageRanges(firstCol, lastCol, sheet.getColumnBreaks(), colWidths, colPageWidth);
+    }
 
+    int totalPages = rowPages.size() * colPages.size();
+    int pageNumber = 1;
     for (int[] colPage : colPages) {
       for (int[] rowPage : rowPages) {
-        renderPage(sheet, pageSize, leftMargin, topMargin,
-            rowPage[0], rowPage[1], colPage[0], colPage[1],
-            firstRow, firstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap);
+        renderPage(sheet, pageSize, leftMargin, rightMargin, topMargin, bottomMargin,
+            headerMarginPt, footerMarginPt, rowPage[0], rowPage[1], colPage[0], colPage[1],
+            firstRow, firstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, repeatFirst,
+            repeatLast, repeatFirstCol, repeatLastCol, repeatingColsWidth, pageNumber, totalPages);
+        pageNumber++;
       }
     }
   }
@@ -176,8 +273,8 @@ public class SheetRenderer {
 
     if (printArea != null && !printArea.isBlank()) {
       // Format: "SheetName!$A$1:$H$30" – strip sheet name and $ signs
-      String ref = printArea.contains("!")
-          ? printArea.substring(printArea.indexOf('!') + 1) : printArea;
+      String ref =
+          printArea.contains("!") ? printArea.substring(printArea.indexOf('!') + 1) : printArea;
       ref = ref.replace("$", "");
       String[] parts = ref.split(":");
       if (parts.length == 2) {
@@ -256,12 +353,10 @@ public class SheetRenderer {
    * @param printableHeight available height in points (page height minus top and bottom margins)
    * @return the scale factor to apply to column widths and row heights
    */
-  private float computeScaleFactor(Sheet sheet, PrintSetup ps,
-      int firstRow, int lastRow, int firstCol, int lastCol,
-      float printableWidth, float printableHeight) {
+  private float computeScaleFactor(Sheet sheet, PrintSetup ps, int firstRow, int lastRow,
+      int firstCol, int lastCol, float printableWidth, float printableHeight) {
     // For XSSF sheets, check whether the scale attribute is explicitly present in the XML.
-    if (sheet instanceof XSSFSheet xssfSheet
-        && xssfSheet.getCTWorksheet().isSetPageSetup()) {
+    if (sheet instanceof XSSFSheet xssfSheet && xssfSheet.getCTWorksheet().isSetPageSetup()) {
       var ctPageSetup = xssfSheet.getCTWorksheet().getPageSetup();
       if (ctPageSetup.isSetScale()) {
         long s = ctPageSetup.getScale();
@@ -310,8 +405,8 @@ public class SheetRenderer {
       // Check whether this column has an explicit custom width in the <cols> element.
       for (var ctCols : ws.getColsArray()) {
         for (CTCol ctCol : ctCols.getColList()) {
-          if (ctCol.isSetCustomWidth() && ctCol.getCustomWidth()
-              && ctCol.getMin() <= col + 1 && col + 1 <= ctCol.getMax()) {
+          if (ctCol.isSetCustomWidth() && ctCol.getCustomWidth() && ctCol.getMin() <= col + 1
+              && col + 1 <= ctCol.getMax()) {
             // Explicit width: trust POI's calculation.
             return sheet.getColumnWidthInPixels(col) * PX_TO_PT;
           }
@@ -341,8 +436,8 @@ public class SheetRenderer {
    * Splits the range [{@code first}, {@code last}] into pages.
    * Pages are split at manual breaks or when the cumulative size exceeds {@code maxSize}.
    */
-  private List<int[]> buildPageRanges(int first, int last, int[] manualBreaks,
-      float[] sizes, float maxSize) {
+  private List<int[]> buildPageRanges(int first, int last, int[] manualBreaks, float[] sizes,
+      float maxSize) {
     Set<Integer> breakSet = new HashSet<>();
     for (int b : manualBreaks) {
       breakSet.add(b);
@@ -355,8 +450,10 @@ public class SheetRenderer {
     for (int i = first; i <= last; i++) {
       float size = sizes[i - first];
 
-      // Automatic break: adding this row/col would exceed the page
-      if (currentSize + size > maxSize && i > pageStart) {
+      // Automatic break: adding this row/col would exceed the page.
+      // A 0.5pt tolerance prevents spurious breaks caused by float accumulation
+      // when fit-to-page scaling produces a total that is just barely over the limit.
+      if (currentSize + size > maxSize + 0.5f && i > pageStart) {
         pages.add(new int[] {pageStart, i - 1});
         pageStart = i;
         currentSize = size;
@@ -398,12 +495,13 @@ public class SheetRenderer {
   // Page rendering
   // -------------------------------------------------------------------------
 
-  private void renderPage(Sheet sheet, PDRectangle pageSize,
-      float leftMargin, float topMargin,
-      int firstPageRow, int lastPageRow, int firstPageCol, int lastPageCol,
-      int printFirstRow, int printFirstCol,
-      float[] rowHeights, float[] colWidths, float scaleFactor,
-      Map<String, CellRangeAddress> mergedRegionMap) throws IOException {
+  private void renderPage(Sheet sheet, PDRectangle pageSize, float leftMargin, float rightMargin,
+      float topMargin, float bottomMargin, float headerMarginPt, float footerMarginPt,
+      int firstPageRow, int lastPageRow, int firstPageCol, int lastPageCol, int printFirstRow,
+      int printFirstCol, float[] rowHeights, float[] colWidths, float scaleFactor,
+      Map<String, CellRangeAddress> mergedRegionMap, int repeatFirst, int repeatLast,
+      int repeatFirstCol, int repeatLastCol, float repeatingColsWidth, int pageNumber,
+      int totalPages) throws IOException {
 
     PDPage page = new PDPage(pageSize);
     document.addPage(page);
@@ -411,97 +509,122 @@ public class SheetRenderer {
     try (PDPageContentStream cs = new PDPageContentStream(document, page)) {
       float currentY = pageSize.getHeight() - topMargin;
 
-      for (int r = firstPageRow; r <= lastPageRow; r++) {
-        float rowHeight = rowHeights[r - printFirstRow];
-        float currentX = leftMargin;
-
-        Row row = sheet.getRow(r);
-
-        for (int c = firstPageCol; c <= lastPageCol; c++) {
-          float colWidth = colWidths[c - printFirstCol];
-
-          CellRangeAddress region = mergedRegionMap.get(r + "," + c);
-
-          // Skip cells that are part of a merged region but not the top-left cell
-          if (region != null
-              && (region.getFirstRow() != r || region.getFirstColumn() != c)) {
-            currentX += colWidth;
-            continue;
+      // Render print title rows at the top of every page.
+      if (repeatFirst >= 0) {
+        for (int r = repeatFirst; r <= repeatLast; r++) {
+          if (repeatFirstCol >= 0) {
+            renderRowCells(cs, sheet, r, repeatFirstCol, repeatLastCol, printFirstRow,
+                printFirstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY,
+                leftMargin, repeatFirst, repeatLast);
+            currentY = renderRowCells(cs, sheet, r, firstPageCol, lastPageCol, printFirstRow,
+                printFirstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY,
+                leftMargin + repeatingColsWidth, repeatFirst, repeatLast);
+          } else {
+            currentY = renderRowCells(cs, sheet, r, firstPageCol, lastPageCol, printFirstRow,
+                printFirstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY,
+                leftMargin, repeatFirst, repeatLast);
           }
-
-          // Compute actual width/height, summing across merged span
-          float cellWidth = colWidth;
-          float cellHeight = rowHeight;
-
-          if (region != null) {
-            cellWidth = 0f;
-            for (int mc = region.getFirstColumn(); mc <= region.getLastColumn(); mc++) {
-              if (mc >= firstPageCol && mc <= lastPageCol) {
-                cellWidth += colWidths[mc - printFirstCol];
-              }
-            }
-            cellHeight = 0f;
-            for (int mr = region.getFirstRow(); mr <= region.getLastRow(); mr++) {
-              if (mr >= firstPageRow && mr <= lastPageRow) {
-                cellHeight += rowHeights[mr - printFirstRow];
-              }
-            }
-          }
-
-          Cell cell = (row != null) ? row.getCell(c) : null;
-          // PDF y origin is bottom-left; currentY is the top of the current row
-          float cellBottomY = currentY - cellHeight;
-
-          renderCell(cs, cell, currentX, cellBottomY, cellWidth, cellHeight, scaleFactor);
-
-          // For merged cells, right/bottom borders come from the boundary cells, not the
-          // top-left cell whose style may lack those borders.
-          if (region != null && region.getLastColumn() > region.getFirstColumn()) {
-            Cell rightBoundary = (row != null) ? row.getCell(region.getLastColumn()) : null;
-            if (rightBoundary != null) {
-              CellStyle rightStyle = rightBoundary.getCellStyle();
-              XSSFCellStyle rxssf = (rightStyle instanceof XSSFCellStyle s) ? s : null;
-              renderBorderLine(cs, rightStyle.getBorderRight(),
-                  xssfColorToAwt(rxssf != null ? rxssf.getRightBorderXSSFColor() : null),
-                  currentX + cellWidth, cellBottomY,
-                  currentX + cellWidth, cellBottomY + cellHeight);
-            }
-          }
-          if (region != null && region.getLastRow() > region.getFirstRow()) {
-            Row lastMergeRow = sheet.getRow(region.getLastRow());
-            Cell bottomBoundary = (lastMergeRow != null)
-                ? lastMergeRow.getCell(region.getFirstColumn()) : null;
-            if (bottomBoundary != null) {
-              CellStyle bottomStyle = bottomBoundary.getCellStyle();
-              XSSFCellStyle bxssf = (bottomStyle instanceof XSSFCellStyle s) ? s : null;
-              renderBorderLine(cs, bottomStyle.getBorderBottom(),
-                  xssfColorToAwt(bxssf != null ? bxssf.getBottomBorderXSSFColor() : null),
-                  currentX, cellBottomY, currentX + cellWidth, cellBottomY);
-            }
-          }
-
-          currentX += colWidth;
         }
+      }
 
-        currentY -= rowHeight;
+      for (int r = firstPageRow; r <= lastPageRow; r++) {
+        if (repeatFirstCol >= 0) {
+          renderRowCells(cs, sheet, r, repeatFirstCol, repeatLastCol, printFirstRow, printFirstCol,
+              rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY, leftMargin,
+              firstPageRow, lastPageRow);
+          currentY = renderRowCells(cs, sheet, r, firstPageCol, lastPageCol, printFirstRow,
+              printFirstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY,
+              leftMargin + repeatingColsWidth, firstPageRow, lastPageRow);
+        } else {
+          currentY = renderRowCells(cs, sheet, r, firstPageCol, lastPageCol, printFirstRow,
+              printFirstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, currentY,
+              leftMargin, firstPageRow, lastPageRow);
+        }
       }
 
       // Shapes are rendered on top of cells
-      renderShapes(sheet, cs, pageSize, leftMargin, topMargin,
-          firstPageRow, lastPageRow, firstPageCol, lastPageCol,
-          printFirstRow, printFirstCol, rowHeights, colWidths, scaleFactor);
+      renderShapes(sheet, cs, pageSize, leftMargin, topMargin, firstPageRow, lastPageRow,
+          firstPageCol, lastPageCol, printFirstRow, printFirstCol, rowHeights, colWidths,
+          scaleFactor);
+
+      // Header and footer
+      renderHeaderOrFooter(cs, sheet, pageSize, leftMargin, rightMargin, true, headerMarginPt,
+          pageNumber, totalPages);
+      renderHeaderOrFooter(cs, sheet, pageSize, leftMargin, rightMargin, false, footerMarginPt,
+          pageNumber, totalPages);
     }
+  }
+
+  private float renderRowCells(PDPageContentStream cs, Sheet sheet, int r, int firstPageCol,
+      int lastPageCol, int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
+      float scaleFactor, Map<String, CellRangeAddress> mergedRegionMap, float currentY,
+      float leftMargin, int pageFirstRow, int pageLastRow) throws IOException {
+    float rowHeight = rowHeights[r - printFirstRow];
+    float currentX = leftMargin;
+    Row row = sheet.getRow(r);
+
+    for (int c = firstPageCol; c <= lastPageCol; c++) {
+      float colWidth = colWidths[c - printFirstCol];
+      CellRangeAddress region = mergedRegionMap.get(r + "," + c);
+      if (region != null && (region.getFirstRow() != r || region.getFirstColumn() != c)) {
+        currentX += colWidth;
+        continue;
+      }
+      float cellWidth = colWidth;
+      float cellHeight = rowHeight;
+      if (region != null) {
+        cellWidth = 0f;
+        for (int mc = region.getFirstColumn(); mc <= region.getLastColumn(); mc++) {
+          if (mc >= firstPageCol && mc <= lastPageCol) {
+            cellWidth += colWidths[mc - printFirstCol];
+          }
+        }
+        cellHeight = 0f;
+        for (int mr = region.getFirstRow(); mr <= region.getLastRow(); mr++) {
+          if (mr >= pageFirstRow && mr <= pageLastRow) {
+            cellHeight += rowHeights[mr - printFirstRow];
+          }
+        }
+      }
+      Cell cell = (row != null) ? row.getCell(c) : null;
+      float cellBottomY = currentY - cellHeight;
+      renderCell(cs, cell, currentX, cellBottomY, cellWidth, cellHeight, scaleFactor);
+      // For merged cells, right/bottom borders come from the boundary cells.
+      if (region != null && region.getLastColumn() > region.getFirstColumn()) {
+        Cell rightBoundary = (row != null) ? row.getCell(region.getLastColumn()) : null;
+        if (rightBoundary != null) {
+          CellStyle rightStyle = rightBoundary.getCellStyle();
+          XSSFCellStyle rxssf = (rightStyle instanceof XSSFCellStyle s) ? s : null;
+          renderBorderLine(cs, rightStyle.getBorderRight(),
+              xssfColorToAwt(rxssf != null ? rxssf.getRightBorderXSSFColor() : null),
+              currentX + cellWidth, cellBottomY, currentX + cellWidth, cellBottomY + cellHeight);
+        }
+      }
+      if (region != null && region.getLastRow() > region.getFirstRow()) {
+        Row lastMergeRow = sheet.getRow(region.getLastRow());
+        Cell bottomBoundary =
+            (lastMergeRow != null) ? lastMergeRow.getCell(region.getFirstColumn()) : null;
+        if (bottomBoundary != null) {
+          CellStyle bottomStyle = bottomBoundary.getCellStyle();
+          XSSFCellStyle bxssf = (bottomStyle instanceof XSSFCellStyle s) ? s : null;
+          renderBorderLine(cs, bottomStyle.getBorderBottom(),
+              xssfColorToAwt(bxssf != null ? bxssf.getBottomBorderXSSFColor() : null), currentX,
+              cellBottomY, currentX + cellWidth, cellBottomY);
+        }
+      }
+      currentX += colWidth;
+    }
+    return currentY - rowHeight;
   }
 
   // -------------------------------------------------------------------------
   // Shape rendering
   // -------------------------------------------------------------------------
 
-  private void renderShapes(Sheet sheet, PDPageContentStream cs,
-      PDRectangle pageSize, float leftMargin, float topMargin,
-      int firstPageRow, int lastPageRow, int firstPageCol, int lastPageCol,
-      int printFirstRow, int printFirstCol,
-      float[] rowHeights, float[] colWidths, float scaleFactor) throws IOException {
+  private void renderShapes(Sheet sheet, PDPageContentStream cs, PDRectangle pageSize,
+      float leftMargin, float topMargin, int firstPageRow, int lastPageRow, int firstPageCol,
+      int lastPageCol, int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
+      float scaleFactor) throws IOException {
 
     if (!(sheet instanceof XSSFSheet xssfSheet)) {
       return;
@@ -528,9 +651,6 @@ public class SheetRenderer {
     }
 
     for (XSSFShape shape : drawing.getShapes()) {
-      if (!(shape instanceof XSSFSimpleShape simpleShape)) {
-        continue;
-      }
       if (!(shape.getAnchor() instanceof XSSFClientAnchor anchor)) {
         continue;
       }
@@ -538,21 +658,29 @@ public class SheetRenderer {
       // Shape bounds in Excel coordinates (from print area start).
       // For two-cell anchors (row2 or col2 > 0) derive the size from the second anchor so
       // that the shape scales correctly with the row/column layout.
-      // For one-cell anchors (row2 == col2 == 0) fall back to xfrm.ext, scaled uniformly.
-      float shapeTopY =
-          shapeExcelY(anchor.getRow1(), anchor.getDy1(), rowHeights, printFirstRow);
-      float shapeLeftX =
-          shapeExcelX(anchor.getCol1(), anchor.getDx1(), colWidths, printFirstCol);
+      // For one-cell anchors (row2 == col2 == 0) fall back to xfrm.ext or image dimensions.
+      float shapeTopY = shapeExcelY(anchor.getRow1(), anchor.getDy1(), rowHeights, printFirstRow);
+      float shapeLeftX = shapeExcelX(anchor.getCol1(), anchor.getDx1(), colWidths, printFirstCol);
       float shapeBottomY;
       float shapeRightX;
+
       if (anchor.getRow2() > 0 || anchor.getCol2() > 0) {
         shapeBottomY = shapeExcelY(anchor.getRow2(), anchor.getDy2(), rowHeights, printFirstRow);
         shapeRightX = shapeExcelX(anchor.getCol2(), anchor.getDx2(), colWidths, printFirstCol);
-      } else {
+      } else if (shape instanceof XSSFPicture picture) {
+        Dimension dim = picture.getImageDimension();
+        if (dim == null || dim.width <= 0 || dim.height <= 0) {
+          continue;
+        }
+        shapeBottomY = shapeTopY + dim.height * PX_TO_PT * scaleFactor;
+        shapeRightX = shapeLeftX + dim.width * PX_TO_PT * scaleFactor;
+      } else if (shape instanceof XSSFSimpleShape simpleShape) {
         long extCx = simpleShape.getCTShape().getSpPr().getXfrm().getExt().getCx();
         long extCy = simpleShape.getCTShape().getSpPr().getXfrm().getExt().getCy();
         shapeBottomY = shapeTopY + extCy / 12700f * scaleFactor;
         shapeRightX = shapeLeftX + extCx / 12700f * scaleFactor;
+      } else {
+        continue;
       }
 
       // Render only shapes whose top falls within this page
@@ -569,8 +697,12 @@ public class SheetRenderer {
       float pdfShapeLeft = leftMargin + relLeft;
       float pdfShapeWidth = shapeRightX - shapeLeftX;
 
-      renderShape(cs, simpleShape, pdfShapeLeft, pdfShapeBottom,
-          pdfShapeWidth, pdfShapeHeight, scaleFactor);
+      if (shape instanceof XSSFPicture picture) {
+        renderPicture(cs, picture, pdfShapeLeft, pdfShapeBottom, pdfShapeWidth, pdfShapeHeight);
+      } else if (shape instanceof XSSFSimpleShape simpleShape) {
+        renderShape(cs, simpleShape, pdfShapeLeft, pdfShapeBottom, pdfShapeWidth, pdfShapeHeight,
+            scaleFactor);
+      }
     }
   }
 
@@ -584,6 +716,24 @@ public class SheetRenderer {
     return y + dyEmu / 12700f;
   }
 
+  private void renderPicture(PDPageContentStream cs, XSSFPicture picture, float x, float y,
+      float width, float height) throws IOException {
+    XSSFPictureData picData = picture.getPictureData();
+    byte[] imageBytes = picData.getData();
+    String mime = picData.getMimeType();
+    PDImageXObject pdImage;
+    if ("image/jpeg".equalsIgnoreCase(mime) || "image/jpg".equalsIgnoreCase(mime)) {
+      pdImage = JPEGFactory.createFromByteArray(document, imageBytes);
+    } else {
+      BufferedImage bi = ImageIO.read(new ByteArrayInputStream(imageBytes));
+      if (bi == null) {
+        return; // ImageIO returned null: unsupported or unreadable format
+      }
+      pdImage = LosslessFactory.createFromImage(document, bi);
+    }
+    cs.drawImage(pdImage, x, y, width, height);
+  }
+
   /** Converts a shape anchor's column + EMU offset to an Excel-coordinate X value. */
   private float shapeExcelX(int col, int dxEmu, float[] colWidths, int printFirstCol) {
     float x = 0f;
@@ -594,8 +744,8 @@ public class SheetRenderer {
     return x + dxEmu / 12700f;
   }
 
-  private void renderShape(PDPageContentStream cs, XSSFSimpleShape shape,
-      float x, float y, float width, float height, float scaleFactor) throws IOException {
+  private void renderShape(PDPageContentStream cs, XSSFSimpleShape shape, float x, float y,
+      float width, float height, float scaleFactor) throws IOException {
 
     Color fillColor = getShapeFillColor(shape);
     Color lineColor = getShapeLineColor(shape);
@@ -622,8 +772,8 @@ public class SheetRenderer {
     renderShapeText(cs, shape, x, y, width, height, scaleFactor);
   }
 
-  private void appendShapePath(PDPageContentStream cs, XSSFSimpleShape shape,
-      float x, float y, float width, float height) throws IOException {
+  private void appendShapePath(PDPageContentStream cs, XSSFSimpleShape shape, float x, float y,
+      float width, float height) throws IOException {
     CTShapeProperties spPr = shape.getCTShape().getSpPr();
     STShapeType.Enum shapeType =
         (spPr != null && spPr.isSetPrstGeom()) ? spPr.getPrstGeom().getPrst() : null;
@@ -633,9 +783,9 @@ public class SheetRenderer {
       // This keeps the slant angle consistent regardless of shape width.
       float offset = (float) (readAdj(spPr, 0.25) * height);
       cs.moveTo(x + offset, y + height); // top-left
-      cs.lineTo(x + width, y + height);  // top-right
-      cs.lineTo(x + width - offset, y);  // bottom-right
-      cs.lineTo(x, y);                   // bottom-left
+      cs.lineTo(x + width, y + height); // top-right
+      cs.lineTo(x + width - offset, y); // bottom-right
+      cs.lineTo(x, y); // bottom-left
       cs.closePath();
     } else if (STShapeType.DIAMOND == shapeType) {
       float cx = x + width / 2f;
@@ -688,15 +838,15 @@ public class SheetRenderer {
     return defaultVal;
   }
 
-  private void appendRoundRectPath(PDPageContentStream cs,
-      float x, float y, float width, float height, float r) throws IOException {
+  private void appendRoundRectPath(PDPageContentStream cs, float x, float y, float width,
+      float height, float r) throws IOException {
     float k = 0.5523f * r;
     cs.moveTo(x + r, y);
     cs.lineTo(x + width - r, y);
     cs.curveTo(x + width - r + k, y, x + width, y + k, x + width, y + r);
     cs.lineTo(x + width, y + height - r);
-    cs.curveTo(x + width, y + height - r + k, x + width - r + k, y + height,
-        x + width - r, y + height);
+    cs.curveTo(x + width, y + height - r + k, x + width - r + k, y + height, x + width - r,
+        y + height);
     cs.lineTo(x + r, y + height);
     cs.curveTo(x + r - k, y + height, x, y + height - r + k, x, y + height - r);
     cs.lineTo(x, y + r);
@@ -746,8 +896,8 @@ public class SheetRenderer {
     return ln.getW() / 12700f; // EMU to points
   }
 
-  private void renderShapeText(PDPageContentStream cs, XSSFSimpleShape shape,
-      float x, float y, float width, float height, float scaleFactor) throws IOException {
+  private void renderShapeText(PDPageContentStream cs, XSSFSimpleShape shape, float x, float y,
+      float width, float height, float scaleFactor) throws IOException {
 
     java.util.List<XSSFTextParagraph> paragraphs = shape.getTextParagraphs();
     if (paragraphs.isEmpty()) {
@@ -823,10 +973,10 @@ public class SheetRenderer {
 
       // In RTL paragraphs (rtl="1"), Excel renders algn="l" as center alignment.
       TextAlign align = para.getTextAlign();
-      var ctPara = (txBody != null && paraIdx < txBody.sizeOfPArray())
-          ? txBody.getPArray(paraIdx) : null;
-      boolean paraRtl = ctPara != null && ctPara.isSetPPr()
-          && ctPara.getPPr().isSetRtl() && ctPara.getPPr().getRtl();
+      var ctPara =
+          (txBody != null && paraIdx < txBody.sizeOfPArray()) ? txBody.getPArray(paraIdx) : null;
+      boolean paraRtl = ctPara != null && ctPara.isSetPPr() && ctPara.getPPr().isSetRtl()
+          && ctPara.getPPr().getRtl();
       if (paraRtl && align == TextAlign.LEFT) {
         align = TextAlign.CENTER;
       }
@@ -865,8 +1015,8 @@ public class SheetRenderer {
   // Cell rendering
   // -------------------------------------------------------------------------
 
-  private void renderCell(PDPageContentStream cs, @Nullable Cell cell,
-      float x, float y, float width, float height, float scaleFactor) throws IOException {
+  private void renderCell(PDPageContentStream cs, @Nullable Cell cell, float x, float y,
+      float width, float height, float scaleFactor) throws IOException {
 
     CellStyle style = (cell != null) ? cell.getCellStyle() : null;
 
@@ -884,13 +1034,17 @@ public class SheetRenderer {
     if (cell != null) {
       String value = getCellDisplayValue(cell);
       if (value != null && !value.isBlank()) {
-        renderText(cs, cell, value, x, y, width, height, scaleFactor);
+        if (cell.getCellStyle().getRotation() == 255) {
+          renderVerticalText(cs, cell, value, x, y, width, height, scaleFactor);
+        } else {
+          renderText(cs, cell, value, x, y, width, height, scaleFactor);
+        }
       }
     }
 
     // 3. Borders (drawn on top)
-    if (style != null) {
-      renderBorders(cs, style, x, y, width, height);
+    if (style != null && cell != null) {
+      renderBorders(cs, style, cell.getSheet(), x, y, width, height);
     }
   }
 
@@ -913,8 +1067,9 @@ public class SheetRenderer {
    * @return the formatted display value
    */
   private String getCellDisplayValue(Cell cell) {
-    CellType effectiveType = (cell.getCellType() == CellType.FORMULA)
-        ? cell.getCachedFormulaResultType() : cell.getCellType();
+    CellType effectiveType =
+        (cell.getCellType() == CellType.FORMULA) ? cell.getCachedFormulaResultType()
+            : cell.getCellType();
 
     if (effectiveType == CellType.NUMERIC) {
       String formatString = cell.getCellStyle().getDataFormatString();
@@ -922,10 +1077,8 @@ public class SheetRenderer {
         return formatDateValue(cell.getNumericCellValue(), formatString);
       }
       if (cell.getCellType() == CellType.FORMULA) {
-        return dataFormatter.formatRawCellContents(
-            cell.getNumericCellValue(),
-            cell.getCellStyle().getDataFormat(),
-            formatString);
+        return dataFormatter.formatRawCellContents(cell.getNumericCellValue(),
+            cell.getCellStyle().getDataFormat(), formatString);
       }
       return dataFormatter.formatCellValue(cell);
     }
@@ -953,18 +1106,21 @@ public class SheetRenderer {
    * @return {@code true} if the format looks like a date format
    */
   private boolean isLikelyDateFormat(String formatString) {
-    if (formatString == null || formatString.isEmpty()) {
+    if (formatString == null || formatString.isEmpty()
+        || formatString.equalsIgnoreCase("General")) {
       return false;
     }
     // Use only the main section (before the first ;)
-    String mainSection = formatString.contains(";")
-        ? formatString.substring(0, formatString.indexOf(';')) : formatString;
+    String mainSection =
+        formatString.contains(";") ? formatString.substring(0, formatString.indexOf(';'))
+            : formatString;
     // Remove quoted literals like "年" "月分"
     String stripped = mainSection.replaceAll("\"[^\"]*\"", "");
     // Remove locale/color prefixes like [$-411] or [red]
     stripped = stripped.replaceAll("\\[[^\\]]*\\]", "");
-    // Year tokens (y/Y) are unambiguous date indicators
-    return stripped.contains("y") || stripped.contains("Y");
+    // Year tokens (y/Y) and era tokens (g/G) are unambiguous date indicators
+    return stripped.contains("y") || stripped.contains("Y") || stripped.contains("g")
+        || stripped.contains("G");
   }
 
   /**
@@ -979,17 +1135,26 @@ public class SheetRenderer {
    * @return formatted date string
    */
   private String formatDateValue(double numericValue, String formatString) {
-    LocalDate date = DateUtil.getLocalDateTime(numericValue, false).toLocalDate();
-    // Use only the main section (before the first ;)
-    String fmt = formatString.contains(";")
-        ? formatString.substring(0, formatString.indexOf(';')) : formatString;
+    var ldt = DateUtil.getLocalDateTime(numericValue, false);
+    LocalDate date = ldt.toLocalDate();
+    LocalTime time = ldt.toLocalTime();
+    Locale locale = extractFormatLocale(formatString);
+
+    String fmt = formatString.contains(";") ? formatString.substring(0, formatString.indexOf(';'))
+        : formatString;
+
+    // Pre-scan for AM/PM to enable 12-hour clock mode.
+    boolean is12Hour = fmt.toLowerCase(Locale.ENGLISH).contains("am/pm")
+        || fmt.toLowerCase(Locale.ENGLISH).contains("a/p");
+    int hourVal = is12Hour ? (time.getHour() % 12 == 0 ? 12 : time.getHour() % 12) : time.getHour();
 
     StringBuilder result = new StringBuilder();
+    boolean lastWasHour = false;
     int i = 0;
+
     while (i < fmt.length()) {
       char c = fmt.charAt(i);
       if (c == '"') {
-        // Quoted literal: append content as-is, without the surrounding quotes
         int end = fmt.indexOf('"', i + 1);
         if (end > i) {
           result.append(fmt, i + 1, end);
@@ -998,27 +1163,83 @@ public class SheetRenderer {
           i++;
         }
       } else if (c == '[') {
-        // Locale or color prefix: skip the entire bracket group
         int end = fmt.indexOf(']', i);
         i = (end > i) ? end + 1 : i + 1;
       } else if (c == 'y' || c == 'Y') {
-        int count = countConsecutive(fmt, i, c);
-        result.append(count >= 4
-            ? String.format("%04d", date.getYear())
+        int n = countConsecutive(fmt, i, c);
+        result.append(n >= 4 ? String.format("%04d", date.getYear())
             : String.format("%02d", date.getYear() % 100));
-        i += count;
+        i += n;
+        lastWasHour = false;
+      } else if (c == 'g' || c == 'G') {
+        int n = countConsecutive(fmt, i, c);
+        result.append(eraName(date, n));
+        i += n;
+        lastWasHour = false;
+      } else if (c == 'e' || c == 'E') {
+        int n = countConsecutive(fmt, i, c);
+        result.append(eraYear(date, n));
+        i += n;
+        lastWasHour = false;
       } else if (c == 'm' || c == 'M') {
-        int count = countConsecutive(fmt, i, c);
-        result.append(count >= 2
-            ? String.format("%02d", date.getMonthValue())
-            : String.valueOf(date.getMonthValue()));
-        i += count;
+        int n = countConsecutive(fmt, i, c);
+        if (lastWasHour) {
+          result.append(
+              n >= 2 ? String.format("%02d", time.getMinute()) : String.valueOf(time.getMinute()));
+          lastWasHour = false;
+        } else if (n >= 4) {
+          result.append(date.getMonth().getDisplayName(TextStyle.FULL, locale));
+        } else if (n == 3) {
+          result.append(date.getMonth().getDisplayName(TextStyle.SHORT, locale));
+        } else {
+          result.append(n >= 2 ? String.format("%02d", date.getMonthValue())
+              : String.valueOf(date.getMonthValue()));
+        }
+        i += n;
       } else if (c == 'd' || c == 'D') {
-        int count = countConsecutive(fmt, i, c);
-        result.append(count >= 2
-            ? String.format("%02d", date.getDayOfMonth())
-            : String.valueOf(date.getDayOfMonth()));
-        i += count;
+        int n = countConsecutive(fmt, i, c);
+        if (n >= 4) {
+          result.append(date.getDayOfWeek().getDisplayName(TextStyle.FULL, locale));
+        } else if (n == 3) {
+          result.append(date.getDayOfWeek().getDisplayName(TextStyle.SHORT, locale));
+        } else {
+          result.append(n >= 2 ? String.format("%02d", date.getDayOfMonth())
+              : String.valueOf(date.getDayOfMonth()));
+        }
+        i += n;
+        lastWasHour = false;
+      } else if (c == 'h' || c == 'H') {
+        int n = countConsecutive(fmt, i, c);
+        result.append(n >= 2 ? String.format("%02d", hourVal) : String.valueOf(hourVal));
+        i += n;
+        lastWasHour = true;
+      } else if (c == 's' || c == 'S') {
+        int n = countConsecutive(fmt, i, c);
+        result.append(
+            n >= 2 ? String.format("%02d", time.getSecond()) : String.valueOf(time.getSecond()));
+        i += n;
+        lastWasHour = false;
+      } else if (c == 'a' || c == 'A') {
+        if (i + 4 < fmt.length() && fmt.substring(i, i + 5).equalsIgnoreCase("AM/PM")) {
+          result.append(time.getHour() < 12 ? "AM" : "PM");
+          i += 5;
+        } else if (i + 2 < fmt.length() && fmt.substring(i, i + 3).equalsIgnoreCase("A/P")) {
+          result.append(time.getHour() < 12 ? "A" : "P");
+          i += 3;
+        } else {
+          // Japanese weekday: aaa (月) or aaaa (月曜日)
+          int n = countConsecutive(fmt, i, c);
+          if (n >= 3) {
+            int dow = date.getDayOfWeek().getValue() - 1;
+            String[] s = {"月", "火", "水", "木", "金", "土", "日"};
+            String[] l = {"月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"};
+            result.append(n >= 4 ? l[dow] : s[dow]);
+            i += n;
+          } else {
+            result.append(c);
+            i++;
+          }
+        }
       } else {
         result.append(c);
         i++;
@@ -1027,11 +1248,52 @@ public class SheetRenderer {
     return result.toString();
   }
 
+  private Locale extractFormatLocale(String formatString) {
+    int start = formatString.indexOf("[$-");
+    if (start >= 0) {
+      int end = formatString.indexOf(']', start + 3);
+      if (end > start + 3) {
+        try {
+          int lcid = Integer.parseInt(formatString.substring(start + 3, end), 16) & 0xFFFF;
+          if (lcid == 0x0411) {
+            return Locale.JAPANESE;
+          }
+          if (lcid == 0x0407) {
+            return Locale.GERMAN;
+          }
+          if (lcid == 0x040C) {
+            return Locale.FRENCH;
+          }
+          return Locale.ENGLISH;
+        } catch (NumberFormatException ignored) {
+          // fall through
+        }
+      }
+    }
+    return Locale.ENGLISH;
+  }
+
+  private String eraName(LocalDate date, int count) {
+    if (date.isBefore(REIWA_START)) {
+      throw new RuntimeException(
+          "Japanese era before Reiwa (2019-05-01) is not supported: " + date);
+    }
+    return count >= 2 ? "令和" : "令";
+  }
+
+  private String eraYear(LocalDate date, int count) {
+    if (date.isBefore(REIWA_START)) {
+      throw new RuntimeException(
+          "Japanese era before Reiwa (2019-05-01) is not supported: " + date);
+    }
+    int year = date.getYear() - 2018;
+    return count >= 2 ? String.format("%02d", year) : String.valueOf(year);
+  }
+
   private int countConsecutive(String s, int start, char target) {
     char lower = Character.toLowerCase(target);
     int count = 0;
-    while (start + count < s.length()
-        && Character.toLowerCase(s.charAt(start + count)) == lower) {
+    while (start + count < s.length() && Character.toLowerCase(s.charAt(start + count)) == lower) {
       count++;
     }
     return count;
@@ -1057,9 +1319,7 @@ public class SheetRenderer {
         rgb = xssfColor.getRGB();
       }
       if (rgb != null && rgb.length == 3) {
-        return new Color(
-            Byte.toUnsignedInt(rgb[0]),
-            Byte.toUnsignedInt(rgb[1]),
+        return new Color(Byte.toUnsignedInt(rgb[0]), Byte.toUnsignedInt(rgb[1]),
             Byte.toUnsignedInt(rgb[2]));
       }
     }
@@ -1070,8 +1330,157 @@ public class SheetRenderer {
   // Text rendering
   // -------------------------------------------------------------------------
 
-  private void renderText(PDPageContentStream cs, Cell cell, String value,
-      float x, float y, float width, float height, float scaleFactor) throws IOException {
+  private void renderText(PDPageContentStream cs, Cell cell, String value, float x, float y,
+      float width, float height, float scaleFactor) throws IOException {
+
+    CellStyle style = cell.getCellStyle();
+    Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());
+
+    boolean bold = poiFont.getBold();
+    final boolean italic = poiFont.getItalic();
+    final boolean strikeout = poiFont.getStrikeout();
+    final boolean underline = poiFont.getUnderline() == Font.U_SINGLE
+        || poiFont.getUnderline() == Font.U_SINGLE_ACCOUNTING;
+    final boolean doubleUnderline = poiFont.getUnderline() == Font.U_DOUBLE
+        || poiFont.getUnderline() == Font.U_DOUBLE_ACCOUNTING;
+    final boolean accountingUnderline = poiFont.getUnderline() == Font.U_SINGLE_ACCOUNTING
+        || poiFont.getUnderline() == Font.U_DOUBLE_ACCOUNTING;
+    short typeOffset = poiFont.getTypeOffset();
+    float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
+    PDType0Font font = fontManager.getFont(bold);
+
+    Color textColor = Color.BLACK;
+    if (poiFont instanceof XSSFFont xssfFont) {
+      XSSFColor color = xssfFont.getXSSFColor();
+      if (color != null) {
+        Color c = toAwtColor(color);
+        if (c != null) {
+          textColor = c;
+        }
+      }
+    }
+
+    // Shrink to fit: reduce font size so single-line text fits within the cell width.
+    if (style.getShrinkToFit() && !style.getWrapText()) {
+      float available = width - 2 * CELL_PADDING;
+      try {
+        float naturalWidth = font.getStringWidth(value) / 1000f * fontSize;
+        if (naturalWidth > available && available > 0) {
+          fontSize = fontSize * available / naturalWidth;
+        }
+      } catch (Exception ignored) {
+        // keep original size
+      }
+    }
+
+    // Super/subscript: render at 70% size with a shifted baseline.
+    boolean superscript = (typeOffset == Font.SS_SUPER);
+    boolean subscript = (typeOffset == Font.SS_SUB);
+    float effectiveFontSize = (superscript || subscript) ? fontSize * 0.7f : fontSize;
+
+    float ascent = font.getFontDescriptor().getAscent() / 1000f * effectiveFontSize;
+    float descent = font.getFontDescriptor().getDescent() / 1000f * effectiveFontSize;
+    float lineHeight = ascent - descent;
+
+    java.util.List<String> lines;
+    if (style.getWrapText()) {
+      float maxLineWidth = width - 2 * CELL_PADDING;
+      lines = wrapTextToLines(value, font, effectiveFontSize, maxLineWidth);
+    } else {
+      lines = java.util.List.of(value);
+    }
+
+    float totalTextHeight = lines.size() * lineHeight;
+
+    float startY;
+    VerticalAlignment vertAlign = style.getVerticalAlignment();
+    if (vertAlign == VerticalAlignment.TOP) {
+      startY = y + height - CELL_PADDING - ascent;
+    } else if (vertAlign == VerticalAlignment.CENTER) {
+      startY = y + (height - totalTextHeight) / 2f - descent;
+    } else { // BOTTOM
+      startY = y + CELL_PADDING - descent + totalTextHeight - lineHeight;
+    }
+
+    for (String line : lines) {
+      // Skip lines above the cell top (BOTTOM/CENTER align overflow upward).
+      if (startY > y + height) {
+        startY -= lineHeight;
+        continue;
+      }
+      // Stop rendering when text descends below the cell bottom.
+      if (startY + descent < y) {
+        break;
+      }
+      if (line.isEmpty()) {
+        startY -= lineHeight;
+        continue;
+      }
+
+      // Shift baseline for super/subscript.
+      float lineY = startY;
+      if (superscript) {
+        lineY += fontSize * 0.35f;
+      } else if (subscript) {
+        lineY -= fontSize * 0.15f;
+      }
+
+      float textWidth;
+      try {
+        textWidth = font.getStringWidth(line) / 1000f * effectiveFontSize;
+      } catch (Exception e) {
+        textWidth = width;
+      }
+      final float textX = calculateTextX(style.getAlignment(), cell, x, width, textWidth);
+
+      cs.beginText();
+      cs.setFont(font, effectiveFontSize);
+      cs.setNonStrokingColor(textColor);
+      if (italic) {
+        // Synthetic italic: shear ~12° using tan(12°) ≈ 0.21.
+        cs.setTextMatrix(new Matrix(1, 0, 0.21f, 1, textX, lineY));
+      } else {
+        cs.newLineAtOffset(textX, lineY);
+      }
+      try {
+        cs.showText(line);
+      } catch (Exception e) {
+        // Skip text that cannot be rendered with the current font.
+      }
+      cs.endText();
+
+      if (strikeout) {
+        float strikeY = lineY + ascent * 0.35f;
+        cs.setStrokingColor(textColor);
+        cs.setLineWidth(effectiveFontSize / 14f);
+        cs.moveTo(textX, strikeY);
+        cs.lineTo(textX + textWidth, strikeY);
+        cs.stroke();
+      }
+
+      if (underline || doubleUnderline) {
+        // Accounting underline spans the full cell width; standard spans the text width.
+        float ulWidth = accountingUnderline ? width - 2 * CELL_PADDING : textWidth;
+        float ulX = accountingUnderline ? x + CELL_PADDING : textX;
+        float ulY = lineY + descent - 0.5f;
+        cs.setStrokingColor(textColor);
+        cs.setLineWidth(effectiveFontSize / 14f);
+        cs.moveTo(ulX, ulY);
+        cs.lineTo(ulX + ulWidth, ulY);
+        cs.stroke();
+        if (doubleUnderline) {
+          cs.moveTo(ulX, ulY - 1.5f);
+          cs.lineTo(ulX + ulWidth, ulY - 1.5f);
+          cs.stroke();
+        }
+      }
+
+      startY -= lineHeight;
+    }
+  }
+
+  private void renderVerticalText(PDPageContentStream cs, Cell cell, String value, float x, float y,
+      float width, float height, float scaleFactor) throws IOException {
 
     CellStyle style = cell.getCellStyle();
     Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());
@@ -1094,56 +1503,31 @@ public class SheetRenderer {
     float ascent = font.getFontDescriptor().getAscent() / 1000f * fontSize;
     float descent = font.getFontDescriptor().getDescent() / 1000f * fontSize;
     float lineHeight = ascent - descent;
+    float centerX = x + width / 2f;
+    float currentY = y + height - CELL_PADDING - ascent;
 
-    java.util.List<String> lines;
-    if (style.getWrapText()) {
-      float maxLineWidth = width - 2 * CELL_PADDING;
-      lines = wrapTextToLines(value, font, fontSize, maxLineWidth);
-    } else {
-      lines = java.util.List.of(value);
-    }
-
-    float totalTextHeight = lines.size() * lineHeight;
-
-    // Compute baseline Y of the first line from vertical alignment
-    float startY;
-    VerticalAlignment vertAlign = style.getVerticalAlignment();
-    if (vertAlign == VerticalAlignment.TOP) {
-      startY = y + height - CELL_PADDING - ascent;
-    } else if (vertAlign == VerticalAlignment.CENTER) {
-      startY = y + (height - totalTextHeight) / 2f - descent;
-    } else { // BOTTOM
-      startY = y + CELL_PADDING - descent + totalTextHeight - lineHeight;
-    }
-
-    cs.setFont(font, fontSize);
-    cs.setNonStrokingColor(textColor);
-
-    for (String line : lines) {
-      // Stop rendering when text exceeds the bottom of the cell
-      if (startY + descent < y) {
+    for (int i = 0; i < value.length(); i++) {
+      if (currentY + descent < y) {
         break;
       }
-      if (line.isEmpty()) {
-        startY -= lineHeight;
-        continue;
-      }
-      float textWidth;
+      String ch = String.valueOf(value.charAt(i));
+      float charWidth;
       try {
-        textWidth = font.getStringWidth(line) / 1000f * fontSize;
+        charWidth = font.getStringWidth(ch) / 1000f * fontSize;
       } catch (Exception e) {
-        textWidth = width;
+        charWidth = fontSize;
       }
-      float textX = calculateTextX(style.getAlignment(), cell, x, width, textWidth);
       cs.beginText();
-      cs.newLineAtOffset(textX, startY);
+      cs.setFont(font, fontSize);
+      cs.setNonStrokingColor(textColor);
+      cs.newLineAtOffset(centerX - charWidth / 2f, currentY);
       try {
-        cs.showText(line);
+        cs.showText(ch);
       } catch (Exception e) {
-        // Skip text that cannot be rendered with the current font
+        // Skip characters that cannot be rendered.
       }
       cs.endText();
-      startY -= lineHeight;
+      currentY -= lineHeight;
     }
   }
 
@@ -1161,8 +1545,8 @@ public class SheetRenderer {
    * @param maxWidth the maximum line width in points
    * @return list of wrapped lines
    */
-  private java.util.List<String> wrapTextToLines(String text, PDType0Font font,
-      float fontSize, float maxWidth) {
+  private java.util.List<String> wrapTextToLines(String text, PDType0Font font, float fontSize,
+      float maxWidth) {
     java.util.List<String> result = new ArrayList<>();
     for (String para : text.split("\n", -1)) {
       if (para.isEmpty()) {
@@ -1204,13 +1588,13 @@ public class SheetRenderer {
     return result;
   }
 
-  private float calculateTextX(HorizontalAlignment align, Cell cell,
-      float x, float width, float textWidth) {
+  private float calculateTextX(HorizontalAlignment align, Cell cell, float x, float width,
+      float textWidth) {
     // For GENERAL alignment, Excel right-aligns numeric and date values, left-aligns others.
     HorizontalAlignment effective = align;
     if (align == HorizontalAlignment.GENERAL && cell != null) {
-      CellType type = cell.getCellType() == CellType.FORMULA
-          ? cell.getCachedFormulaResultType() : cell.getCellType();
+      CellType type = cell.getCellType() == CellType.FORMULA ? cell.getCachedFormulaResultType()
+          : cell.getCellType();
       if (type == CellType.NUMERIC || type == CellType.BOOLEAN) {
         effective = HorizontalAlignment.RIGHT;
       }
@@ -1226,22 +1610,48 @@ public class SheetRenderer {
   // Border rendering
   // -------------------------------------------------------------------------
 
-  private void renderBorders(PDPageContentStream cs, CellStyle style,
-      float x, float y, float width, float height) throws IOException {
+  private void renderBorders(PDPageContentStream cs, CellStyle style, Sheet sheet, float x, float y,
+      float width, float height) throws IOException {
     XSSFCellStyle xssfStyle = (style instanceof XSSFCellStyle s) ? s : null;
 
     renderBorderLine(cs, style.getBorderTop(),
-        xssfColorToAwt(xssfStyle != null ? xssfStyle.getTopBorderXSSFColor() : null),
-        x, y + height, x + width, y + height);
+        xssfColorToAwt(xssfStyle != null ? xssfStyle.getTopBorderXSSFColor() : null), x, y + height,
+        x + width, y + height);
     renderBorderLine(cs, style.getBorderBottom(),
-        xssfColorToAwt(xssfStyle != null ? xssfStyle.getBottomBorderXSSFColor() : null),
-        x, y, x + width, y);
+        xssfColorToAwt(xssfStyle != null ? xssfStyle.getBottomBorderXSSFColor() : null), x, y,
+        x + width, y);
     renderBorderLine(cs, style.getBorderLeft(),
-        xssfColorToAwt(xssfStyle != null ? xssfStyle.getLeftBorderXSSFColor() : null),
-        x, y, x, y + height);
+        xssfColorToAwt(xssfStyle != null ? xssfStyle.getLeftBorderXSSFColor() : null), x, y, x,
+        y + height);
     renderBorderLine(cs, style.getBorderRight(),
-        xssfColorToAwt(xssfStyle != null ? xssfStyle.getRightBorderXSSFColor() : null),
-        x + width, y, x + width, y + height);
+        xssfColorToAwt(xssfStyle != null ? xssfStyle.getRightBorderXSSFColor() : null), x + width,
+        y, x + width, y + height);
+    if (xssfStyle != null) {
+      renderDiagonalBorders(cs, xssfStyle, sheet, x, y, width, height);
+    }
+  }
+
+  private void renderDiagonalBorders(PDPageContentStream cs, XSSFCellStyle style, Sheet sheet,
+      float x, float y, float width, float height) throws IOException {
+    if (!(sheet.getWorkbook() instanceof XSSFWorkbook xssfWb)) {
+      return;
+    }
+    int borderId = (int) style.getCoreXf().getBorderId();
+    XSSFCellBorder cellBorder = xssfWb.getStylesSource().getBorderAt(borderId);
+    BorderStyle diagStyle = cellBorder.getBorderStyle(XSSFCellBorder.BorderSide.DIAGONAL);
+    if (diagStyle == BorderStyle.NONE) {
+      return;
+    }
+    Color color = xssfColorToAwt(cellBorder.getBorderColor(XSSFCellBorder.BorderSide.DIAGONAL));
+    CTBorder ctBorder = cellBorder.getCTBorder();
+    // diagonalDown: top-left → bottom-right (in PDF coords: top = y+height, bottom = y)
+    if (ctBorder.getDiagonalDown()) {
+      renderBorderLine(cs, diagStyle, color, x, y + height, x + width, y);
+    }
+    // diagonalUp: bottom-left → top-right (in PDF coords: bottom = y, top = y+height)
+    if (ctBorder.getDiagonalUp()) {
+      renderBorderLine(cs, diagStyle, color, x, y, x + width, y + height);
+    }
   }
 
   private Color xssfColorToAwt(@Nullable XSSFColor xssfColor) {
@@ -1252,16 +1662,23 @@ public class SheetRenderer {
     return (c != null) ? c : Color.BLACK;
   }
 
-  private void renderBorderLine(PDPageContentStream cs, BorderStyle borderStyle,
-      Color color, float x1, float y1, float x2, float y2) throws IOException {
+  private void renderBorderLine(PDPageContentStream cs, BorderStyle borderStyle, Color color,
+      float x1, float y1, float x2, float y2) throws IOException {
     if (borderStyle == BorderStyle.NONE) {
       return;
     }
+    float[] dash = getDashPattern(borderStyle);
     cs.setStrokingColor(color);
     cs.setLineWidth(getBorderLineWidth(borderStyle));
+    if (dash != null) {
+      cs.setLineDashPattern(dash, 0);
+    }
     cs.moveTo(x1, y1);
     cs.lineTo(x2, y2);
     cs.stroke();
+    if (dash != null) {
+      cs.setLineDashPattern(new float[] {}, 0);
+    }
   }
 
   private float getBorderLineWidth(BorderStyle style) {
@@ -1270,5 +1687,430 @@ public class SheetRenderer {
       case THICK -> 1.5f;
       default -> 0.5f;
     };
+  }
+
+  private @Nullable float[] getDashPattern(BorderStyle style) {
+    return switch (style) {
+      case DASHED, MEDIUM_DASHED -> new float[] {4f, 3f};
+      case DOTTED -> new float[] {1f, 2f};
+      case DASH_DOT, MEDIUM_DASH_DOT, SLANTED_DASH_DOT -> new float[] {4f, 2f, 1f, 2f};
+      case DASH_DOT_DOT, MEDIUM_DASH_DOT_DOT -> new float[] {4f, 2f, 1f, 2f, 1f, 2f};
+      default -> null;
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Header / footer rendering
+  // -------------------------------------------------------------------------
+
+  /**
+   * Renders the header or footer for the given page.
+   *
+   * @param cs the content stream to render into
+   * @param sheet the sheet whose header/footer is rendered
+   * @param pageSize the page rectangle
+   * @param leftMargin left margin in points
+   * @param rightMargin right margin in points
+   * @param isHeader {@code true} to render the header, {@code false} for the footer
+   * @param marginPt header or footer margin in points (distance from the page edge)
+   * @param pageNumber 1-based current page number
+   * @param totalPages total number of pages
+   * @throws IOException if a PDF I/O error occurs
+   */
+  private void renderHeaderOrFooter(PDPageContentStream cs, Sheet sheet, PDRectangle pageSize,
+      float leftMargin, float rightMargin, boolean isHeader, float marginPt, int pageNumber,
+      int totalPages) throws IOException {
+
+    String leftText = isHeader ? sheet.getHeader().getLeft() : sheet.getFooter().getLeft();
+    String centerText = isHeader ? sheet.getHeader().getCenter() : sheet.getFooter().getCenter();
+    String rightText = isHeader ? sheet.getHeader().getRight() : sheet.getFooter().getRight();
+
+    if (isHfBlank(leftText) && isHfBlank(centerText) && isHfBlank(rightText)) {
+      return;
+    }
+
+    String fileName = (sourcePath != null) ? hfFileNameWithoutExt(sourcePath) : "";
+    String filePath =
+        (sourcePath != null && sourcePath.getParent() != null) ? sourcePath.getParent().toString()
+            : "";
+    String sheetName = sheet.getSheetName();
+
+    float defaultFontSize = 10f;
+    PDType0Font defaultFont = fontManager.getFont(false);
+    float ascent = defaultFont.getFontDescriptor().getAscent() / 1000f * defaultFontSize;
+    float descent = defaultFont.getFontDescriptor().getDescent() / 1000f * defaultFontSize;
+
+    float baseline =
+        isHeader ? pageSize.getHeight() - marginPt - ascent : marginPt + Math.abs(descent);
+
+    float pageWidth = pageSize.getWidth();
+
+    if (!isHfBlank(leftText)) {
+      List<HfRun> runs =
+          parseHfRuns(leftText, pageNumber, totalPages, fileName, filePath, sheetName);
+      renderHfSection(cs, runs, leftMargin, baseline);
+    }
+    if (!isHfBlank(centerText)) {
+      List<HfRun> runs =
+          parseHfRuns(centerText, pageNumber, totalPages, fileName, filePath, sheetName);
+      float sectionWidth = computeHfRunsWidth(runs);
+      renderHfSection(cs, runs, (pageWidth - sectionWidth) / 2f, baseline);
+    }
+    if (!isHfBlank(rightText)) {
+      List<HfRun> runs =
+          parseHfRuns(rightText, pageNumber, totalPages, fileName, filePath, sheetName);
+      float sectionWidth = computeHfRunsWidth(runs);
+      renderHfSection(cs, runs, pageWidth - rightMargin - sectionWidth, baseline);
+    }
+  }
+
+  /**
+   * Renders a list of formatted runs starting at {@code startX}.
+   *
+   * @param cs the content stream
+   * @param runs the runs to render
+   * @param startX the left edge of the section in points
+   * @param baseline the text baseline in PDF coordinates
+   * @throws IOException if a PDF I/O error occurs
+   */
+  private void renderHfSection(PDPageContentStream cs, List<HfRun> runs, float startX,
+      float baseline) throws IOException {
+    float currentX = startX;
+    for (HfRun run : runs) {
+      if (run.text().isEmpty()) {
+        continue;
+      }
+      float fs = (run.superscript() || run.subscript()) ? run.fontSize() * 0.7f : run.fontSize();
+      float bl = baseline;
+      if (run.superscript()) {
+        bl += fs * 0.5f;
+      } else if (run.subscript()) {
+        bl -= fs * 0.2f;
+      }
+      PDType0Font font = fontManager.getFont(run.bold());
+      float textWidth;
+      try {
+        textWidth = font.getStringWidth(run.text()) / 1000f * fs;
+      } catch (Exception e) {
+        currentX += fs;
+        continue;
+      }
+      cs.beginText();
+      cs.setFont(font, fs);
+      cs.setNonStrokingColor(run.color());
+      cs.newLineAtOffset(currentX, bl);
+      try {
+        cs.showText(run.text());
+      } catch (Exception e) {
+        // skip unrenderable text
+      }
+      cs.endText();
+      float ascent = font.getFontDescriptor().getAscent() / 1000f * fs;
+      float descent = font.getFontDescriptor().getDescent() / 1000f * fs;
+      if (run.underline()) {
+        float lineY = bl + descent - 0.5f;
+        cs.setStrokingColor(run.color());
+        cs.setLineWidth(0.5f);
+        cs.moveTo(currentX, lineY);
+        cs.lineTo(currentX + textWidth, lineY);
+        cs.stroke();
+      }
+      if (run.doubleUnderline()) {
+        float lineY1 = bl + descent - 0.5f;
+        cs.setStrokingColor(run.color());
+        cs.setLineWidth(0.5f);
+        cs.moveTo(currentX, lineY1);
+        cs.lineTo(currentX + textWidth, lineY1);
+        cs.stroke();
+        cs.moveTo(currentX, lineY1 - 1.5f);
+        cs.lineTo(currentX + textWidth, lineY1 - 1.5f);
+        cs.stroke();
+      }
+      if (run.strikethrough()) {
+        float lineY = bl + (ascent + descent) / 2f;
+        cs.setStrokingColor(run.color());
+        cs.setLineWidth(0.5f);
+        cs.moveTo(currentX, lineY);
+        cs.lineTo(currentX + textWidth, lineY);
+        cs.stroke();
+      }
+      currentX += textWidth;
+    }
+  }
+
+  /**
+   * Parses a header/footer section string into a list of {@link HfRun}s.
+   *
+   * <p>Handles all standard Excel header/footer format codes: {@code &P}, {@code &N},
+   * {@code &D}, {@code &T}, {@code &A}, {@code &F}, {@code &Z}, {@code &B}, {@code &I},
+   * {@code &U}, {@code &E}, {@code &S}, {@code &X}, {@code &Y}, {@code &"Font,Style"},
+   * {@code &nn} (font size), {@code &KRRGGBB} (color), and {@code &&}.</p>
+   *
+   * <p>Italic ({@code &I}) is parsed but ignored because the embedded font has no
+   * italic face. Picture insertion ({@code &G}) is not supported.</p>
+   *
+   * @param sectionText the raw section string (after L/C/R splitting)
+   * @param pageNumber current 1-based page number
+   * @param totalPages total page count
+   * @param fileName workbook file name without extension (for {@code &F})
+   * @param filePath parent directory path (for {@code &Z})
+   * @param sheetName sheet tab name (for {@code &A})
+   * @return parsed runs
+   */
+  private List<HfRun> parseHfRuns(String sectionText, int pageNumber, int totalPages,
+      String fileName, String filePath, String sheetName) {
+    List<HfRun> runs = new ArrayList<>();
+    if (sectionText == null || sectionText.isBlank()) {
+      return runs;
+    }
+    boolean bold = false;
+    float fontSize = 10f;
+    Color color = Color.BLACK;
+    boolean underline = false;
+    boolean doubleUnderline = false;
+    boolean strikethrough = false;
+    boolean superscript = false;
+    boolean subscript = false;
+    StringBuilder buf = new StringBuilder();
+    int i = 0;
+    while (i < sectionText.length()) {
+      char c = sectionText.charAt(i);
+      if (c != '&' || i + 1 >= sectionText.length()) {
+        buf.append(c);
+        i++;
+        continue;
+      }
+      char code = Character.toUpperCase(sectionText.charAt(i + 1));
+      switch (code) {
+        case '&' -> {
+          buf.append('&');
+          i += 2;
+        }
+        case 'P' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          int offset = 0;
+          int advance = i + 2;
+          if (advance < sectionText.length()) {
+            char mod = sectionText.charAt(advance);
+            if ((mod == '+' || mod == '-') && advance + 1 < sectionText.length()
+                && Character.isDigit(sectionText.charAt(advance + 1))) {
+              int numEnd = advance + 1;
+              while (numEnd < sectionText.length()
+                  && Character.isDigit(sectionText.charAt(numEnd))) {
+                numEnd++;
+              }
+              int n = Integer.parseInt(sectionText.substring(advance + 1, numEnd));
+              offset = (mod == '+') ? n : -n;
+              advance = numEnd;
+            }
+          }
+          buf.append(pageNumber + offset);
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i = advance;
+        }
+        case 'N' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(totalPages);
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'D' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/M/d")));
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'T' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(LocalTime.now().format(DateTimeFormatter.ofPattern("H:mm")));
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'A' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(sheetName);
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'F' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(fileName);
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'Z' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          buf.append(filePath);
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          i += 2;
+        }
+        case 'B' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          bold = !bold;
+          i += 2;
+        }
+        case 'I' -> i += 2; // italic: no italic face available, skip
+        case 'U' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          underline = !underline;
+          if (underline) {
+            doubleUnderline = false;
+          }
+          i += 2;
+        }
+        case 'E' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          doubleUnderline = !doubleUnderline;
+          if (doubleUnderline) {
+            underline = false;
+          }
+          i += 2;
+        }
+        case 'S' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          strikethrough = !strikethrough;
+          i += 2;
+        }
+        case 'X' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          superscript = !superscript;
+          if (superscript) {
+            subscript = false;
+          }
+          i += 2;
+        }
+        case 'Y' -> {
+          flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+              superscript, subscript);
+          subscript = !subscript;
+          if (subscript) {
+            superscript = false;
+          }
+          i += 2;
+        }
+        case '"' -> {
+          int closeQ = sectionText.indexOf('"', i + 2);
+          if (closeQ > i + 1) {
+            flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+                superscript, subscript);
+            String spec = sectionText.substring(i + 2, closeQ);
+            int comma = spec.indexOf(',');
+            if (comma >= 0) {
+              // Apply bold/regular from style (font name is ignored; only NotoSansJP available)
+              bold = spec.substring(comma + 1).trim().equalsIgnoreCase("bold");
+            }
+            i = closeQ + 1;
+          } else {
+            i += 2;
+          }
+        }
+        case 'K' -> {
+          if (i + 7 <= sectionText.length()) {
+            String hex = sectionText.substring(i + 2, i + 8);
+            boolean allHex = hex.chars().allMatch(ch -> (ch >= '0' && ch <= '9')
+                || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f'));
+            if (allHex) {
+              flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline,
+                  strikethrough, superscript, subscript);
+              color = new Color(Integer.parseInt(hex.substring(0, 2), 16),
+                  Integer.parseInt(hex.substring(2, 4), 16),
+                  Integer.parseInt(hex.substring(4, 6), 16));
+              i += 8;
+            } else {
+              // Theme color or other format — skip to next non-code character
+              int end = i + 2;
+              while (end < sectionText.length()) {
+                char ch = sectionText.charAt(end);
+                if (!Character.isLetterOrDigit(ch) && ch != '-' && ch != '+') {
+                  break;
+                }
+                end++;
+              }
+              color = Color.BLACK;
+              i = end;
+            }
+          } else {
+            i += 2;
+          }
+        }
+        default -> {
+          if (Character.isDigit(code)) {
+            // &n... — font size (one or more digits)
+            int numStart = i + 1;
+            int numEnd = numStart;
+            while (numEnd < sectionText.length() && Character.isDigit(sectionText.charAt(numEnd))) {
+              numEnd++;
+            }
+            flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+                superscript, subscript);
+            try {
+              fontSize = Float.parseFloat(sectionText.substring(numStart, numEnd));
+            } catch (NumberFormatException e) {
+              // ignore malformed size code
+            }
+            i = numEnd;
+          } else {
+            i += 2; // unknown code, skip &X
+          }
+        }
+      }
+    }
+    flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
+        superscript, subscript);
+    return runs;
+  }
+
+  private void flushHfRun(List<HfRun> runs, StringBuilder buf, boolean bold, float fontSize,
+      Color color, boolean underline, boolean doubleUnderline, boolean strikethrough,
+      boolean superscript, boolean subscript) {
+    if (buf.isEmpty()) {
+      return;
+    }
+    runs.add(new HfRun(buf.toString(), bold, fontSize, color, underline, doubleUnderline,
+        strikethrough, superscript, subscript));
+    buf.setLength(0);
+  }
+
+  private float computeHfRunsWidth(List<HfRun> runs) {
+    float total = 0f;
+    for (HfRun run : runs) {
+      float fs = (run.superscript() || run.subscript()) ? run.fontSize() * 0.7f : run.fontSize();
+      PDType0Font font = fontManager.getFont(run.bold());
+      try {
+        total += font.getStringWidth(run.text()) / 1000f * fs;
+      } catch (Exception e) {
+        total += fs;
+      }
+    }
+    return total;
+  }
+
+  private boolean isHfBlank(@Nullable String s) {
+    return s == null || s.isBlank();
+  }
+
+  private String hfFileNameWithoutExt(Path path) {
+    String name = path.getFileName().toString();
+    int dot = name.lastIndexOf('.');
+    return (dot > 0) ? name.substring(0, dot) : name;
   }
 }

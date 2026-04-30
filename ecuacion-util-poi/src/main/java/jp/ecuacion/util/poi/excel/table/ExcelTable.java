@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -86,28 +87,35 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
 
+  /**
+   * Returns the sheet name.
+   *
+   * @return sheet name
+   */
   public String getSheetName() {
     return ObjectsUtil.requireNonNull(sheetName);
   }
 
   /**
    * Returns the row number at which the table starts.
-   * 
+   *
    * <p>The minimum value of {@code tableStartRowNumber} is zero
-   *     bacause the top-left of the excel sheet is (1, 1) in R1C1 format, 
+   *     bacause the top-left of the excel sheet is (1, 1) in R1C1 format,
    *     but since apache poi specifies the the top-left of the excel sheet is (0, 0),
    *     this method returns the poi-based row number.</p>
-   * 
-   * <p>When {@code tableStartRowNumber} is set to {@code null}, 
-   *     this method will find the string designated with 
-   *     {@link IfExcelTableReader#getFarLeftAndTopHeaderLabel()} from the top row 
+   *
+   * <p>When {@code tableStartRowNumber} is set to {@code null},
+   *     this method will find the string designated with
+   *     {@link IfExcelTableReader#getFarLeftAndTopHeaderLabel()} from the top row
    *     in the column number of {@code excelBasisTableStartColumnNumber}.</p>
-   * 
+   *
    * @param sheet excel sheet
-   * @return the row number the table starts, greater than or equal to {@code 1}.
+   * @param excelBasisTableStartColumnNumber the column number the table starts, starting from 1
+   * @return the row number the table starts, in poi basis (starting from 0).
+   * @throws ExcelAppException ExcelAppException
    */
   public int getPoiBasisDeterminedTableStartRowNumber(Sheet sheet,
-      int excelBasisTableStartColumnNumber) {
+      int excelBasisTableStartColumnNumber) throws ExcelAppException {
     ObjectsUtil.requireNonNull(sheet);
     int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
 
@@ -115,17 +123,12 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       return Objects.requireNonNull(tableStartRowNumber) - 1;
     }
 
-    // 以下、tableStartRowNumberを動的に決める必要がある場合の処理
-
-    // A列に特定の文字列があることを確認
     for (int i = 0; i < 100; i++) {
       Cell cell;
 
       if (isVerticalAndHorizontalOpposite) {
-        // ith row
         Row row = sheet.getRow(poiBasisTableStartColumnNumber);
 
-        // when row == null there can be a table heade label
         if (row == null) {
           break;
         }
@@ -133,34 +136,29 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
         cell = row.getCell(i);
 
       } else {
-        // i行目
         Row row = sheet.getRow(i);
-        // 空行がnullになる場合もあるのでその場合はskip
         if (row == null) {
           continue;
         }
 
-        // cell of poiBasisTableStartColumnNumber
         cell = row.getCell(poiBasisTableStartColumnNumber);
       }
 
-      // cell can be null
       if (cell == null) {
         continue;
       }
 
-      // 文字列の取得
       String value = cell.getStringCellValue();
 
       if (value.equals(getFarLeftAndTopHeaderLabel())) {
-        // iはプログラム上の行（ゼロ始まり）だが、getTableStartRowNumber()としては左上が(1, 1)として返すルールなので1をプラスして返す
         return i;
       }
     }
 
-    // ここまでくるということは、signStringがなかったということ。異常終了
-    throw new RuntimeException("シート「" + sheet.getSheetName() + "」に文字列「"
-        + getFarLeftAndTopHeaderLabel() + "」が" + tableStartColumnNumber + "番目の列に存在しません。終了します。");
+    throw new ExcelAppException(
+        "jp.ecuacion.util.poi.excel.reader.FarLeftHeaderLabelNotFound.message",
+        sheet.getSheetName(), Integer.toString(tableStartColumnNumber),
+        getFarLeftAndTopHeaderLabel());
   }
 
   /**

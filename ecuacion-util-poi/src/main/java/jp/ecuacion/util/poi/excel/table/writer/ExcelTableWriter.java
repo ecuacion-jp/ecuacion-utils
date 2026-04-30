@@ -74,23 +74,22 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Writes table data to the designated excel file.
-   * 
-   * <p>{@code data} is stored to {@code workbook} created from {@code templateFilePath}, 
-   *     and the method returns {@code workbook}.</p>
-   * 
+   *
+   * <p>{@code data} is stored to {@code workbook} created from {@code templateFilePath},
+   *     and the method returns {@code workbook}.<br>
+   *     The caller is responsible for closing the returned {@code workbook}.</p>
+   *
    * @param templateFilePath templateFilePath
    * @param data data
+   * @throws Exception Exception
    */
   public Workbook write(String templateFilePath, List<List<T>> data) throws Exception {
+    Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
 
-    try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);) {
+    headerCheck(workbook);
+    writeTableValues(workbook, data);
 
-      headerCheck(workbook);
-
-      writeTableValues(workbook, data);
-
-      return workbook;
-    }
+    return workbook;
   }
 
   /**
@@ -109,16 +108,17 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides an {@code Iterable} writer.
-   * 
+   * Provides a {@link IterableWriter} that writes rows one by one to the workbook.
+   *
    * @param workbook workbook
+   * @return SequentialWriter
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
   public IterableWriter<T> getIterable(Workbook workbook)
       throws EncryptedDocumentException, IOException {
-    // Header check first, and then iterating data.
     headerCheck(workbook);
 
-    // get the IteratorWriter
     ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
         getSheetName(), tableStartColumnNumber);
 
@@ -161,7 +161,9 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides {@code Iterable}.
+   * Writes rows one by one to the workbook.
+   *
+   * <p>Obtain an instance via {@link ExcelTableWriter#getIterable(Workbook)}.</p>
    */
   public static class IterableWriter<T> {
 
@@ -171,23 +173,25 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
     /**
      * Constructs a new instance.
+     *
+     * @param writer writer
+     * @param context context
+     * @param numberOfHeaderLines numberOfHeaderLines
      */
     public IterableWriter(ExcelTableWriter<T> writer, ContextContainer context,
-        int numberOfheaderLines) {
+        int numberOfHeaderLines) {
       this.writer = writer;
       this.context = context;
-      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
+      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfHeaderLines;
     }
 
     /**
-     * Writes one line.
-     * 
+     * Writes one row.
+     *
      * @param columnList columnList
      */
     public void write(List<T> columnList) {
-
       ExcelWriteUtil.writeTableLine(writer, context, rowNumber, columnList);
-
       rowNumber++;
     }
   }

@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.poi.excel.table;
+package jp.ecuacion.util.poi.excel.table.writer;
+
+import jp.ecuacion.util.poi.excel.table.IfDataTypeStringExcelTable;
+import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Is a reader interface which treats free format tables.
- *
- * @param <T> See {@link IfExcelTable}.
+ * Provides the excel table writer interface
+ *     with object type written to the excel data is {@code String}.
  */
-public interface IfFormatFreeExcelTable<T> extends IfExcelTable<T> {
+public interface IfDataTypeStringExcelTableWriter
+    extends IfDataTypeStringExcelTable, IfExcelTableWriter<String> {
 
   @Override
-  public default int getNumberOfHeaderLines() {
-    return 0;
-  }
-
-  @Override
-  public default String[][] getHeaderLabelData() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public default String getFarLeftAndTopHeaderLabel() {
-    throw new UnsupportedOperationException();
+  public default void writeToCell(int columnNumberFromZero, @Nullable String sourceCellData,
+      Cell destCell) {
+    if (sourceCellData != null) {
+      destCell.setCellValue(sourceCellData);
+    }
   }
 }

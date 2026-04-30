@@ -69,7 +69,7 @@ public class ExcelToPdfUtil {
         PDDocument document = new PDDocument()) {
 
       FontManager fontManager = new FontManager(document);
-      SheetRenderer renderer = new SheetRenderer(document, fontManager);
+      SheetRenderer renderer = new SheetRenderer(document, fontManager, excelPath);
 
       for (String sheetName : sheetNames) {
         int sheetIndex = workbook.getSheetIndex(sheetName);

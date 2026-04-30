@@ -40,7 +40,6 @@ public class ExcelReadUtil {
 
   private static DetailLogger detailLog = new DetailLogger(ExcelReadUtil.class);
 
-  /* 空文字オブジェクトが複数作られると非効率なので定義しておく。 */
   private static final String EMPTY_STRING = "";
 
   private static DateTimeFormatter defaultDateTimeFormat =
@@ -168,7 +167,6 @@ public class ExcelReadUtil {
       @Nullable String noDataString)
       throws ExcelAppException {
 
-    // cellがnullの場合もnoDataStringを返す
     if (cell == null) {
       return noDataString;
     }
@@ -207,20 +205,17 @@ public class ExcelReadUtil {
       @Nullable String noDataString, @Nullable DateTimeFormatter dateTimeFormat)
       throws ExcelAppException {
 
-    // poiでは、セルが空欄なら、表示形式に関係なくBLANKというcellTypeになるため、それで判別してから文字を返す
+    // POI always uses BLANK cellType for empty cells regardless of the cell format.
     if (cellType == CellType.BLANK) {
       return noDataString;
 
     } else if (cellType == CellType.STRING) {
-      // 文字列形式
       return getNoDataStringIfNoData(cell.getStringCellValue(), noDataString);
 
     } else if (cellType == CellType.NUMERIC) {
-      // 数値 / 日付形式
       DataFormatter fmter = new DataFormatter();
       Format fmt = fmter.createFormat(cell);
 
-      // fmtにより細かい表示形式の判別が可能
       detailLog.debug("Format: " + ((fmt == null) ? "(null)" : fmt.getClass().getSimpleName()));
 
       if (fmt == null) {
@@ -229,22 +224,15 @@ public class ExcelReadUtil {
         return Double.toString(cell.getNumericCellValue());
 
       } else if (fmt instanceof ExcelStyleDateFormatter) {
-        // format: date and time
         return cell.getLocalDateTimeCellValue().format(dateTimeFormat);
 
       } else {
-        // 表示形式：数値
         String fmtVal = fmt.format(cell.getNumericCellValue());
-
         String toStrVal = Double.valueOf(cell.getNumericCellValue()).toString();
 
-        // toStrValとfmtValが異なる場合はwarningをあげておく
         boolean warning = false;
         if (!fmtVal.equals(toStrVal)) {
-
-          // fmtValが整数の場合
           if (!fmtVal.contains(".")) {
-            // fmtValが整数、toStrValが、fmtVal + ".0"の場合は、問題なし。それ以外の場合はwarningを出す
             if (!(toStrVal.endsWith(".0")
                 && fmtVal.equals(toStrVal.substring(0, toStrVal.indexOf("."))))) {
               warning = true;
@@ -254,7 +242,7 @@ public class ExcelReadUtil {
 
         if (warning) {
           detailLog.debug("The number actual and displayed in excel differs. actual: " + toStrVal
-              + "、displayed: " + fmtVal);
+              + ", displayed: " + fmtVal);
         }
 
         return fmtVal;
