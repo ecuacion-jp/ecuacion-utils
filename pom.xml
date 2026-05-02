@@ -53,12 +53,12 @@
 
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
-				<artifactId>ecuacion-util-poi</artifactId>
+				<artifactId>ecuacion-util-excel-table</artifactId>
 				<version>${ecuacion-utils.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
-				<artifactId>ecuacion-util-pdfbox</artifactId>
+				<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
 				<version>${ecuacion-utils.version}</version>
 			</dependency>
 			
@@ -127,8 +127,8 @@
 	</build>
 
 	<modules>
-		<module>ecuacion-util-poi</module>
-		<module>ecuacion-util-pdfbox</module>
+		<module>ecuacion-util-excel-table</module>
+		<module>ecuacion-util-excel-report-to-pdf</module>
 	</modules>
 
 	<profiles>
