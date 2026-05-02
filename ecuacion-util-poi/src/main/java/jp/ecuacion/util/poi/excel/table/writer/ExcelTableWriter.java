@@ -15,13 +15,10 @@
  */
 package jp.ecuacion.util.poi.excel.table.writer;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.exception.ExcelAppException;
 import jp.ecuacion.util.poi.excel.table.ExcelTable;
@@ -29,6 +26,7 @@ import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.jspecify.annotations.Nullable;
 
 
 /**
@@ -76,23 +74,22 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Writes table data to the designated excel file.
-   * 
-   * <p>{@code data} is stored to {@code workbook} created from {@code templateFilePath}, 
-   *     and the method returns {@code workbook}.</p>
-   * 
+   *
+   * <p>{@code data} is stored to {@code workbook} created from {@code templateFilePath},
+   *     and the method returns {@code workbook}.<br>
+   *     The caller is responsible for closing the returned {@code workbook}.</p>
+   *
    * @param templateFilePath templateFilePath
    * @param data data
+   * @throws Exception Exception
    */
   public Workbook write(String templateFilePath, List<List<T>> data) throws Exception {
+    Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
 
-    try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);) {
+    headerCheck(workbook);
+    writeTableValues(workbook, data);
 
-      headerCheck(workbook);
-
-      writeTableValues(workbook, data);
-
-      return workbook;
-    }
+    return workbook;
   }
 
   /**
@@ -111,17 +108,17 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides an {@code Iterable} writer.
-   * 
+   * Provides a {@link IterableWriter} that writes rows one by one to the workbook.
+   *
    * @param workbook workbook
+   * @return SequentialWriter
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
-  @Nonnull
   public IterableWriter<T> getIterable(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException {
-    // Header check first, and then iterating data.
+      throws EncryptedDocumentException, IOException {
     headerCheck(workbook);
 
-    // get the IteratorWriter
     ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
         getSheetName(), tableStartColumnNumber);
 
@@ -133,11 +130,10 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    * 
    * @param workbook workbook.
    * @throws IOException IOException
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   protected abstract void headerCheck(Workbook workbook)
-      throws EncryptedDocumentException, AppException, IOException;
+      throws EncryptedDocumentException, IOException;
 
   private void writeTableValues(Workbook workbook, List<List<T>> data)
       throws FileNotFoundException, IOException, ExcelAppException {
@@ -165,7 +161,9 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides {@code Iterable}.
+   * Writes rows one by one to the workbook.
+   *
+   * <p>Obtain an instance via {@link ExcelTableWriter#getIterable(Workbook)}.</p>
    */
   public static class IterableWriter<T> {
 
@@ -175,23 +173,25 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
     /**
      * Constructs a new instance.
+     *
+     * @param writer writer
+     * @param context context
+     * @param numberOfHeaderLines numberOfHeaderLines
      */
     public IterableWriter(ExcelTableWriter<T> writer, ContextContainer context,
-        int numberOfheaderLines) {
+        int numberOfHeaderLines) {
       this.writer = writer;
       this.context = context;
-      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfheaderLines;
+      this.rowNumber = context.poiBasisTableStartRowNumber + numberOfHeaderLines;
     }
 
     /**
-     * Writes one line.
-     * 
+     * Writes one row.
+     *
      * @param columnList columnList
      */
     public void write(List<T> columnList) {
-
       ExcelWriteUtil.writeTableLine(writer, context, rowNumber, columnList);
-
       rowNumber++;
     }
   }

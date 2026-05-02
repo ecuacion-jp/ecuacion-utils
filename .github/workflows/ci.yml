@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+env:
+  MAVEN_OPTS: -Xmx2g
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: ecuacion-utils
+
+      - uses: actions/checkout@v5
+        with:
+          repository: ecuacion-jp/ecuacion-lib
+          path: ecuacion-lib
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build ecuacion-lib
+        working-directory: ecuacion-lib
+        run: mvn install -DskipTests -q
+
+      - name: Verify
+        working-directory: ecuacion-utils
+        run: mvn verify -Dwagon.skip=true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: >-
+            ecuacion-utils/ecuacion-util-poi/target/site/jacoco/jacoco.xml,
+            ecuacion-utils/ecuacion-util-pdfbox/target/site/jacoco/jacoco.xml
+          fail_ci_if_error: false

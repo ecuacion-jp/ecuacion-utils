@@ -62,7 +62,7 @@ The description of dependent `ecuacion` modules is as follows.
 
 <!-- ecuacion-lib -->
 <dependency>
-    <groupId>jp.ecuacion.util</groupId>
+    <groupId>jp.ecuacion.lib</groupId>
     <artifactId>ecuacion-lib-core</artifactId>
     <!-- Put the latest release version -->
     <version>x.x.x</version>

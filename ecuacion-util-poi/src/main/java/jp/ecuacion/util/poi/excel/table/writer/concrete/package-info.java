@@ -17,4 +17,7 @@
 /**
  * Provides excel table writer concrete classes.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table.writer.concrete;
+
+import org.jspecify.annotations.NullMarked;

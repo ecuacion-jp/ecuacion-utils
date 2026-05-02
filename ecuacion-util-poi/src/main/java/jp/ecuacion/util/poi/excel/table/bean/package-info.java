@@ -17,4 +17,7 @@
 /**
  * Stores the data obtained by {@code StringExcelTableToBeanReader}.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table.bean;
+
+import org.jspecify.annotations.NullMarked;

@@ -15,17 +15,17 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nonnull;
+import jakarta.validation.Validation;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
-import jp.ecuacion.lib.core.util.ValidationUtil;
+import jp.ecuacion.lib.core.violation.Violations;
 import jp.ecuacion.util.poi.excel.enums.NoDataString;
 import jp.ecuacion.util.poi.excel.table.bean.StringExcelTableBean;
 import org.apache.poi.EncryptedDocumentException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stores the excel table data into a bean.
@@ -50,8 +50,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    *     See <a href="https://stackoverflow.com/questions/19860393/java-generics-obtaining-actual-type-of-generic-parameter">here</a>.
    */
   public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
-      Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
+      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
     this.beanClass = beanClass;
   }
@@ -67,8 +67,8 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * @param noDataString the obtained value from an empty cell. {@code null} or {@code ""}.
    */
   public StringOneLineHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, Integer tableStartRowNumber, int tableStartColumnNumber,
-      Integer tableRowSize, @Nonnull NoDataString noDataString) {
+      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
+      @Nullable Integer tableRowSize, NoDataString noDataString) {
     super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
         noDataString);
     this.beanClass = beanClass;
@@ -80,12 +80,11 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * 
    * @param filePath excelPath
    * @return the list of {@code PoiStringTableBean}.
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
   public List<T> readToBean(String filePath)
-      throws AppException, EncryptedDocumentException, IOException {
+      throws EncryptedDocumentException, IOException {
     return readToBean(filePath, true);
   }
 
@@ -96,12 +95,11 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * @param filePath excelPath
    * @param validates whether validation is enabled or not
    * @return the list of {@code PoiStringTableBean}.
-   * @throws AppException AppException
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
   public List<T> readToBean(String filePath, boolean validates)
-      throws AppException, EncryptedDocumentException, IOException {
+      throws EncryptedDocumentException, IOException {
     final String msgId = "jp.ecuacion.util.poi.excel.reader.ValidationMessagePostfix.message";
     List<T> rtnList = excelTableToBeanList(filePath);
 
@@ -109,9 +107,12 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
       for (T bean : rtnList) {
         // jakarta validation. excel data is usually not shown on displays,
         // so "setMessageWithItemName(true)" is used.
-        ValidationUtil.validateThenThrow(bean,
-            ValidationUtil.messageParameters().isMessageWithItemName(true)
-                .messagePostfix(Arg.message(msgId, Arg.strings(sheetName))));
+        new Violations()
+            .addAll(Validation.buildDefaultValidatorFactory().getValidator().validate(bean))
+            .messageParameters(Violations.newMessageParameters()
+                .isMessageWithItemName(true)
+                .messagePostfix(Arg.message(msgId, Arg.strings(sheetName))))
+            .throwIfAny();
 
         // data integrity check
         bean.afterReading();
@@ -130,7 +131,7 @@ public class StringOneLineHeaderExcelTableToBeanReader<T extends StringExcelTabl
    * When that's the case, you can skip the preparation of excel files 
    * by overriding this method and return list you want to test.</p>
    */
-  protected List<T> excelTableToBeanList(String filePath) throws AppException, IOException {
+  protected List<T> excelTableToBeanList(String filePath) throws IOException {
     List<List<String>> lines = read(filePath);
 
     List<T> rtnList = new ArrayList<>();

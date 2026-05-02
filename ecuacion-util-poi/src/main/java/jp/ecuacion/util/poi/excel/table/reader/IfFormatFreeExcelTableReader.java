@@ -15,11 +15,10 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import jp.ecuacion.util.poi.excel.table.IfExcelTable;
 import jp.ecuacion.util.poi.excel.table.IfFormatFreeExcelTable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Is a reader which treats free format tables.
@@ -30,7 +29,7 @@ public interface IfFormatFreeExcelTableReader<T>
     extends IfFormatFreeExcelTable<T>, IfExcelTableReader<T> {
 
   @Override
-  public default List<List<String>> updateAndGetHeaderData(@Nonnull List<List<T>> rtnData) {
+  public default @Nullable List<List<String>> updateAndGetHeaderData(List<List<T>> rtnData) {
     return null;
   }
 

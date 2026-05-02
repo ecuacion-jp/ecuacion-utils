@@ -17,4 +17,7 @@
 /**
  * Provides excel table writer abstract classes and interfaces.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.table.writer;
+
+import org.jspecify.annotations.NullMarked;

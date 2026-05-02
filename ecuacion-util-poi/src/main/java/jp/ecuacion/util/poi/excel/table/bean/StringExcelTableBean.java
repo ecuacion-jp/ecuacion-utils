@@ -15,8 +15,6 @@
  */
 package jp.ecuacion.util.poi.excel.table.bean;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -24,8 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
-import jp.ecuacion.lib.core.exception.checked.AppException;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Stores values obtained from excel tables with {@code StringFixedTableToBeanReader}.
@@ -42,7 +40,7 @@ public abstract class StringExcelTableBean {
    *     Validations for each field are supposed to be done by bean vaildation.
    *     This method covers selective-requirement, or other inter-fields validations.</p>
    */
-  public void afterReading() throws AppException {
+  public void afterReading() {
 
   }
 
@@ -82,7 +80,6 @@ public abstract class StringExcelTableBean {
    * <p>If you don't need data in "age" column, you can set null like </p>
    * <code>new String[] {"name", null, "phoneNumber"}</code>
    */
-  @Nonnull
   protected abstract String[] getFieldNameArray();
 
   /**
@@ -94,7 +91,6 @@ public abstract class StringExcelTableBean {
   public StringExcelTableBean(List<String> colList) {
     String[] fieldNameArray = getFieldNameArray();
 
-    // colListの件数とfieldNameArraryの件数が異なる場合はエラー
     if (colList.size() != fieldNameArray.length) {
       throw new RuntimeException(
           "Number of elements in fieldNameArray and colList differ.\n" + "fieldNameArray ("
@@ -110,12 +106,12 @@ public abstract class StringExcelTableBean {
       for (int i = 0; i < fieldNameArray.length; i++) {
         String fieldName = fieldNameArray[i];
 
-        // nullの場合は、excelの対象列から値を取得しておらず、設定する変数もないという意味なのでskip
+        // null means this column is intentionally skipped (no corresponding field).
         if (fieldName == null) {
           continue;
         }
 
-        // 親クラスのfieldも取得できるよう、親クラスを際気的に検索してfieldを取得
+        // Walk up the class hierarchy to find the field, including inherited fields.
         Field field = null;
         Class<?> clazz = this.getClass();
         while (clazz != null) {
@@ -123,11 +119,9 @@ public abstract class StringExcelTableBean {
             field = clazz.getDeclaredField(fieldName);
             break;
 
-          } catch (NoSuchFieldException e) {
-            // 親のクラスのfieldを探す
+          } catch (NoSuchFieldException ignored) {
             clazz = clazz.getSuperclass();
 
-            // clazz == nullの場合は、一番親まで遡ったがfieldが存在しない、つまりfieldNameの指定が間違い
             if (clazz == null) {
               throw new RuntimeException("Trying to set a string value to the field in the bean, "
                   + "but the fieldName not found in the bean. \nbeanName: "
@@ -151,7 +145,6 @@ public abstract class StringExcelTableBean {
   }
 
   /** Returns {@code empty} if the argument value is null or returns the argument value. */
-  @Nonnull
   protected String nullToEmpty(@Nullable String value) {
     return value == null ? "" : value;
   }

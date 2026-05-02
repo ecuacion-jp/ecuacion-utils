@@ -29,8 +29,15 @@
 	</parent>
 	<properties>
 		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
+		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
+		<org.apache.maven.plugins.maven-gpg-plugin.version>3.2.7</org.apache.maven.plugins.maven-gpg-plugin.version>
+		<org.sonatype.central.central-publishing-maven-plugin.version>0.10.0</org.sonatype.central.central-publishing-maven-plugin.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
+		<!-- allure -->
+		<io.qameta.allure.allure-maven.version>2.14.0</io.qameta.allure.allure-maven.version>
+		<!-- jacoco -->
+		<org.jacoco.jacoco-maven-plugin.version>0.8.13</org.jacoco.jacoco-maven-plugin.version>
 	</properties>
 	
 	<repositories> 
@@ -44,6 +51,16 @@
 	<dependencyManagement>
 
 		<dependencies>
+
+			<!-- ecuacion-lib-parent: compatible version with this release of ecuacion-utils -->
+			<dependency>
+				<type>pom</type>
+				<scope>import</scope>
+				<groupId>jp.ecuacion.lib</groupId>
+				<artifactId>ecuacion-lib-parent</artifactId>
+				<version>${ecuacion-lib.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-poi</artifactId>
@@ -54,12 +71,118 @@
 				<artifactId>ecuacion-util-pdfbox</artifactId>
 				<version>${ecuacion-utils.version}</version>
 			</dependency>
+			
+			<dependency>
+				<groupId>jakarta.annotation</groupId>
+				<artifactId>jakarta.annotation-api</artifactId>
+				<version>3.0.0</version>
+			</dependency>
+			
 		</dependencies>
 
 	</dependencyManagement>
 	
+	<build>
+		<pluginManagement>
+			<plugins>
+
+				<!-- allure -->
+				<plugin>
+					<groupId>io.qameta.allure</groupId>
+					<artifactId>allure-maven</artifactId>
+					<version>${io.qameta.allure.allure-maven.version}</version>
+					<configuration>
+						<resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+					</configuration>
+				</plugin>
+
+				<!-- maven-surefire-plugin: redirect allure results to target/ -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${org.apache.maven.plugins.maven-surefire-plugin.version}</version>
+					<configuration>
+						<systemPropertyVariables>
+							<allure.results.directory>
+								${project.build.directory}/allure-results
+							</allure.results.directory>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
+
+				<!-- jacoco -->
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${org.jacoco.jacoco-maven-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>report</id>
+							<phase>test</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
 	<modules>
 		<module>ecuacion-util-poi</module>
 		<module>ecuacion-util-pdfbox</module>
 	</modules>
+
+	<profiles>
+		<profile>
+			<id>maven-central</id>
+			<build>
+				<plugins>
+
+					<!-- maven-gpg-plugin (signs artifacts for Maven Central) -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${org.apache.maven.plugins.maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+					</plugin>
+
+					<!-- central-publishing-maven-plugin (publishes to Maven Central) -->
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${org.sonatype.central.central-publishing-maven-plugin.version}</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>central</publishingServerId>
+							<autoPublish>false</autoPublish>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

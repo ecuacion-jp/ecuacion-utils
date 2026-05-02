@@ -15,14 +15,13 @@
  */
 package jp.ecuacion.util.poi.excel.table.reader.concrete;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.poi.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfDataTypeCellExcelTableReader;
 import jp.ecuacion.util.poi.excel.table.reader.IfFormatOneLineHeaderExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Reads tables with known number of columns, known header labels 
@@ -37,7 +36,6 @@ import org.apache.poi.ss.usermodel.Cell;
 public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
     implements IfFormatOneLineHeaderExcelTableReader<Cell>, IfDataTypeCellExcelTableReader {
 
-  @Nonnull
   private String[] headerLabels;
 
   /**
@@ -66,12 +64,12 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
   }
 
   @Override
-  public @Nonnull String getFarLeftAndTopHeaderLabel() {
+  public String getFarLeftAndTopHeaderLabel() {
     return Objects.requireNonNull(getHeaderLabels()[0]);
   }
 
   @Override
-  public @Nonnull String[] getHeaderLabels() {
+  public String[] getHeaderLabels() {
     return headerLabels;
   }
 

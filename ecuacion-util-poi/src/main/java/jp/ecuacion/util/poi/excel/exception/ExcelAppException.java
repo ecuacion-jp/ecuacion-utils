@@ -22,7 +22,7 @@ import jp.ecuacion.lib.core.violation.Violations;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides {@code ViolationException} for Excel errors with workbook, sheet, and cell context.
@@ -31,9 +31,9 @@ public class ExcelAppException extends ViolationException {
 
   private static final long serialVersionUID = 1L;
 
-  private Workbook workbook;
-  private Sheet sheet;
-  private Cell cell;
+  private @Nullable Workbook workbook;
+  private @Nullable Sheet sheet;
+  private @Nullable Cell cell;
 
   /**
    * Constructs an instance.
@@ -41,7 +41,7 @@ public class ExcelAppException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelAppException(@NonNull String messageId, String... messageArgs) {
+  public ExcelAppException(String messageId, @Nullable String... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
@@ -51,7 +51,7 @@ public class ExcelAppException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelAppException(@NonNull String messageId, Arg... messageArgs) {
+  public ExcelAppException(String messageId, Arg... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
@@ -69,7 +69,7 @@ public class ExcelAppException extends ViolationException {
    *
    * @return workbook
    */
-  public Workbook getWorkbook() {
+  public @Nullable Workbook getWorkbook() {
     return workbook;
   }
 
@@ -90,7 +90,7 @@ public class ExcelAppException extends ViolationException {
    *
    * @return sheet
    */
-  public Sheet getSheet() {
+  public @Nullable Sheet getSheet() {
     return sheet;
   }
 
@@ -112,7 +112,7 @@ public class ExcelAppException extends ViolationException {
    *
    * @return cell
    */
-  public Cell getCell() {
+  public @Nullable Cell getCell() {
     return cell;
   }
 

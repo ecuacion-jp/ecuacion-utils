@@ -17,4 +17,7 @@
 /**
  * Provides excel-related poi utility methods used by {@code ecuacion-util-poi} classes.
  */
+@NullMarked
 package jp.ecuacion.util.poi.excel.util;
+
+import org.jspecify.annotations.NullMarked;

@@ -140,3 +140,9 @@ products/
 
 # mac
 .DS_Store
+
+# allure
+.allure
+
+# VSCode
+.vscode
