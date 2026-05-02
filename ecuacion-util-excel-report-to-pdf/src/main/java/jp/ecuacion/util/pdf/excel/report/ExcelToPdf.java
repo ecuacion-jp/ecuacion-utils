@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jp.ecuacion.util.pdf.excel.report.excel;
+package jp.ecuacion.util.pdf.excel.report;
 
 import java.io.File;
 import java.io.IOException;
