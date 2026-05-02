@@ -41,5 +41,5 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: >-
             ecuacion-utils/ecuacion-util-poi/target/site/jacoco/jacoco.xml,
-            ecuacion-utils/ecuacion-util-pdfbox/target/site/jacoco/jacoco.xml
+            ecuacion-utils/ecuacion-util-excel-report-to-pdf/target/site/jacoco/jacoco.xml
           fail_ci_if_error: false
