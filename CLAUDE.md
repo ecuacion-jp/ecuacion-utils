@@ -8,7 +8,7 @@ A utility library for Excel and PDF manipulation using Apache POI and PDFBox. Mu
 
 - **Java**: 21
 - **Build tool**: Maven
-- **Main modules**: `ecuacion-util-poi`, `ecuacion-util-pdfbox`, `ecuacion-util-poi-sample`
+- **Main modules**: `ecuacion-util-excel-table`, `ecuacion-util-excel-report-to-pdf`, `ecuacion-util-excel-table-sample`
 
 ## Java Coding Rules
 
@@ -50,7 +50,7 @@ A utility library for Excel and PDF manipulation using Apache POI and PDFBox. Mu
 mvn clean install
 
 # Build a specific module
-mvn clean install -pl ecuacion-util-poi
+mvn clean install -pl ecuacion-util-excel-table
 
 # Run all tests
 mvn test
@@ -77,17 +77,17 @@ Common violations:
 
 ## Architecture Overview
 
-### `ecuacion-util-poi` Internal Structure
+### `ecuacion-util-excel-table` Internal Structure
 
 ```
-jp.ecuacion.util.poi.excel/
+jp.ecuacion.util.excel/
 ├── util/          # ExcelReadUtil, ExcelWriteUtil (low-level Cell operations)
 ├── table/
 │   ├── reader/    # Interfaces + concrete/ for implementations
 │   └── writer/    # Interfaces + concrete/ for implementations
 ├── enums/         # NoDataString, etc.
-└── exception/
-jp.ecuacion.util.poi.spi/  # MessagesUtilPoiProvider (i18n SPI)
+├── exception/
+└── spi/           # MessagesUtilExcelTableProvider (i18n SPI)
 ```
 
 Table reader/writer implementations live in `table/reader/concrete/` and `table/writer/concrete/`. The low-level utilities in `util/` serve as their foundation.
@@ -103,5 +103,6 @@ Building this project requires `ecuacion-lib` to exist at the same directory lev
 ### i18n
 
 Message resources are located in `src/main/resources/`:
-- `messages_util_poi.properties` (English)
-- `messages_util_poi_ja.properties` (Japanese)
+
+- `messages_util_excel_table.properties` (English)
+- `messages_util_excel_table_ja.properties` (Japanese)
