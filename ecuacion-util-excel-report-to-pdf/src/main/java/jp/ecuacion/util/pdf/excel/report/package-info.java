@@ -18,6 +18,6 @@
  * Provides classes for generating PDF files from Excel files.
  */
 @NullMarked
-package jp.ecuacion.util.pdf.excel.report.excel;
+package jp.ecuacion.util.pdf.excel.report;
 
 import org.jspecify.annotations.NullMarked;
