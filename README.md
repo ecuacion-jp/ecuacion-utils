@@ -22,4 +22,25 @@ This library is dependent on `ecuacion-lib`.
 
 ## Installation
 
-(See `Installation` part of `README` in each module)
+1. Add the required `ecuacion` modules to your `pom.xml`.
+   (The following is an example for the `ecuacion-util-excel-table` module. Check the `Installation` section of the `README` in the module you want to add to your project.)
+
+    ```xml
+    <dependency>
+        <groupId>jp.ecuacion.util</groupId>
+        <artifactId>ecuacion-util-excel-table</artifactId>
+        <!-- Put the latest release version -->
+        <version>x.x.x</version>
+    </dependency>
+
+    <!-- ecuacion-lib -->
+    <dependency>
+        <groupId>jp.ecuacion.lib</groupId>
+        <artifactId>ecuacion-lib-validation</artifactId>
+        <!-- Put the latest release version -->
+        <version>x.x.x</version>
+    </dependency>
+    ```
+
+2. Add the required external modules to your `pom.xml`.
+   (Check the `Dependent External Libraries > Manual Load Needed Libraries` section of the `README` in the module you want to add to your project.)

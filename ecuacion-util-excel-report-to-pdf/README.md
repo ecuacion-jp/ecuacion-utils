@@ -16,7 +16,7 @@
 
 ### Manual Load Needed Libraries
 
-- `ecuacion-lib-core`
+- `ecuacion-lib-validation`
 
 ## Dependent External Libraries
 
@@ -49,7 +49,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 - [ecuacion-util-excel-report-to-pdf-sample](https://github.com/ecuacion-jp/ecuacion-utils/tree/main/ecuacion-util-excel-report-to-pdf-sample)
 
-## Introduction
+## Installation
 
 Check [Installation](https://github.com/ecuacion-jp/ecuacion-lib) part of `README` page in `ecuacion-lib`.  
 The description of dependent `ecuacion` modules is as follows.
@@ -64,8 +64,8 @@ The description of dependent `ecuacion` modules is as follows.
 
 <!-- ecuacion-lib -->
 <dependency>
-    <groupId>jp.ecuacion.util</groupId>
-    <artifactId>ecuacion-lib-core</artifactId>
+    <groupId>jp.ecuacion.lib</groupId>
+    <artifactId>ecuacion-lib-validation</artifactId>
     <!-- Put the latest release version -->
     <version>x.x.x</version>
 </dependency>

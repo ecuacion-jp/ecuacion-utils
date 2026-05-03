@@ -16,7 +16,7 @@
 
 ### Manual Load Needed Libraries
 
-- `ecuacion-lib-core`
+- `ecuacion-lib-validation`
 
 ## Dependent External Libraries
 
@@ -63,7 +63,7 @@ The description of dependent `ecuacion` modules is as follows.
 <!-- ecuacion-lib -->
 <dependency>
     <groupId>jp.ecuacion.lib</groupId>
-    <artifactId>ecuacion-lib-core</artifactId>
+    <artifactId>ecuacion-lib-validation</artifactId>
     <!-- Put the latest release version -->
     <version>x.x.x</version>
 </dependency>
