@@ -31,6 +31,13 @@ A utility library for Excel and PDF manipulation using Apache POI and PDFBox. Mu
 - All Java files must have the Apache 2.0 license header at the top
 - Follow the same format as existing files
 
+## Documentation
+
+- After making changes to Java files, check whether the following documents need updating:
+  - Module `README.md` files
+- Cross-project guidelines (Eclipse project conventions, Javadoc rules, etc.):
+  `ecuacion-internal-docs` repository: `guidelines/`
+
 ## File Creation and Editing Rules
 
 - Always refer to existing files in the same package before creating a new one
