@@ -34,7 +34,8 @@ public interface IfDataTypeStringExcelTableReader
   @Override
   public default @Nullable String getCellData(Cell cell, int columnNumber)
       throws ExcelAppException {
-    return ExcelReadUtil.getStringFromCell(cell, null, getDateTimeFormat(columnNumber));
+    String noDataStr = getNoDataString() == NoDataString.EMPTY_STRING ? "" : null;
+    return ExcelReadUtil.getStringFromCell(cell, null, getDateTimeFormat(columnNumber), noDataStr);
   }
 
   @Override

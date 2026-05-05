@@ -21,7 +21,7 @@ import java.util.Map;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
-import jp.ecuacion.util.excel.table.reader.concrete.StringOneLineHeaderExcelTableReader;
+import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableReader;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
 import jp.ecuacion.util.excel.table.writer.IfDataTypeCellExcelTableWriter;
 import org.apache.poi.EncryptedDocumentException;
@@ -69,7 +69,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   protected void headerCheck(Workbook workbook)
       throws EncryptedDocumentException, IOException {
 
-    new StringOneLineHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
+    new StringHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
         tableStartRowNumber, tableStartColumnNumber, 1)
             .ignoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
             .isVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);

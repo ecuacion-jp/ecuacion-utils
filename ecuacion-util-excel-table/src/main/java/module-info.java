@@ -29,6 +29,7 @@ module jp.ecuacion.util.excel {
 
   opens jp.ecuacion.util.excel.table;
   opens jp.ecuacion.util.excel.table.reader;
+  opens jp.ecuacion.util.excel.table.reader.concrete;
   
   provides jp.ecuacion.lib.core.spi.MessagesUtilExcelTableProvider
       with jp.ecuacion.util.excel.spi.impl.internal.MessagesUtilExcelTableProviderImpl;
