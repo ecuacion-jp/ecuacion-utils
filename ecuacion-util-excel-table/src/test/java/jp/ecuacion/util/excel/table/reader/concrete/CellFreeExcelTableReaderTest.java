@@ -28,13 +28,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-// 基底クラス共通の振る舞い（tableRowSize, 開始位置, isVerticalAndHorizontalOpposite,
-// SheetNotExist 等）は StringFreeExcelTableReaderTest でカバー済み。
-// ヘッダー検証の振る舞いは StringHeaderExcelTableReaderTest でカバー済み。
-@DisplayName("CellOneLineHeaderExcelTableReader"
-    + " ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照"
-    + "、ヘッダー検証は StringHeaderExcelTableReaderTest 参照")
-public class CellOneLineHeaderExcelTableReaderTest {
+// tableRowSize, 開始位置, isVerticalAndHorizontalOpposite, tableColumnSize, SheetNotExist,
+// ColumnSizeIsZero 等の基底クラス共通の振る舞いは StringFreeExcelTableReaderTest でカバー済み。
+@DisplayName("CellFreeExcelTableReader ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照")
+public class CellFreeExcelTableReaderTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, @Nullable String value) {
     Row row = sheet.getRow(poiRow);
@@ -53,25 +50,41 @@ public class CellOneLineHeaderExcelTableReaderTest {
   class CellSpecific {
 
     @Test
-    @DisplayName("ヘッダー行 + データ行 → ヘッダーは除外され Cell オブジェクトのリストで返る")
-    void returnsCellObjectsWithoutHeader() throws Exception {
+    @DisplayName("通常テーブル → Cell オブジェクトのリストで返る")
+    void returnsCellObjects() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
-        setCell(sheet, 0, 0, "header1");
-        setCell(sheet, 0, 1, "header2");
-        setCell(sheet, 1, 0, "data1-1");
-        setCell(sheet, 1, 1, "data1-2");
-        setCell(sheet, 2, 0, "data2-1");
-        setCell(sheet, 2, 1, "data2-2");
+        setCell(sheet, 0, 0, "data1-1");
+        setCell(sheet, 0, 1, "data1-2");
+        setCell(sheet, 1, 0, "data2-1");
+        setCell(sheet, 1, 1, "data2-2");
 
-        List<List<Cell>> result = new CellOneLineHeaderExcelTableReader(
-            "Sheet1", new String[]{"header1", "header2"}, 1, 1, null).read(wb);
+        List<List<Cell>> result =
+            new CellFreeExcelTableReader("Sheet1", 1, 1, null, null).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(ExcelReadUtil.getStringFromCell(result.get(0).get(0))).isEqualTo("data1-1");
         assertThat(ExcelReadUtil.getStringFromCell(result.get(0).get(1))).isEqualTo("data1-2");
         assertThat(ExcelReadUtil.getStringFromCell(result.get(1).get(0))).isEqualTo("data2-1");
         assertThat(ExcelReadUtil.getStringFromCell(result.get(1).get(1))).isEqualTo("data2-2");
+      }
+    }
+
+    @Test
+    @DisplayName("セルが存在しない位置 → null が返る（noDataString の概念がない）")
+    void absentCellReturnsNull() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet sheet = wb.createSheet("Sheet1");
+        setCell(sheet, 0, 0, "a");
+        // col 1 not created → absent
+        setCell(sheet, 0, 2, "c");
+
+        List<List<Cell>> result =
+            new CellFreeExcelTableReader("Sheet1", 1, 1, 1, 3).read(wb);
+
+        assertThat(result.get(0).get(0)).isNotNull();
+        assertThat(result.get(0).get(1)).isNull();
+        assertThat(result.get(0).get(2)).isNotNull();
       }
     }
   }

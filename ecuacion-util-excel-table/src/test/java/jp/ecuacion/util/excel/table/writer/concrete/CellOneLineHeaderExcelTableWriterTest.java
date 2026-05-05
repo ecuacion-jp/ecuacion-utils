@@ -15,303 +15,65 @@
  */
 package jp.ecuacion.util.excel.table.writer.concrete;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
 import jp.ecuacion.util.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
-import jp.ecuacion.util.excel.util.ExcelWriteUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.junit.jupiter.api.Assertions;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+// 基底クラス共通の振る舞い（書き込み, 開始位置, isVerticalAndHorizontalOpposite, SheetNotExist 等）は
+// StringFreeExcelTableWriterTest でカバー済み。
+// ヘッダー検証の振る舞いは StringHeaderExcelTableWriterTest でカバー済み。
+@DisplayName("CellOneLineHeaderExcelTableWriter"
+    + " ※基底クラス共通の振る舞いは StringFreeExcelTableWriterTest 参照"
+    + "、ヘッダー検証は StringHeaderExcelTableWriterTest 参照")
 public class CellOneLineHeaderExcelTableWriterTest {
 
-  private final String origFilename = this.getClass().getSimpleName() + ".xlsx";
-
-  private String getDestExcelFilePath(String filename) {
-    String destExcelDirPath = "target/excel";
-    String destExcelFilePath = destExcelDirPath + "/" + filename;
-    new File(destExcelDirPath).mkdirs();
-
-    return destExcelFilePath;
-  }
-
-  private String getDestFilename(String methodName) {
-    return this.getClass().getSimpleName() + "-" + methodName + ".xlsx";
-  }
-
-  @Test
-  public void normalTableTest() throws Exception {
-    String destFilename = getDestFilename("normalTableTest");
-    String origExcelPath = "src/test/resources/" + origFilename;
-    String destExcelFilePath = getDestExcelFilePath(destFilename);
-    final String[] HEADER_LABELS = new String[] {"header1", "header2", "header3"};
-
-    List<List<Cell>> rowList =
-        new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
-            .read(origExcelPath);
-    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
-    String copyToSheetName = "copy-to-normalTableTest";
-
-    // try-finally added to save the tested excel file.
-    try {
-
-      // normal copy
-
-      new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 2, 1).write(wb,
-          rowList);
-      Sheet sheet = wb.getSheet(copyToSheetName);
-
-      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
-      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
-      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
-      Assertions.assertEquals(null, sheet.getRow(1).getCell(3));
-
-      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(0)));
-      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(1)));
-      Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
-      Assertions.assertEquals(null, sheet.getRow(2).getCell(3));
-
-      Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(0)));
-      Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(1)));
-      Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
-      Assertions.assertEquals(null, sheet.getRow(2).getCell(3));
-
-      // copy to whitespace (row == null)
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 6, 1).write(wb,
-            rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
-            ex.getMessageId());
-      }
-
-      // copy to whitespace (row != null)
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 9, 1).write(wb,
-            rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a smaller size of header labels, with additional columns
-      // not allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 13, 1).write(wb,
-            rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a smaller size of header labels, with additional columns
-      // allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 13, 1)
-            .ignoresAdditionalColumnsOfHeaderData(true).write(wb, rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a larger size of header labels, with additional columns
-      // not allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 17, 1).write(wb,
-            rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a larger size of header labels, with additional columns
-      // allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 17, 1)
-            .ignoresAdditionalColumnsOfHeaderData(true).write(wb, rowList);
-
-      } catch (ExcelAppException ex) {
-        Assertions.fail();
-      }
-
-    } finally {
-      // delete previous test data.
-      if (new File(destExcelFilePath).exists()) {
-        Files.delete(Path.of(destExcelFilePath));
-      }
-
-      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
+  private static void setCell(Sheet sheet, int poiRow, int poiCol, String value) {
+    Row row = sheet.getRow(poiRow);
+    if (row == null) {
+      row = sheet.createRow(poiRow);
     }
+    row.createCell(poiCol).setCellValue(value);
   }
 
-  @Test
-  public void tableWithNullCellseTest() throws Exception {
-    String destFilename = getDestFilename("tableWithNullCellseTest");
-    String origExcelPath = "src/test/resources/" + origFilename;
-    String destExcelFilePath = getDestExcelFilePath(destFilename);
-    final String[] HEADER_LABELS = new String[] {"header1", "header2", "header3"};
+  @Nested
+  @DisplayName("Cell 型固有の振る舞い")
+  class CellSpecific {
 
-    List<List<Cell>> rowList =
-        new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 8, 1, null)
-            .read(origExcelPath);
-    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
-    String copyToSheetName = "copy-to-tableWithNullCellseTest";
+    @Test
+    @DisplayName("ヘッダー一致 → ヘッダーは上書きされず、Cell データがヘッダー行の次から書き込まれる")
+    void writesCellsAfterHeader() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet src = wb.createSheet("source");
+        setCell(src, 0, 0, "h1");
+        setCell(src, 0, 1, "h2");
+        setCell(src, 1, 0, "data1");
+        setCell(src, 1, 1, "data2");
 
-    // try-finally added to save the tested excel file.
-    try {
+        Sheet dest = wb.createSheet("dest");
+        setCell(dest, 0, 0, "h1");
+        setCell(dest, 0, 1, "h2");
 
-      // normal copy
+        List<List<Cell>> data = new CellOneLineHeaderExcelTableReader(
+            "source", new String[]{"h1", "h2"}, 1, 1, null).read(wb);
+        new CellOneLineHeaderExcelTableWriter(
+            "dest", new String[]{"h1", "h2"}, 1, 1).write(wb, data);
 
-      new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 1).write(wb,
-          rowList);
-      Sheet sheet = wb.getSheet(copyToSheetName);
-
-      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(0)));
-      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(1)));
-      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(0).getCell(2)));
-
-      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(0)));
-      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(1)));
-      Assertions.assertEquals(null, ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
-
-    } finally {
-      // delete previous test data.
-      if (new File(destExcelFilePath).exists()) {
-        Files.delete(Path.of(destExcelFilePath));
+        assertThat(dest.getRow(0).getCell(0).getStringCellValue()).isEqualTo("h1");
+        assertThat(dest.getRow(0).getCell(1).getStringCellValue()).isEqualTo("h2");
+        assertThat(ExcelReadUtil.getStringFromCell(dest.getRow(1).getCell(0)))
+            .isEqualTo("data1");
+        assertThat(ExcelReadUtil.getStringFromCell(dest.getRow(1).getCell(1)))
+            .isEqualTo("data2");
       }
-
-      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
-    }
-  }
-
-  @Test
-  public void verticalHeaderTableTest() throws Exception {
-    String destFilename = getDestFilename("verticalHeaderTableTest");
-    String origExcelPath = "src/test/resources/" + origFilename;
-    String destExcelFilePath = getDestExcelFilePath(destFilename);
-    final String[] HEADER_LABELS = new String[] {"header1", "header2", "header3"};
-
-    List<List<Cell>> rowList =
-        new CellOneLineHeaderExcelTableReader("copy-from", HEADER_LABELS, 2, 1, null)
-            .read(origExcelPath);
-    Workbook wb = ExcelWriteUtil.openForWrite(origExcelPath);
-    String copyToSheetName = "copy-to-verticalHeaderTableTest";
-
-    // try-finally added to save the tested excel file.
-    try {
-
-      // normal copy
-
-      new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 3, 2)
-          .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
-      Sheet sheet = wb.getSheet(copyToSheetName);
-
-      Assertions.assertEquals("header1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(2)));
-      Assertions.assertEquals("header2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(2)));
-      Assertions.assertEquals("header3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(2)));
-
-      Assertions.assertEquals("data1-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(3)));
-      Assertions.assertEquals("data1-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(3)));
-      Assertions.assertEquals("data1-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(3)));
-
-      Assertions.assertEquals("data2-1", ExcelReadUtil.getStringFromCell(sheet.getRow(1).getCell(4)));
-      Assertions.assertEquals("data2-2", ExcelReadUtil.getStringFromCell(sheet.getRow(2).getCell(4)));
-      Assertions.assertEquals("data2-3", ExcelReadUtil.getStringFromCell(sheet.getRow(3).getCell(4)));
-
-      // copy to whitespace
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 8)
-            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a smaller size of header labels, with additional columns
-      // not allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 11)
-            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a smaller size of header labels, with additional columns
-      // allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 11)
-            .ignoresAdditionalColumnsOfHeaderData(true).isVerticalAndHorizontalOpposite(true)
-            .write(wb, rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a larger size of header labels, with additional columns
-      // not allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 16)
-            .isVerticalAndHorizontalOpposite(true).write(wb, rowList);
-        Assertions.fail();
-
-      } catch (ExcelAppException ex) {
-        Assertions.assertEquals("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            ex.getMessageId());
-      }
-
-      // copy to the position where is a larger size of header labels, with additional columns
-      // allowed.
-
-      try {
-        new CellOneLineHeaderExcelTableWriter(copyToSheetName, HEADER_LABELS, 1, 16)
-            .ignoresAdditionalColumnsOfHeaderData(true).isVerticalAndHorizontalOpposite(true)
-            .write(wb, rowList);
-
-      } catch (ExcelAppException ex) {
-        Assertions.fail();
-      }
-
-    } finally {
-      // delete previous test data.
-      if (new File(destExcelFilePath).exists()) {
-        Files.delete(Path.of(destExcelFilePath));
-      }
-
-      ExcelWriteUtil.saveToFile(wb, new FileOutputStream(destExcelFilePath));
     }
   }
 }

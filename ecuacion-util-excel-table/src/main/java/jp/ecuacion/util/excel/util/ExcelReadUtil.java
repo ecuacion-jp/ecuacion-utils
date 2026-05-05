@@ -185,12 +185,14 @@ public class ExcelReadUtil {
 
   /**
    * Returns the value of the argument cell in {@code String} format.
-   * 
-   * <p>Usually the second argument {@code cellType} is equal to {@code cell.getCellType()} 
+   *
+   * <p>Usually the second argument {@code cellType} is equal to {@code cell.getCellType()}
    *     with the 1st argument {@code cell}.<br>
-   *     But when the cellType of the 1st argument {@code cell} is {@code formula}, 
+   *     But when the cellType of the 1st argument {@code cell} is {@code formula},
    *     the 2nd argumenet is {@code cell.getCachedFormulaResultType()},
    *     the resulting cellType of the formula cell.</p>
+   *
+   * <p>{@code BOOLEAN} cells return {@code "TRUE"} or {@code "FALSE"}.</p>
    * 
    * @param filename Used for error message, 
    *     may be {@code null} in which case the error message shows no filename.
@@ -257,6 +259,9 @@ public class ExcelReadUtil {
               StringUtils.isEmpty(filename) ? Arg.strings("", "")
                   : new Arg[] {Arg.message("jp.ecuacion.util.excel.common.messageItemSeparator"),
                       Arg.message("jp.ecuacion.util.excel.common.filename", filename)}));
+
+    } else if (cellType == CellType.BOOLEAN) {
+      return cell.getBooleanCellValue() ? "TRUE" : "FALSE";
 
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType);
