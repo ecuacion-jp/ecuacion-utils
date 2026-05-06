@@ -43,7 +43,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Documentation
 
-- [javadoc](https://javadoc.ecuacion.jp/apidocs/ecuacion-util-excel-report-to-pdf/)
+- [javadoc](https://docs.ecuacion.jp/javadoc/ecuacion-util-excel-report-to-pdf/)
 
 ## Sample Code
 
