@@ -41,7 +41,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Documentation
 
-- [javadoc](https://javadoc.ecuacion.jp/apidocs/ecuacion-util-excel-table/jp.ecuacion.util.excel/module-summary.html)
+- [javadoc](https://docs.ecuacion.jp/javadoc/ecuacion-util-excel-table/jp.ecuacion.util.excel/module-summary.html)
 
 ## Sample Code
 
