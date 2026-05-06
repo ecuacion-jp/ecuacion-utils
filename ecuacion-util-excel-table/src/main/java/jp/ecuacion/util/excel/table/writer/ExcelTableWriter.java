@@ -15,12 +15,10 @@
  */
 package jp.ecuacion.util.excel.table.writer;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import jp.ecuacion.util.excel.util.ExcelWriteUtil;
@@ -37,8 +35,19 @@ import org.jspecify.annotations.Nullable;
 public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExcelTableWriter<T> {
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   */
+  protected ExcelTableWriter(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
    * Constructs a new instance with the sheet name, the position of the excel table.
-   * 
+   *
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
@@ -50,14 +59,17 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Writes table data to the specified excel file.
-   * 
+   *
    * <p>{@code data} is written to {@code destFilePath}, and then workbook is closed.</p>
-   * 
+   *
+   * @param templateFilePath templateFilePath
    * @param destFilePath destFilePath
    * @param data dataList
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
   public void write(String templateFilePath, String destFilePath, List<List<T>> data)
-      throws Exception {
+      throws EncryptedDocumentException, IOException {
     ObjectsUtil.requireNonNull(templateFilePath);
     ObjectsUtil.requireNonNull(destFilePath);
 
@@ -81,9 +93,12 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    *
    * @param templateFilePath templateFilePath
    * @param data data
-   * @throws Exception Exception
+   * @return workbook
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
-  public Workbook write(String templateFilePath, List<List<T>> data) throws Exception {
+  public Workbook write(String templateFilePath, List<List<T>> data)
+      throws EncryptedDocumentException, IOException {
     Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
 
     headerCheck(workbook);
@@ -94,13 +109,16 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Writes table data to the designated excel file.
-   * 
+   *
    * <p>{@code data} is stored to {@code workbook}.</p>
-   * 
+   *
    * @param workbook workbook
    * @param data dataList
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
    */
-  public void write(Workbook workbook, List<List<T>> data) throws Exception {
+  public void write(Workbook workbook, List<List<T>> data)
+      throws EncryptedDocumentException, IOException {
 
     headerCheck(workbook);
 
@@ -110,8 +128,11 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   /**
    * Provides a {@link IterableWriter} that writes rows one by one to the workbook.
    *
+   * <p>The caller owns the {@code workbook} and is responsible for saving and closing it.
+   *     Calling {@code close()} on the returned {@link IterableWriter} is a no-op.</p>
+   *
    * @param workbook workbook
-   * @return SequentialWriter
+   * @return iterable writer
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
@@ -126,6 +147,45 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
+   * Provides a {@link IterableWriter} that writes from {@code templateFilePath} and saves to
+   *     {@code destFilePath} on close.
+   *
+   * <p>The returned {@link IterableWriter} owns the workbook opened from
+   *     {@code templateFilePath}. Its {@link IterableWriter#close()} saves the workbook
+   *     to {@code destFilePath} and closes it. Use try-with-resources to ensure
+   *     the workbook is saved and closed.</p>
+   *
+   * @param templateFilePath templateFilePath
+   * @param destFilePath destFilePath
+   * @return iterable writer that owns the workbook
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   * @throws IOException IOException
+   */
+  public IterableWriter<T> getIterable(String templateFilePath, String destFilePath)
+      throws EncryptedDocumentException, IOException {
+    ObjectsUtil.requireNonNull(templateFilePath);
+    ObjectsUtil.requireNonNull(destFilePath);
+
+    Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
+    boolean ownershipTransferred = false;
+    try {
+      headerCheck(workbook);
+
+      ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
+          getSheetName(), tableStartColumnNumber);
+
+      IterableWriter<T> result = new IterableWriter<T>(this, context, getNumberOfHeaderLines(),
+          workbook, destFilePath);
+      ownershipTransferred = true;
+      return result;
+    } finally {
+      if (!ownershipTransferred) {
+        workbook.close();
+      }
+    }
+  }
+
+  /**
    * Obtains header list from the file at {@code templateFilePath}.
    * 
    * @param workbook workbook.
@@ -135,8 +195,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   protected abstract void headerCheck(Workbook workbook)
       throws EncryptedDocumentException, IOException;
 
-  private void writeTableValues(Workbook workbook, List<List<T>> data)
-      throws FileNotFoundException, IOException, ExcelAppException {
+  private void writeTableValues(Workbook workbook, List<List<T>> data) {
 
     ContextContainer context = ExcelWriteUtil.getReadyToWriteTableData(this, workbook,
         getSheetName(), tableStartColumnNumber);
@@ -148,14 +207,48 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     }
   }
 
+  /**
+   * Sets {@code tableStartRowNumber} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTable#tableStartRowNumber}.
+   * @return this writer
+   */
+  public ExcelTableWriter<T> tableStartRowNumber(@Nullable Integer value) {
+    this.tableStartRowNumber = value;
+    return this;
+  }
+
+  /**
+   * Sets {@code tableStartColumnNumber} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTable#tableStartColumnNumber}.
+   * @return this writer
+   */
+  public ExcelTableWriter<T> tableStartColumnNumber(int value) {
+    this.tableStartColumnNumber = value;
+    return this;
+  }
+
   @Override
+  @Deprecated
   public ExcelTableWriter<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
+    return withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public ExcelTableWriter<T> withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
   }
 
   @Override
+  @Deprecated
   public ExcelTableWriter<T> isVerticalAndHorizontalOpposite(boolean value) {
+    return withVerticalAndHorizontalOpposite(value);
+  }
+
+  @Override
+  public ExcelTableWriter<T> withVerticalAndHorizontalOpposite(boolean value) {
     this.isVerticalAndHorizontalOpposite = value;
     return this;
   }
@@ -163,13 +256,21 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
   /**
    * Writes rows one by one to the workbook.
    *
-   * <p>Obtain an instance via {@link ExcelTableWriter#getIterable(Workbook)}.</p>
+   * <p>Obtain an instance via {@link ExcelTableWriter#getIterable(Workbook)} or
+   *     {@link ExcelTableWriter#getIterable(String, String)}.</p>
+   *
+   * <p>When constructed with an {@code ownedWorkbook}, {@link #close()} saves the workbook
+   *     to {@code destPath} (if non-null) and then closes it.
+   *     When constructed without one, {@code close()} is a no-op (the caller owns
+   *     the workbook).</p>
    */
-  public static class IterableWriter<T> {
+  public static class IterableWriter<T> implements AutoCloseable {
 
     private ExcelTableWriter<T> writer;
     private ContextContainer context;
     private int rowNumber;
+    private @Nullable Workbook ownedWorkbook;
+    private @Nullable String destPath;
 
     /**
      * Constructs a new instance.
@@ -180,9 +281,28 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
      */
     public IterableWriter(ExcelTableWriter<T> writer, ContextContainer context,
         int numberOfHeaderLines) {
+      this(writer, context, numberOfHeaderLines, null, null);
+    }
+
+    /**
+     * Constructs a new instance with an owned workbook to be saved and closed by
+     *     {@link #close()}.
+     *
+     * @param writer writer
+     * @param context context
+     * @param numberOfHeaderLines numberOfHeaderLines
+     * @param ownedWorkbook the workbook this iterable owns; {@code null} means the caller
+     *     owns it and {@link #close()} is a no-op
+     * @param destPath the file path to save the workbook to on close;
+     *     {@code null} skips saving
+     */
+    public IterableWriter(ExcelTableWriter<T> writer, ContextContainer context,
+        int numberOfHeaderLines, @Nullable Workbook ownedWorkbook, @Nullable String destPath) {
       this.writer = writer;
       this.context = context;
       this.rowNumber = context.poiBasisTableStartRowNumber + numberOfHeaderLines;
+      this.ownedWorkbook = ownedWorkbook;
+      this.destPath = destPath;
     }
 
     /**
@@ -193,6 +313,22 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     public void write(List<T> columnList) {
       ExcelWriteUtil.writeTableLine(writer, context, rowNumber, columnList);
       rowNumber++;
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (ownedWorkbook == null) {
+        return;
+      }
+      try {
+        if (destPath != null) {
+          try (FileOutputStream out = new FileOutputStream(destPath)) {
+            ownedWorkbook.write(out);
+          }
+        }
+      } finally {
+        ownedWorkbook.close();
+      }
     }
   }
 }

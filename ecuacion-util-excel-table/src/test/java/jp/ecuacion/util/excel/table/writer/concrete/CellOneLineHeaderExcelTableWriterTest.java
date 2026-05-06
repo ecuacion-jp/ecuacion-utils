@@ -63,9 +63,9 @@ public class CellOneLineHeaderExcelTableWriterTest {
         setCell(dest, 0, 1, "h2");
 
         List<List<Cell>> data = new CellOneLineHeaderExcelTableReader(
-            "source", new String[]{"h1", "h2"}, 1, 1, null).read(wb);
+            "source", new String[]{"h1", "h2"}).tableStartRowNumber(1).read(wb);
         new CellOneLineHeaderExcelTableWriter(
-            "dest", new String[]{"h1", "h2"}, 1, 1).write(wb, data);
+            "dest", new String[]{"h1", "h2"}).tableStartRowNumber(1).write(wb, data);
 
         assertThat(dest.getRow(0).getCell(0).getStringCellValue()).isEqualTo("h1");
         assertThat(dest.getRow(0).getCell(1).getStringCellValue()).isEqualTo("h2");

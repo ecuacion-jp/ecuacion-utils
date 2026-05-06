@@ -59,7 +59,9 @@ public class CopyFreeFormatExcelTableSample {
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
-    return new CellFreeExcelTableReader("Member", HEADER_START_ROW, START_COL, null, null)
+    return new CellFreeExcelTableReader("Member")
+        .tableStartRowNumber(HEADER_START_ROW)
+        .tableStartColumnNumber(START_COL)
         .read(sourcePath.toString());
   }
 
@@ -79,7 +81,9 @@ public class CopyFreeFormatExcelTableSample {
     }
 
     // Write the table data.
-    new CellFreeExcelTableWriter("Sheet1", HEADER_START_ROW, START_COL).write(templatePath,
-        destPath.toAbsolutePath().toString(), dataList);
+    new CellFreeExcelTableWriter("Sheet1")
+        .tableStartRowNumber(HEADER_START_ROW)
+        .tableStartColumnNumber(START_COL)
+        .write(templatePath, destPath.toAbsolutePath().toString(), dataList);
   }
 }

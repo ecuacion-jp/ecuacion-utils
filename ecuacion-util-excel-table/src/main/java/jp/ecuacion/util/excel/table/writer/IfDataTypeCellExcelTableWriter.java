@@ -82,26 +82,40 @@ public interface IfDataTypeCellExcelTableWriter
   
   /**
    * Sets copiesDataFormatOnly value.
-   * 
-   * <p>When this is {@code true}, whole style is not copied 
+   *
+   * <p>When this is {@code true}, whole style is not copied
    *     to the destination cell, but {@code DataFormat} only. <br>
    *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.</p>
-   *     
+   *
    * @param value boolean
-   *     
+   * @return this
+   * @deprecated Use {@link #withCopiesDataFormatOnly(boolean)} instead.
    */
+  @Deprecated
   public IfDataTypeCellExcelTableWriter copiesDataFormatOnly(boolean value);
-  
+
   /**
    * Returns copiesDataFormatOnly value.
-   * 
-   * <p>When this is {@code true}, whole style is not copied 
+   *
+   * <p>When this is {@code true}, whole style is not copied
    *     to the destination cell, but {@code DataFormat} only. <br>
    *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.</p>
-   *     
+   *
    * @return boolean
    */
   public boolean copiesDataFormatOnly();
+
+  /**
+   * Sets copiesDataFormatOnly value.
+   *
+   * <p>When this is {@code true}, whole style is not copied
+   *     to the destination cell, but {@code DataFormat} only. <br>
+   *     This means grid-line, font, font-size, cell color, etc... of the cell is not copied.</p>
+   *
+   * @param value boolean
+   * @return this
+   */
+  public IfDataTypeCellExcelTableWriter withCopiesDataFormatOnly(boolean value);
 
   /**
    * Gets {@code columnStyleMap} to reuse {@code CellStyle}.

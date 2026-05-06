@@ -36,12 +36,26 @@ public class StringFreeExcelTableWriter extends ExcelTableWriter<String>
     implements IfFormatFreeExcelTable<String>, IfDataTypeStringExcelTableWriter {
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   */
+  public StringFreeExcelTableWriter(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
    * Constructs a new instance.
    *
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringFreeExcelTableWriter(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
     super(sheetName, tableStartRowNumber, tableStartColumnNumber);
@@ -50,5 +64,25 @@ public class StringFreeExcelTableWriter extends ExcelTableWriter<String>
   @Override
   protected void headerCheck(Workbook workbook) throws EncryptedDocumentException, IOException {
     // No header to check for free-format tables.
+  }
+
+  @Override
+  public StringFreeExcelTableWriter tableStartRowNumber(@Nullable Integer value) {
+    return (StringFreeExcelTableWriter) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public StringFreeExcelTableWriter tableStartColumnNumber(int value) {
+    return (StringFreeExcelTableWriter) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public StringFreeExcelTableWriter withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (StringFreeExcelTableWriter) super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public StringFreeExcelTableWriter withVerticalAndHorizontalOpposite(boolean value) {
+    return (StringFreeExcelTableWriter) super.withVerticalAndHorizontalOpposite(value);
   }
 }

@@ -56,11 +56,16 @@ public class IterativeCopyOneLineHeaderFormatExcelTableSample {
         FileOutputStream out = openToOutput();) {
 
       // reader
-      Iterable<List<Cell>> itReader = new CellOneLineHeaderExcelTableReader("Member", headerLabels,
-          HEADER_START_ROW, START_COL, 3).getIterable(readWb);
+      Iterable<List<Cell>> itReader = new CellOneLineHeaderExcelTableReader("Member", headerLabels)
+          .tableStartRowNumber(HEADER_START_ROW)
+          .tableStartColumnNumber(START_COL)
+          .tableRowSize(3)
+          .getIterable(readWb);
       // writer
       IterableWriter<Cell> itWriter =
-          new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels, HEADER_START_ROW, START_COL)
+          new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels)
+              .tableStartRowNumber(HEADER_START_ROW)
+              .tableStartColumnNumber(START_COL)
               .getIterable(writeWb);
 
       for (List<Cell> list : itReader) {

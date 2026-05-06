@@ -35,16 +35,61 @@ public class CellFreeExcelTableReader extends ExcelTableReader<Cell>
     implements IfFormatFreeExcelTableReader<Cell>, IfDataTypeCellExcelTableReader {
 
   /**
-  * Constructs a new instance.
-  *
-  * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
-  *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
-  *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
-  */
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1},
+   *     {@code tableRowSize = null}, {@code tableColumnSize = null}.</p>
+   *
+   * @param sheetName See {@link jp.ecuacion.util.excel.table.ExcelTable#sheetName}.
+   */
+  public CellFreeExcelTableReader(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
+   * Constructs a new instance.
+   *
+   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
+   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
+   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
+   */
+  @Deprecated
   public CellFreeExcelTableReader(String sheetName,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize) {
 
     super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
+  }
+
+  @Override
+  public CellFreeExcelTableReader tableStartRowNumber(@Nullable Integer value) {
+    return (CellFreeExcelTableReader) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public CellFreeExcelTableReader tableStartColumnNumber(int value) {
+    return (CellFreeExcelTableReader) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public CellFreeExcelTableReader tableRowSize(@Nullable Integer value) {
+    return (CellFreeExcelTableReader) super.tableRowSize(value);
+  }
+
+  @Override
+  public CellFreeExcelTableReader tableColumnSize(@Nullable Integer value) {
+    return (CellFreeExcelTableReader) super.tableColumnSize(value);
+  }
+
+  @Override
+  public CellFreeExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (CellFreeExcelTableReader) super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public CellFreeExcelTableReader withVerticalAndHorizontalOpposite(boolean value) {
+    return (CellFreeExcelTableReader) super.withVerticalAndHorizontalOpposite(value);
   }
 }

@@ -19,7 +19,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import jp.ecuacion.util.excel.table.reader.concrete.StringOneLineHeaderExcelTableToBeanReader;
+import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableToBeanReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +54,10 @@ public class ReadStringsFromOneLineHeaderFormatExcelTableToBeanSample {
     Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
 
     // Get the table data.
-    return new StringOneLineHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
-        "Member", headerLabels, HEADER_START_ROW, START_COL, null)
+    return new StringHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
+        "Member", headerLabels)
+            .tableStartRowNumber(HEADER_START_ROW)
+            .tableStartColumnNumber(START_COL)
             .defaultDateTimeFormat(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
             .readToBean(sourcePath.toString());
   }

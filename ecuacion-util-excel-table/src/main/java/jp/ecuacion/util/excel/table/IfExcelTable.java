@@ -70,18 +70,30 @@ public interface IfExcelTable<T> {
   /**
    * Stores the boolean value which indicates whether {@code validateHeaderData} ignores
    *     additional header columns.
-   * 
+   *
    * @param value boolean
+   * @return this
+   * @deprecated Use {@link #withIgnoresAdditionalColumnsOfHeaderData(boolean)} instead.
    */
+  @Deprecated
   public IfExcelTable<T> ignoresAdditionalColumnsOfHeaderData(boolean value);
 
   /**
    * Obtains the boolean value which indicates whether {@code validateHeaderData} ignores
    *     additional header columns.
-   * 
+   *
    * @return boolean
    */
   public boolean ignoresAdditionalColumnsOfHeaderData();
+
+  /**
+   * Stores the boolean value which indicates whether {@code validateHeaderData} ignores
+   *     additional header columns.
+   *
+   * @param value boolean
+   * @return this
+   */
+  public IfExcelTable<T> withIgnoresAdditionalColumnsOfHeaderData(boolean value);
 
   /**
    * Is used to get the header label string from the argument cell data.
@@ -94,17 +106,28 @@ public interface IfExcelTable<T> {
   public String getStringValue(@Nullable T cellData) throws ExcelAppException;
 
   /**
-   * Decides whether header is top (normal table) or left. 
+   * Decides whether header is top (normal table) or left.
    * {@code true} means headers are at the left.
-   * 
+   *
    * @param value boolean
    * @return {@code IfExcelTable<T>}
+   * @deprecated Use {@link #withVerticalAndHorizontalOpposite(boolean)} instead.
    */
+  @Deprecated
   public IfExcelTable<T> isVerticalAndHorizontalOpposite(boolean value);
 
   /**
-   * Obtains whether header is top (normal table) or left. 
+   * Obtains whether header is top (normal table) or left.
    * {@code true} means headers are at the left.
    */
   public boolean isVerticalAndHorizontalOpposite();
+
+  /**
+   * Decides whether header is top (normal table) or left.
+   * {@code true} means headers are at the left.
+   *
+   * @param value boolean
+   * @return {@code IfExcelTable<T>}
+   */
+  public IfExcelTable<T> withVerticalAndHorizontalOpposite(boolean value);
 }

@@ -43,14 +43,31 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   private String[] headerLabels;
 
   /**
+   * Constructs a new instance with the sheet name and header labels.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
+   *     {@code tableStartColumnNumber = 1}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   * @param headerLabels expected header labels
+   */
+  public CellOneLineHeaderExcelTableWriter(String sheetName, String[] headerLabels) {
+    super(sheetName);
+    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
+  }
+
+  /**
    * Constructs a new instance.
-   * 
+   *
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    *     The row number must specify the header row of the table
    *     Since the writer does not overwrite the header, but the writer does read and validate it.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public CellOneLineHeaderExcelTableWriter(String sheetName,
       String[] headerLabels, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
@@ -69,10 +86,12 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   protected void headerCheck(Workbook workbook)
       throws EncryptedDocumentException, IOException {
 
-    new StringHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0],
-        tableStartRowNumber, tableStartColumnNumber, 1)
-            .ignoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
-            .isVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);
+    new StringHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0])
+        .tableStartRowNumber(tableStartRowNumber)
+        .tableStartColumnNumber(tableStartColumnNumber)
+        .tableRowSize(1)
+        .withIgnoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
+        .withVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);
   }
 
   private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
@@ -83,13 +102,40 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
+  @Deprecated
   public CellOneLineHeaderExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    this.copiesDataFormatOnly = copiesDataFormatOnly;
-    return this;
+    return withCopiesDataFormatOnly(copiesDataFormatOnly);
   }
 
   @Override
   public boolean copiesDataFormatOnly() {
     return copiesDataFormatOnly;
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter withCopiesDataFormatOnly(boolean copiesDataFormatOnly) {
+    this.copiesDataFormatOnly = copiesDataFormatOnly;
+    return this;
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter tableStartRowNumber(@Nullable Integer value) {
+    return (CellOneLineHeaderExcelTableWriter) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter tableStartColumnNumber(int value) {
+    return (CellOneLineHeaderExcelTableWriter) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (CellOneLineHeaderExcelTableWriter)
+        super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter withVerticalAndHorizontalOpposite(boolean value) {
+    return (CellOneLineHeaderExcelTableWriter) super.withVerticalAndHorizontalOpposite(value);
   }
 }

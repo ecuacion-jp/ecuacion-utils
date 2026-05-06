@@ -44,12 +44,26 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   private boolean copiesDataFormatOnly;
 
   /**
-  * Constructs a new instance.
-  *
-  * @param sheetName See {@link ExcelTable#sheetName}.
-  * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-  * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-  */
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   */
+  public CellFreeExcelTableWriter(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
+   * Constructs a new instance.
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
+   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
+   */
+  @Deprecated
   public CellFreeExcelTableWriter(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
 
@@ -75,13 +89,39 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   }
 
   @Override
+  @Deprecated
   public CellFreeExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    this.copiesDataFormatOnly = copiesDataFormatOnly;
-    return this;
+    return withCopiesDataFormatOnly(copiesDataFormatOnly);
   }
 
   @Override
   public boolean copiesDataFormatOnly() {
     return copiesDataFormatOnly;
+  }
+
+  @Override
+  public CellFreeExcelTableWriter withCopiesDataFormatOnly(boolean copiesDataFormatOnly) {
+    this.copiesDataFormatOnly = copiesDataFormatOnly;
+    return this;
+  }
+
+  @Override
+  public CellFreeExcelTableWriter tableStartRowNumber(@Nullable Integer value) {
+    return (CellFreeExcelTableWriter) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public CellFreeExcelTableWriter tableStartColumnNumber(int value) {
+    return (CellFreeExcelTableWriter) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public CellFreeExcelTableWriter withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (CellFreeExcelTableWriter) super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public CellFreeExcelTableWriter withVerticalAndHorizontalOpposite(boolean value) {
+    return (CellFreeExcelTableWriter) super.withVerticalAndHorizontalOpposite(value);
   }
 }

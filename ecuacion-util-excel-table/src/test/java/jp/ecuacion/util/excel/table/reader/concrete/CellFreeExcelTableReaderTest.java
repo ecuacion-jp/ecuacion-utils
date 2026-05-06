@@ -60,7 +60,7 @@ public class CellFreeExcelTableReaderTest {
         setCell(sheet, 1, 1, "data2-2");
 
         List<List<Cell>> result =
-            new CellFreeExcelTableReader("Sheet1", 1, 1, null, null).read(wb);
+            new CellFreeExcelTableReader("Sheet1").tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(ExcelReadUtil.getStringFromCell(result.get(0).get(0))).isEqualTo("data1-1");
@@ -80,7 +80,8 @@ public class CellFreeExcelTableReaderTest {
         setCell(sheet, 0, 2, "c");
 
         List<List<Cell>> result =
-            new CellFreeExcelTableReader("Sheet1", 1, 1, 1, 3).read(wb);
+            new CellFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableRowSize(1)
+                .tableColumnSize(3).read(wb);
 
         assertThat(result.get(0).get(0)).isNotNull();
         assertThat(result.get(0).get(1)).isNull();
