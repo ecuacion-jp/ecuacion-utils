@@ -137,7 +137,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<TestBean> result = reader.readToBean(file.toString());
 
         assertThat(result).hasSize(1);
@@ -157,7 +157,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         assertThatNoException().isThrownBy(() -> reader.readToBean(file.toString(), false));
       }
     }
@@ -184,7 +184,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
             .isInstanceOf(ViolationException.class)
@@ -209,7 +209,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
             .isInstanceOf(ViolationException.class)
@@ -233,7 +233,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 3, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(3);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
             .isInstanceOf(ViolationException.class)
@@ -258,7 +258,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, null, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"});
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
             .isInstanceOf(ViolationException.class)
@@ -281,7 +281,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "EmployeeSheet", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "EmployeeSheet", new String[] {"name", "age"})
+            .tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
             .isInstanceOf(ViolationException.class)
@@ -301,7 +302,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     @DisplayName("afterReading() が RuntimeException をスローした場合伝播する")
     void afterReadingExceptionPropagates() {
       var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-          TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null) {
+          TestBean.class, "Sheet1", new String[] {"name", "age"}) {
         @Override
         protected List<TestBean> excelTableToBeanList(String filePath) {
           TestBean bean = new TestBean(List.of("Alice", "25")) {
@@ -312,7 +313,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
           };
           return List.of(bean);
         }
-      };
+      }.tableStartRowNumber(1);
 
       assertThatThrownBy(() -> reader.readToBean("dummy"))
           .isInstanceOf(RuntimeException.class)
@@ -336,7 +337,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result).hasSize(1);
@@ -358,7 +359,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"age", "name"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"age", "name"}).tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).name).isEqualTo("Alice");
@@ -381,7 +382,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         // AnnotatedBean には @ExcelColumn("memo") がないので memo 列はスキップされる
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name", "memo", "age"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name", "memo", "age"})
+            .tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).name).isEqualTo("Alice");
@@ -401,7 +403,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedSubBean>(
-            AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}, 1, 1, null);
+            AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}).tableStartRowNumber(1);
         List<AnnotatedSubBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).id).isEqualTo(1);
@@ -420,7 +422,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path file = writeTempExcel(wb);
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString(), false))
             .isInstanceOf(RuntimeException.class)
@@ -441,7 +443,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         // TestBean は getFieldNameArray() をオーバーライドしており @ExcelColumn は使わない
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<TestBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).name).isEqualTo("Alice");
@@ -489,7 +491,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path output = tempDir.resolve("output.xlsx");
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
         } catch (ViolationException ex) {
@@ -519,7 +521,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path output = tempDir.resolve("output.xlsx");
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
         } catch (ViolationException ex) {
@@ -548,7 +550,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path output = tempDir.resolve("output.xlsx");
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
-            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}, 1, 2, null);
+            AnnotatedBean.class, "Sheet1", new String[] {"name", "age"})
+            .tableStartRowNumber(1).tableStartColumnNumber(2);
         try {
           reader.readToBean(input.toString());
         } catch (ViolationException ex) {
@@ -576,7 +579,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path output = tempDir.resolve("output.xlsx");
 
         var reader = new StringHeaderExcelTableToBeanReader<AnnotatedSubBean>(
-            AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}, 1, 1, null);
+            AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
         } catch (ViolationException ex) {
@@ -605,7 +608,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         // TestBean は getFieldNameArray() override あり、@ExcelColumn なし
         var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
-            TestBean.class, "Sheet1", new String[] {"name", "age"}, 1, 1, null);
+            TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
         } catch (ViolationException ex) {
@@ -655,8 +658,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result).hasSize(1);
@@ -685,8 +688,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"個人情報", "個人情報", "#"}, {"年齢", "名前", "#"}},
-            1, 1, null);
+            new String[][] {{"個人情報", "個人情報", "#"}, {"年齢", "名前", "#"}})
+            .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).rowNum).isEqualTo(1);
@@ -713,8 +716,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 
         assertThat(result.get(0).rowNum).isEqualTo(1);

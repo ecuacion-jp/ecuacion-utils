@@ -65,7 +65,7 @@ public class CellOneLineHeaderExcelTableReaderTest {
         setCell(sheet, 2, 1, "data2-2");
 
         List<List<Cell>> result = new CellOneLineHeaderExcelTableReader(
-            "Sheet1", new String[]{"header1", "header2"}, 1, 1, null).read(wb);
+            "Sheet1", new String[]{"header1", "header2"}).tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(ExcelReadUtil.getStringFromCell(result.get(0).get(0))).isEqualTo("data1-1");

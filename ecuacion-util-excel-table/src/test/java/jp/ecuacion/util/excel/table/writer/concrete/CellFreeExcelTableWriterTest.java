@@ -48,8 +48,8 @@ public class CellFreeExcelTableWriterTest {
         wb.createSheet("dest");
 
         List<List<Cell>> data =
-            new CellFreeExcelTableReader("source", 1, 1, null, null).read(wb);
-        new CellFreeExcelTableWriter("dest", 1, 1).write(wb, data);
+            new CellFreeExcelTableReader("source").tableStartRowNumber(1).read(wb);
+        new CellFreeExcelTableWriter("dest").tableStartRowNumber(1).write(wb, data);
 
         Sheet destSheet = wb.getSheet("dest");
         assertThat(ExcelReadUtil.getStringFromCell(destSheet.getRow(0).getCell(0)))
@@ -75,11 +75,12 @@ public class CellFreeExcelTableWriterTest {
         wb.createSheet("dest");
 
         List<List<Cell>> data =
-            new CellFreeExcelTableReader("source", 1, 1, 1, 1).read(wb);
-        new CellFreeExcelTableWriter("dest", 1, 1).write(wb, data);
+            new CellFreeExcelTableReader("source").tableStartRowNumber(1).tableRowSize(1)
+                .tableColumnSize(1).read(wb);
+        new CellFreeExcelTableWriter("dest").tableStartRowNumber(1).write(wb, data);
 
         Cell destCell = wb.getSheet("dest").getRow(0).getCell(0);
-        Font destFont = wb.getFontAt(destCell.getCellStyle().getFontIndexAsInt());
+        Font destFont = wb.getFontAt(destCell.getCellStyle().getFontIndex());
         assertThat(destFont.getBold()).isTrue();
       }
     }
@@ -100,11 +101,13 @@ public class CellFreeExcelTableWriterTest {
         wb.createSheet("dest");
 
         List<List<Cell>> data =
-            new CellFreeExcelTableReader("source", 1, 1, 1, 1).read(wb);
-        new CellFreeExcelTableWriter("dest", 1, 1).copiesDataFormatOnly(true).write(wb, data);
+            new CellFreeExcelTableReader("source").tableStartRowNumber(1).tableRowSize(1)
+                .tableColumnSize(1).read(wb);
+        new CellFreeExcelTableWriter("dest").tableStartRowNumber(1)
+            .withCopiesDataFormatOnly(true).write(wb, data);
 
         Cell destCell = wb.getSheet("dest").getRow(0).getCell(0);
-        Font destFont = wb.getFontAt(destCell.getCellStyle().getFontIndexAsInt());
+        Font destFont = wb.getFontAt(destCell.getCellStyle().getFontIndex());
         assertThat(destFont.getBold()).isFalse(); // bold not copied
         assertThat(destCell.getCellStyle().getDataFormatString()).isEqualTo("0.00");
       }

@@ -39,17 +39,35 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
   private String[] headerLabels;
 
   /**
-   * Constructs a new instance. the obtained value 
+   * Constructs a new instance with the sheet name and header labels.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
+   *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null}.</p>
+   *
+   * @param sheetName See {@link jp.ecuacion.util.excel.table.ExcelTable#sheetName}.
+   * @param headerLabels expected header labels
+   */
+  public CellOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels) {
+    super(sheetName);
+    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
+    setTableColumnSize(getHeaderLabels().length);
+  }
+
+  /**
+   * Constructs a new instance. the obtained value
    *     from an empty cell is {@code null}.
-   *     
-   * <p>{@code tableColumnSize} is not designated 
+   *
+   * <p>{@code tableColumnSize} is not designated
    *     because {@code tableColumnSize} of the table is obviously equal to
    *     the length of the header array.</p>
-   * 
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber}, 
+   *
+   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
    *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public CellOneLineHeaderExcelTableReader(String sheetName, String[] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize) {
@@ -73,4 +91,34 @@ public class CellOneLineHeaderExcelTableReader extends ExcelTableReader<Cell>
     return headerLabels;
   }
 
+  @Override
+  public CellOneLineHeaderExcelTableReader tableStartRowNumber(@Nullable Integer value) {
+    return (CellOneLineHeaderExcelTableReader) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableReader tableStartColumnNumber(int value) {
+    return (CellOneLineHeaderExcelTableReader) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableReader tableRowSize(@Nullable Integer value) {
+    return (CellOneLineHeaderExcelTableReader) super.tableRowSize(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableReader tableColumnSize(@Nullable Integer value) {
+    return (CellOneLineHeaderExcelTableReader) super.tableColumnSize(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (CellOneLineHeaderExcelTableReader)
+        super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableReader withVerticalAndHorizontalOpposite(boolean value) {
+    return (CellOneLineHeaderExcelTableReader) super.withVerticalAndHorizontalOpposite(value);
+  }
 }

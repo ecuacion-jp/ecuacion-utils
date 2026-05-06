@@ -37,12 +37,28 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
   private NoDataString noDataString = NoDataString.NULL;
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1},
+   *     {@code tableRowSize = null}, {@code tableColumnSize = null},
+   *     {@code noDataString = NoDataString.NULL}.</p>
+   *
+   * @param sheetName See {@link jp.ecuacion.util.excel.table.ExcelTable#sheetName}.
+   */
+  public StringFreeExcelTableReader(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
    * Constructs a new instance.
-   * 
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber}, 
+   *
+   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
    *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber, @Nullable Integer tableRowSize,
       @Nullable Integer tableColumnSize) {
@@ -57,7 +73,9 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
    *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
    *     
    * @param noDataString noDataString
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber, @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize,
       NoDataString noDataString) {
@@ -71,6 +89,17 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
     return noDataString;
   }
 
+  /**
+   * Sets {@code noDataString} and returns {@code this} for method chaining.
+   *
+   * @param noDataString noDataString
+   * @return this reader
+   */
+  public StringFreeExcelTableReader noDataString(NoDataString noDataString) {
+    this.noDataString = noDataString;
+    return this;
+  }
+
   @Override
   public StringFreeExcelTableReader defaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
     return (StringFreeExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
@@ -80,5 +109,35 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
   public StringFreeExcelTableReader columnDateTimeFormat(int columnNumber,
       DateTimeFormatter dateTimeFormat) {
     return (StringFreeExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
+  }
+
+  @Override
+  public StringFreeExcelTableReader tableStartRowNumber(@Nullable Integer value) {
+    return (StringFreeExcelTableReader) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public StringFreeExcelTableReader tableStartColumnNumber(int value) {
+    return (StringFreeExcelTableReader) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public StringFreeExcelTableReader tableRowSize(@Nullable Integer value) {
+    return (StringFreeExcelTableReader) super.tableRowSize(value);
+  }
+
+  @Override
+  public StringFreeExcelTableReader tableColumnSize(@Nullable Integer value) {
+    return (StringFreeExcelTableReader) super.tableColumnSize(value);
+  }
+
+  @Override
+  public StringFreeExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
+    return (StringFreeExcelTableReader) super.withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public StringFreeExcelTableReader withVerticalAndHorizontalOpposite(boolean value) {
+    return (StringFreeExcelTableReader) super.withVerticalAndHorizontalOpposite(value);
   }
 }

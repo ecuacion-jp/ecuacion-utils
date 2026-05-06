@@ -74,8 +74,20 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
   protected boolean isVerticalAndHorizontalOpposite;
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
+   *     {@code tableStartColumnNumber = 1}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   */
+  protected ExcelTable(String sheetName) {
+    this(sheetName, null, 1);
+  }
+
+  /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
-   * 
+   *
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.

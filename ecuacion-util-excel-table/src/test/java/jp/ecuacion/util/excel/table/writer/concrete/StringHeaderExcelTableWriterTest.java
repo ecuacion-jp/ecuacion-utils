@@ -67,7 +67,7 @@ public class StringHeaderExcelTableWriterTest {
         setCell(sheet, 0, 1, "h2");
 
         new StringHeaderExcelTableWriter(
-            "Sheet1", new String[]{"h1", "h2"}, 1, 1)
+            "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1)
             .write(wb, List.of(List.of("d1", "d2")));
 
         assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("h1");
@@ -86,7 +86,7 @@ public class StringHeaderExcelTableWriterTest {
         setCell(sheet, 0, 1, "h2");
 
         StringHeaderExcelTableWriter writer = new StringHeaderExcelTableWriter(
-            "Sheet1", new String[]{"h1", "h2"}, 1, 1);
+            "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("d1", "d2"))))
             .isInstanceOf(ExcelAppException.class);
         assertThat(sheet.getRow(1)).isNull(); // data was not written
@@ -112,8 +112,8 @@ public class StringHeaderExcelTableWriterTest {
         setCell(sheet, 1, 2, "年齢");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1)
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1)
             .write(wb, List.of(List.of("1", "Alice", "25")));
 
         // header rows are preserved
@@ -133,8 +133,8 @@ public class StringHeaderExcelTableWriterTest {
         Sheet sheet = wb.createSheet("Sheet1");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1)
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1)
             .writeHeaders(sheet);
 
         // "個人情報" spans cols 1-2 in row 0 → merged
@@ -152,8 +152,8 @@ public class StringHeaderExcelTableWriterTest {
         Sheet sheet = wb.createSheet("Sheet1");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1)
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1)
             .writeHeaders(sheet);
 
         // "#" is same in both rows of col 0 → vertically merged (rows 0-1, col 0)

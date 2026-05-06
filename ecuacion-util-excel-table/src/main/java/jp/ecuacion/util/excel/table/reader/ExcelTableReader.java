@@ -74,8 +74,20 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   protected @Nullable Integer tableColumnSizeGivenByConstructor;
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null}, {@code tableStartColumnNumber = 1},
+   *     {@code tableRowSize = null}, {@code tableColumnSize = null}.</p>
+   *
+   * @param sheetName See {@link ExcelTable#sheetName}.
+   */
+  protected ExcelTableReader(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
    * Constructs a new instance with the sheet name, the position and the size of the excel table.
-   * 
+   *
    * @param sheetName See {@link ExcelTable#sheetName}.
    * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
    * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
@@ -145,13 +157,17 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   }
 
   /**
-   * Provides an {@code Iterable} reader over the data rows of the table.
+   * Provides an {@code IterableReader} over the data rows of the table.
+   *
+   * <p>The caller owns the {@code workbook} and is responsible for closing it.
+   *     Calling {@code close()} on the returned {@link IterableReader} is a no-op.</p>
    *
    * @param workbook workbook
+   * @return iterable reader
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  public Iterable<List<T>> getIterable(Workbook workbook)
+  public IterableReader<T> getIterable(Workbook workbook)
       throws EncryptedDocumentException, IOException {
 
     // validate the header line
@@ -167,6 +183,48 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         tableStartColumnNumber, null, false);
 
     return new IterableReader<T>(this, context, getNumberOfHeaderLines());
+  }
+
+  /**
+   * Provides an {@code IterableReader} that reads from {@code filePath}.
+   *
+   * <p>The returned {@link IterableReader} owns the workbook opened from {@code filePath}
+   *     and closes it on {@link IterableReader#close()}. Use try-with-resources to ensure
+   *     the workbook is closed.</p>
+   *
+   * @param filePath filePath
+   * @return iterable reader that owns the workbook
+   * @throws IOException IOException
+   * @throws EncryptedDocumentException EncryptedDocumentException
+   */
+  public IterableReader<T> getIterable(String filePath)
+      throws EncryptedDocumentException, IOException {
+    ObjectsUtil.requireNonNull(filePath);
+
+    Workbook workbook = ExcelReadUtil.openForRead(filePath);
+    boolean ownershipTransferred = false;
+    try {
+      // validate the header line
+      List<List<T>> headerData = readTableData(workbook, true);
+      validateHeaderData(headerData);
+
+      // obtain data
+      List<List<T>> rtnData = readTableData(workbook);
+      updateAndGetHeaderData(rtnData);
+
+      // get the IteratorReader
+      ContextContainer context = getReadyToReadTableData(this, workbook, getSheetName(),
+          tableStartColumnNumber, null, false);
+
+      IterableReader<T> result =
+          new IterableReader<T>(this, context, getNumberOfHeaderLines(), workbook);
+      ownershipTransferred = true;
+      return result;
+    } finally {
+      if (!ownershipTransferred) {
+        workbook.close();
+      }
+    }
   }
 
   /*
@@ -405,22 +463,53 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Provides {@code Iterable}.
+   *
+   * <p>When constructed with an {@code ownedWorkbook}, {@link #close()} closes that workbook.
+   *     When constructed without one, {@code close()} is a no-op (the caller owns
+   *     the workbook).</p>
    */
-  public static class IterableReader<T> implements Iterable<List<T>> {
+  public static class IterableReader<T> implements Iterable<List<T>>, AutoCloseable {
 
     private IteratorReader<T> iterator;
+    private @Nullable Workbook ownedWorkbook;
 
     /**
      * Constructs a new instance.
+     *
+     * @param reader reader
+     * @param context context
+     * @param numberOfHeaderLines numberOfHeaderLines
      */
     public IterableReader(ExcelTableReader<T> reader, ContextContainer context,
         int numberOfHeaderLines) {
+      this(reader, context, numberOfHeaderLines, null);
+    }
+
+    /**
+     * Constructs a new instance with an owned workbook to be closed by {@link #close()}.
+     *
+     * @param reader reader
+     * @param context context
+     * @param numberOfHeaderLines numberOfHeaderLines
+     * @param ownedWorkbook the workbook this iterable owns; {@code null} means the caller
+     *     owns it and {@link #close()} is a no-op
+     */
+    public IterableReader(ExcelTableReader<T> reader, ContextContainer context,
+        int numberOfHeaderLines, @Nullable Workbook ownedWorkbook) {
       this.iterator = new IteratorReader<T>(reader, context, numberOfHeaderLines);
+      this.ownedWorkbook = ownedWorkbook;
     }
 
     @Override
     public Iterator<List<T>> iterator() {
       return iterator;
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (ownedWorkbook != null) {
+        ownedWorkbook.close();
+      }
     }
   }
 
@@ -480,14 +569,70 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
   }
 
+  /**
+   * Sets {@code tableStartRowNumber} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTable#tableStartRowNumber}.
+   * @return this reader
+   */
+  public ExcelTableReader<T> tableStartRowNumber(@Nullable Integer value) {
+    this.tableStartRowNumber = value;
+    return this;
+  }
+
+  /**
+   * Sets {@code tableStartColumnNumber} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTable#tableStartColumnNumber}.
+   * @return this reader
+   */
+  public ExcelTableReader<T> tableStartColumnNumber(int value) {
+    this.tableStartColumnNumber = value;
+    return this;
+  }
+
+  /**
+   * Sets {@code tableRowSize} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTableReader#tableRowSizeGivenByConstructor}.
+   * @return this reader
+   */
+  public ExcelTableReader<T> tableRowSize(@Nullable Integer value) {
+    this.tableRowSizeGivenByConstructor = value;
+    return this;
+  }
+
+  /**
+   * Sets {@code tableColumnSize} and returns {@code this} for method chaining.
+   *
+   * @param value See {@link ExcelTableReader#tableColumnSizeGivenByConstructor}.
+   * @return this reader
+   */
+  public ExcelTableReader<T> tableColumnSize(@Nullable Integer value) {
+    this.tableColumnSizeGivenByConstructor = value;
+    return this;
+  }
+
   @Override
+  @Deprecated
   public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
+    return withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public ExcelTableReader<T> withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
   }
 
   @Override
+  @Deprecated
   public ExcelTableReader<T> isVerticalAndHorizontalOpposite(boolean value) {
+    return withVerticalAndHorizontalOpposite(value);
+  }
+
+  @Override
+  public ExcelTableReader<T> withVerticalAndHorizontalOpposite(boolean value) {
     this.isVerticalAndHorizontalOpposite = value;
     return this;
   }

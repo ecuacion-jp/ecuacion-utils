@@ -33,8 +33,17 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
   protected @Nullable DateTimeFormatter dateTimeFormat;
 
   /**
+   * Constructs a new instance with only the sheet name.
+   *
+   * @param sheetName See {@link jp.ecuacion.util.excel.table.ExcelTable#sheetName}.
+   */
+  protected StringExcelTableReader(String sheetName) {
+    super(sheetName);
+  }
+
+  /**
    * Constructs a new instance.
-   * 
+   *
    * {@see ExcelTableReader}
    */
   public StringExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,

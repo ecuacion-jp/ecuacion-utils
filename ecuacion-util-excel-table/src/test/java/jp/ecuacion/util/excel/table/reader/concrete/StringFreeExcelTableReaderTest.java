@@ -69,7 +69,7 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 1, 2, "data2-3");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, null, null).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("data1-1", "data1-2", "data1-3");
@@ -88,7 +88,8 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 0, 2, "world");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, 1, 3, noDataString).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableRowSize(1)
+                .tableColumnSize(3).noDataString(noDataString).read(wb);
 
         assertThat(result.get(0)).containsExactly("hello", expected, "world");
       }
@@ -117,7 +118,8 @@ public class StringFreeExcelTableReaderTest {
         // Row 2 not created → empty
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, 3, 2).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableRowSize(3)
+                .tableColumnSize(2).read(wb);
 
         assertThat(result).hasSize(3);
         assertThat(result.get(0)).containsExactly("a", "b");
@@ -140,7 +142,8 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 3, 1, "f");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, null, 2).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableColumnSize(2)
+                .read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("a", "b");
@@ -160,7 +163,8 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 2, 1, "d");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, 3, 2).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableRowSize(3)
+                .tableColumnSize(2).read(wb);
 
         assertThat(result).hasSize(3);
         assertThat(result.get(0)).containsExactly("a", "b");
@@ -185,7 +189,8 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 0, 3, "d");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, 1, 2).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableRowSize(1)
+                .tableColumnSize(2).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("a", "b");
@@ -207,7 +212,7 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 1, 2, "f");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, null, null).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("a", "b", "c");
@@ -233,7 +238,8 @@ public class StringFreeExcelTableReaderTest {
         setCell(sheet, 3, 2, "d");
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 3, 2, null, null).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(3)
+                .tableStartColumnNumber(2).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("a", "b");
@@ -260,8 +266,8 @@ public class StringFreeExcelTableReaderTest {
         // Col 2 not created → terminates
 
         List<List<String>> result =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, null, null)
-                .isVerticalAndHorizontalOpposite(true).read(wb);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1)
+                .withVerticalAndHorizontalOpposite(true).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("r1c0", "r1c1");
@@ -280,7 +286,7 @@ public class StringFreeExcelTableReaderTest {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableReader reader =
-            new StringFreeExcelTableReader("NotExist", 1, 1, null, null);
+            new StringFreeExcelTableReader("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -294,7 +300,7 @@ public class StringFreeExcelTableReaderTest {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1"); // empty sheet
         StringFreeExcelTableReader reader =
-            new StringFreeExcelTableReader("Sheet1", 1, 1, null, null);
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())

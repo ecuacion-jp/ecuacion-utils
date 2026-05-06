@@ -23,7 +23,6 @@ import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.enums.NoDataString;
 import jp.ecuacion.util.excel.exception.ExcelAppException;
 import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
-import jp.ecuacion.util.excel.table.reader.ExcelTableReader;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -63,6 +62,35 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
   protected int poiBasisHeaderStartRow;
 
   /**
+   * Constructs a new instance with the sheet name and a single header row.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
+   *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null},
+   *     {@code noDataString = NoDataString.NULL}.</p>
+   *
+   * @param sheetName sheet name
+   * @param headerLabels expected header labels for the single header row
+   */
+  public StringHeaderExcelTableReader(String sheetName, String[] headerLabels) {
+    this(sheetName, headerLabels, null, 1, null);
+  }
+
+  /**
+   * Constructs a new instance with the sheet name and multiple header rows.
+   *
+   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
+   *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null},
+   *     {@code noDataString = NoDataString.NULL}.</p>
+   *
+   * @param sheetName sheet name
+   * @param headerLabels expected labels for each header row: {@code headerLabels[row][col]},
+   *     top row first
+   */
+  public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels) {
+    this(sheetName, headerLabels, null, 1, null);
+  }
+
+  /**
    * Constructs a new instance with a single header row.
    * The obtained value from an empty cell is {@code null}.
    *
@@ -72,7 +100,10 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    *     auto-detection by the far-left header label
    * @param tableStartColumnNumber 1-based column number where the table starts
    * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringHeaderExcelTableReader(String sheetName, String[] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize) {
@@ -90,7 +121,9 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    * @param tableStartColumnNumber 1-based column number where the table starts
    * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
    * @param noDataString the value to return for an empty cell
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringHeaderExcelTableReader(String sheetName, String[] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize, NoDataString noDataString) {
@@ -116,7 +149,10 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    *     or {@code null} for auto-detection
    * @param tableStartColumnNumber 1-based column number where the table starts
    * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
+   *
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize) {
@@ -134,7 +170,9 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    * @param tableStartColumnNumber 1-based column number where the table starts
    * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
    * @param noDataString the value to return for an empty cell
+   * @deprecated Use the minimal constructor with fluent setters instead.
    */
+  @Deprecated
   public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels,
       @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
       @Nullable Integer tableRowSize, NoDataString noDataString) {
@@ -356,6 +394,17 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
         poiBasisDeterminedTableStartColumnNumber, ignoresColumnSizeSetInReader);
   }
 
+  /**
+   * Sets {@code noDataString} and returns {@code this} for method chaining.
+   *
+   * @param noDataString noDataString
+   * @return this reader
+   */
+  public StringHeaderExcelTableReader noDataString(NoDataString noDataString) {
+    this.noDataString = noDataString;
+    return this;
+  }
+
   @Override
   public StringHeaderExcelTableReader defaultDateTimeFormat(DateTimeFormatter dateTimeFormat) {
     return (StringHeaderExcelTableReader) super.defaultDateTimeFormat(dateTimeFormat);
@@ -368,14 +417,46 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
   }
 
   @Override
+  @Deprecated
   public StringHeaderExcelTableReader ignoresAdditionalColumnsOfHeaderData(boolean value) {
+    return withIgnoresAdditionalColumnsOfHeaderData(value);
+  }
+
+  @Override
+  public StringHeaderExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
   }
 
   @Override
+  @Deprecated
   public StringHeaderExcelTableReader isVerticalAndHorizontalOpposite(boolean value) {
+    return withVerticalAndHorizontalOpposite(value);
+  }
+
+  @Override
+  public StringHeaderExcelTableReader withVerticalAndHorizontalOpposite(boolean value) {
     this.isVerticalAndHorizontalOpposite = value;
     return this;
+  }
+
+  @Override
+  public StringHeaderExcelTableReader tableStartRowNumber(@Nullable Integer value) {
+    return (StringHeaderExcelTableReader) super.tableStartRowNumber(value);
+  }
+
+  @Override
+  public StringHeaderExcelTableReader tableStartColumnNumber(int value) {
+    return (StringHeaderExcelTableReader) super.tableStartColumnNumber(value);
+  }
+
+  @Override
+  public StringHeaderExcelTableReader tableRowSize(@Nullable Integer value) {
+    return (StringHeaderExcelTableReader) super.tableRowSize(value);
+  }
+
+  @Override
+  public StringHeaderExcelTableReader tableColumnSize(@Nullable Integer value) {
+    return (StringHeaderExcelTableReader) super.tableColumnSize(value);
   }
 }

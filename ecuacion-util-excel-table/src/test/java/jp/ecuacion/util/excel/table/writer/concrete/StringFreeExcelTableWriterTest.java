@@ -42,7 +42,7 @@ public class StringFreeExcelTableWriterTest {
             List.of("a", "b", "c"),
             List.of("d", "e", "f"));
 
-        new StringFreeExcelTableWriter("Sheet1", 1, 1).write(wb, data);
+        new StringFreeExcelTableWriter("Sheet1").tableStartRowNumber(1).write(wb, data);
 
         Sheet sheet = wb.getSheet("Sheet1");
         assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("a");
@@ -67,7 +67,8 @@ public class StringFreeExcelTableWriterTest {
         List<List<String>> data = List.of(List.of("a", "b"));
 
         // tableStartRow=3 → poi row=2, tableStartCol=2 → poi col=1
-        new StringFreeExcelTableWriter("Sheet1", 3, 2).write(wb, data);
+        new StringFreeExcelTableWriter("Sheet1").tableStartRowNumber(3)
+            .tableStartColumnNumber(2).write(wb, data);
 
         Sheet sheet = wb.getSheet("Sheet1");
         assertThat(sheet.getRow(2).getCell(1).getStringCellValue()).isEqualTo("a");
@@ -92,8 +93,8 @@ public class StringFreeExcelTableWriterTest {
             List.of("r1c0", "r1c1"),
             List.of("r2c0", "r2c1"));
 
-        new StringFreeExcelTableWriter("Sheet1", 1, 1)
-            .isVerticalAndHorizontalOpposite(true).write(wb, data);
+        new StringFreeExcelTableWriter("Sheet1").tableStartRowNumber(1)
+            .withVerticalAndHorizontalOpposite(true).write(wb, data);
 
         Sheet sheet = wb.getSheet("Sheet1");
         assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("r1c0");
@@ -114,7 +115,7 @@ public class StringFreeExcelTableWriterTest {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableWriter writer =
-            new StringFreeExcelTableWriter("NotExist", 1, 1);
+            new StringFreeExcelTableWriter("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("a"))))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())

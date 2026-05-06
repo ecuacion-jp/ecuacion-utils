@@ -36,7 +36,7 @@ module jp.ecuacion.util.excel {
 
   requires jakarta.annotation;
   requires jakarta.validation;
-  requires jp.ecuacion.lib.core;
+  requires transitive jp.ecuacion.lib.core;
 
   requires org.apache.commons.lang3;
 

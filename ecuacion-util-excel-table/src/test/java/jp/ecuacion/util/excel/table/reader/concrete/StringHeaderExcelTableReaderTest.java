@@ -71,7 +71,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 2, 2, "data2-3");
 
         List<List<String>> result = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"header1", "header2", "header3"}, 1, 1, null).read(wb);
+            "Sheet1", new String[]{"header1", "header2", "header3"})
+            .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).containsExactly("data1-1", "data1-2", "data1-3");
@@ -93,7 +94,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 3, 1, "data2");
 
         List<List<String>> result = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"header1", "header2"}, null, 1, null).read(wb);
+            "Sheet1", new String[]{"header1", "header2"}).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("data1", "data2");
@@ -116,7 +117,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 0, 3, "extra"); // 4 columns, expected 3
 
         StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"h1", "h2", "h3"}, 1, 1, null);
+            "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -139,8 +140,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 1, 3, "d4");
 
         List<List<String>> result = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"h1", "h2", "h3"}, 1, 1, null)
-            .ignoresAdditionalColumnsOfHeaderData(true).read(wb);
+            "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1)
+            .withIgnoresAdditionalColumnsOfHeaderData(true).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("d1", "d2", "d3");
@@ -157,8 +158,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 0, 1, "h2"); // 2 columns, expected 3
 
         var reader = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"h1", "h2", "h3"}, 1, 1, null)
-            .ignoresAdditionalColumnsOfHeaderData(ignores);
+            "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1)
+            .withIgnoresAdditionalColumnsOfHeaderData(ignores);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -181,7 +182,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 0, 1, "WRONG"); // expected "h2"
 
         StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"h1", "h2"}, 1, 1, null);
+            "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -202,7 +203,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 0, 0, "unrelated");
 
         StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
-            "Sheet1", new String[]{"header1", "header2"}, null, 1, null);
+            "Sheet1", new String[]{"header1", "header2"});
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -235,8 +236,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 2, 2, "25");
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null).read(wb);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("1", "Alice", "25");
@@ -256,8 +257,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 1, 2, "年齢");
 
         var reader = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
@@ -283,8 +284,8 @@ public class StringHeaderExcelTableReaderTest {
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 2));
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null).read(wb);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("1", "Alice", "25");
@@ -309,8 +310,8 @@ public class StringHeaderExcelTableReaderTest {
         sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null).read(wb);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).containsExactly("1", "Alice", "25");
@@ -333,8 +334,8 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 2, 2, "25");
 
         var reader = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}},
-            1, 1, null);
+            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
             .extracting(e -> ((ExcelAppException) e).getMessageId())
