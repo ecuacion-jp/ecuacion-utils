@@ -3,7 +3,7 @@
 [![Java CI](https://github.com/ecuacion-jp/ecuacion-utils/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ecuacion-jp/ecuacion-utils/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ecuacion-jp/ecuacion-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/ecuacion-jp/ecuacion-utils)
 [![GitHub Release](https://img.shields.io/github/v/release/ecuacion-jp/ecuacion-utils)](https://github.com/ecuacion-jp/ecuacion-utils/releases)
-[![Maven Central](https://img.shields.io/maven-central/v/jp.ecuacion.util/ecuacion-util-poi.svg)](https://search.maven.org/artifact/jp.ecuacion.util/ecuacion-util-poi)
+[![Maven Central](https://img.shields.io/maven-central/v/jp.ecuacion.util/ecuacion-util-excel-table.svg)](https://search.maven.org/artifact/jp.ecuacion.util/ecuacion-util-excel-table)
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://www.oracle.com/java/technologies/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -22,4 +22,25 @@ This library is dependent on `ecuacion-lib`.
 
 ## Installation
 
-(See `Installation` part of `README` in each module)
+1. Add the required `ecuacion` modules to your `pom.xml`.
+   (The following is an example for the `ecuacion-util-excel-table` module. Check the `Installation` section of the `README` in the module you want to add to your project.)
+
+    ```xml
+    <dependency>
+        <groupId>jp.ecuacion.util</groupId>
+        <artifactId>ecuacion-util-excel-table</artifactId>
+        <!-- Put the latest release version -->
+        <version>x.x.x</version>
+    </dependency>
+
+    <!-- ecuacion-lib -->
+    <dependency>
+        <groupId>jp.ecuacion.lib</groupId>
+        <artifactId>ecuacion-lib-validation</artifactId>
+        <!-- Put the latest release version -->
+        <version>x.x.x</version>
+    </dependency>
+    ```
+
+2. Add the required external modules to your `pom.xml`.
+   (Check the `Dependent External Libraries > Manual Load Needed Libraries` section of the `README` in the module you want to add to your project.)

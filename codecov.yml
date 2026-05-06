@@ -1,0 +1,6 @@
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  # ここでターゲットブランチを制限します
+  branches:
+    - "main"
