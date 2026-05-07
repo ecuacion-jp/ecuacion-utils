@@ -21,6 +21,7 @@
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
 	<version>${revision}</version>
+	<name>ecuacion-util-parent</name>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
