@@ -77,8 +77,9 @@
 		<plugins>
 			<!--
 				Required for Maven CI Friendly Versions (<version>${revision}</version>).
-				Generates .flattened-pom.xml with ${revision} resolved to its actual value,
-				so that no unresolved property references remain in the POM published to Maven Central.
+				ossrh mode expands name/description/url/scm/developers from the parent POM so that
+				Maven Central validation succeeds even when the parent is a SNAPSHOT.
+				pomElements additionally resolves ${revision} in version and parent.
 			-->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -86,7 +87,11 @@
 				<version>1.7.0</version>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
-					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+					<flattenMode>ossrh</flattenMode>
+					<pomElements>
+						<version>resolve</version>
+						<parent>resolve</parent>
+					</pomElements>
 				</configuration>
 				<executions>
 					<execution>
