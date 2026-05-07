@@ -20,6 +20,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
@@ -28,7 +29,8 @@
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies</relativePath>
 	</parent>
 	<properties>
-		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
+		<!-- CI Friendly Versions: default for local builds. Overridden by -Drevision=<version> at deploy time. -->
+		<revision>0.0.1-SNAPSHOT</revision>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
 	</properties>
@@ -48,12 +50,12 @@
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-table</artifactId>
-				<version>${ecuacion-utils.version}</version>
+				<version>${revision}</version>
 			</dependency>
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
-				<version>${ecuacion-utils.version}</version>
+				<version>${revision}</version>
 			</dependency>
 			
 			<dependency>
@@ -70,6 +72,41 @@
 		<module>ecuacion-util-excel-table</module>
 		<module>ecuacion-util-excel-report-to-pdf</module>
 	</modules>
+
+	<build>
+		<plugins>
+			<!--
+				Required for Maven CI Friendly Versions (<version>${revision}</version>).
+				Generates .flattened-pom.xml with ${revision} resolved to its actual value,
+				so that no unresolved property references remain in the POM published to Maven Central.
+			-->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendlyVersions</flattenMode>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<profiles>
 		<profile>
