@@ -65,6 +65,10 @@ jobs:
         working-directory: ecuacion-lib
         run: mvn install -DskipTests -q
 
+      - name: Update dependency versions
+        working-directory: ecuacion-utils
+        run: mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DgenerateBackupPoms=false -Drevision=${{ steps.tag.outputs.value }}
+
       - name: Verify
         working-directory: ecuacion-utils
         run: mvn verify -Drevision=${{ steps.tag.outputs.value }} -Dwagon.skip=true

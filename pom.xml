@@ -32,6 +32,8 @@
 	<properties>
 		<!-- CI Friendly Versions: default for local builds. Overridden by -Drevision=<version> at deploy time. -->
 		<revision>0.0.1-SNAPSHOT</revision>
+		<!-- Overrides the inherited property so that versions:update-properties can update it to the latest release at deploy time. -->
+		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
 	</properties>
