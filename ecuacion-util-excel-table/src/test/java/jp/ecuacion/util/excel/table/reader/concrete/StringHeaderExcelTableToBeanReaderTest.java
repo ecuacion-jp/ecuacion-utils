@@ -190,7 +190,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
-              assertThat(((Arg) postfix.getMessageArgs()[1]).resolveAsString(null)).isEqualTo("2");
+              assertThat((String) postfix.getMessageArgs()[1]).isEqualTo("2");
             });
       }
     }
@@ -215,7 +215,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
-              assertThat(((Arg) postfix.getMessageArgs()[1]).resolveAsString(null)).isEqualTo("3");
+              assertThat((String) postfix.getMessageArgs()[1]).isEqualTo("3");
             });
       }
     }
@@ -239,7 +239,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
-              assertThat(((Arg) postfix.getMessageArgs()[1]).resolveAsString(null)).isEqualTo("4");
+              assertThat((String) postfix.getMessageArgs()[1]).isEqualTo("4");
             });
       }
     }
@@ -264,7 +264,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
-              assertThat(((Arg) postfix.getMessageArgs()[1]).resolveAsString(null)).isEqualTo("3");
+              assertThat((String) postfix.getMessageArgs()[1]).isEqualTo("3");
             });
       }
     }
@@ -288,7 +288,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
-              assertThat(((Arg) postfix.getMessageArgs()[0]).resolveAsString(null)).isEqualTo("EmployeeSheet");
+              assertThat((String) postfix.getMessageArgs()[0]).isEqualTo("EmployeeSheet");
             });
       }
     }

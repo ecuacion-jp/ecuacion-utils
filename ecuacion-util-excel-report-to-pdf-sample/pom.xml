@@ -61,6 +61,7 @@
 		<dependency>
 			<groupId>jp.ecuacion.util</groupId>
 			<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- others -->

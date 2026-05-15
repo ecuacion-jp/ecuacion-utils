@@ -409,7 +409,7 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
     }
 
     int excelRowNumber =
-        Integer.parseInt(((Arg) postfix.getMessageArgs()[1]).resolveAsString(null));
+        Integer.parseInt((String) postfix.getMessageArgs()[1]);
 
     Set<String> violatedFieldNames = new LinkedHashSet<>();
     for (ConstraintViolation<?> cv : violations.getConstraintViolations()) {
