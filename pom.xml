@@ -27,7 +27,7 @@
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependencies</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies</relativePath>
+		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies/pom.xml</relativePath>
 	</parent>
 	<properties>
 		<!-- CI Friendly Versions: default for local builds. Overridden by -Drevision=<version> at deploy time. -->

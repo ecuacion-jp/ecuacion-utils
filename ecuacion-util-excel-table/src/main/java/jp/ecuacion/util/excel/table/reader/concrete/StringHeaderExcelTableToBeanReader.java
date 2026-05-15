@@ -230,7 +230,7 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
             .messageParameters(Violations.newMessageParameters()
                 .isMessageWithItemName(true)
                 .messagePostfix(Arg.message(msgId,
-                    Arg.strings(getSheetName(), String.valueOf(excelRowNumber)))))
+                    getSheetName(), String.valueOf(excelRowNumber))))
             .throwIfAny();
 
         bean.afterReading();
@@ -408,7 +408,8 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
               + "Make sure the violations are from readToBean().");
     }
 
-    int excelRowNumber = Integer.parseInt(postfix.getMessageArgs()[1].getArgString());
+    int excelRowNumber =
+        Integer.parseInt((String) postfix.getMessageArgs()[1]);
 
     Set<String> violatedFieldNames = new LinkedHashSet<>();
     for (ConstraintViolation<?> cv : violations.getConstraintViolations()) {

@@ -16,7 +16,6 @@
 package jp.ecuacion.util.excel.exception;
 
 import jp.ecuacion.lib.core.exception.ViolationException;
-import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.lib.core.violation.BusinessViolation;
 import jp.ecuacion.lib.core.violation.Violations;
 import org.apache.poi.ss.usermodel.Cell;
@@ -41,17 +40,7 @@ public class ExcelAppException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelAppException(String messageId, @Nullable String... messageArgs) {
-    super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
-  }
-
-  /**
-   * Constructs an instance.
-   *
-   * @param messageId messageId
-   * @param messageArgs messageArgs
-   */
-  public ExcelAppException(String messageId, Arg... messageArgs) {
+  public ExcelAppException(String messageId, @Nullable Object... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 

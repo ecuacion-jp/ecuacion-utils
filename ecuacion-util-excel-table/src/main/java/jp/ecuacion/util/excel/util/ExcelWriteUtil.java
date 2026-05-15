@@ -30,7 +30,6 @@ import jp.ecuacion.lib.core.violation.Violations;
 import jp.ecuacion.util.excel.exception.ExcelAppException;
 import jp.ecuacion.util.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.formula.CollaboratingWorkbooksEnvironment.WorkbookNotFoundException;
 import org.apache.poi.ss.formula.eval.NotImplementedException;
@@ -339,7 +338,7 @@ public class ExcelWriteUtil {
    * @throws ExcelAppException ExcelAppException
    */
   public static void evaluateFormula(Cell cell, String fileInfo) throws ExcelAppException {
-    Arg fileInfoArg = getFileInfoString(fileInfo);
+    Object fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
     String sheetName = cell.getSheet().getSheetName();
     String cellAddress = cell.getAddress().formatAsString();
@@ -353,21 +352,21 @@ public class ExcelWriteUtil {
       if (ex.getCause() instanceof NotImplementedFunctionException) {
         NotImplementedFunctionException cause = (NotImplementedFunctionException) ex.getCause();
         String msg = MSG_PREFIX + "NotImplementedException.ReasonUnimplementedFunction.message";
-        reason = Arg.message(msg, Arg.string(cause.getFunctionName().replace("_xlfn.", "")));
+        reason = Arg.message(msg, cause.getFunctionName().replace("_xlfn.", ""));
 
       } else {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
 
-      Arg[] args = ArrayUtils.addAll(Arg.strings(sheetName, cellAddress), reason, fileInfoArg);
+      Object[] args = new Object[] {sheetName, cellAddress, reason, fileInfoArg};
       throw new ExcelAppException(MSG_PREFIX + "NotImplementedException.message", args).cell(cell)
           .cause(ex);
 
     } catch (IllegalStateException ex) {
       if (ex.getCause() != null && ex.getCause().getCause() != null
           && ex.getCause().getCause() instanceof WorkbookNotFoundException) {
-        Arg[] args = ArrayUtils.addAll(Arg.strings(sheetName, cellAddress, cell.getCellFormula()),
-            fileInfoArg);
+        Object[] args =
+            new Object[] {sheetName, cellAddress, cell.getCellFormula(), fileInfoArg};
         throw new ExcelAppException(MSG_PREFIX + "WorkbookNotFoundException.message", args)
             .cell(cell).cause(ex);
 
@@ -386,18 +385,15 @@ public class ExcelWriteUtil {
     ExceptionUtil.getMessageList(ex).stream().forEach(msg -> sb.append(msg + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
-    Arg fileInfoArg = getFileInfoString(fileInfo);
-    Arg[] args =
-        ArrayUtils.addAll(new Arg[] {fileInfoArg}, Arg.string(cell.getSheet().getSheetName()),
-            Arg.string(cell.getAddress().formatAsString()), Arg.string(sb.toString()));
+    Object fileInfoArg = getFileInfoString(fileInfo);
+    Object[] args = new Object[] {fileInfoArg, cell.getSheet().getSheetName(),
+        cell.getAddress().formatAsString(), sb.toString()};
 
     throw new ExcelAppException(MSG_PREFIX + "DetailUnknown.message", args).cell(cell).cause(ex);
   }
 
-  private static Arg getFileInfoString(String fileInfo) {
+  private static Object getFileInfoString(String fileInfo) {
     String infoNone = MSG_PREFIX + "FileInfoLabel.None.message";
-    Arg fileInfoLabel = fileInfo == null ? Arg.message(infoNone) : Arg.string(fileInfo);
-
-    return fileInfoLabel;
+    return fileInfo == null ? Arg.message(infoNone) : fileInfo;
   }
 }
