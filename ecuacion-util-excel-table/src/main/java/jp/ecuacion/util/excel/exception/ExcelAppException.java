@@ -40,7 +40,7 @@ public class ExcelAppException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelAppException(String messageId, Object... messageArgs) {
+  public ExcelAppException(String messageId, @Nullable Object... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
