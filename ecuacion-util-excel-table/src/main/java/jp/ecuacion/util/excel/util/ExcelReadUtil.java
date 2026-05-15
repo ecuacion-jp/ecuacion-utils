@@ -254,10 +254,11 @@ public class ExcelReadUtil {
       // We've got this when the cell says "#NUM!" in excel.
       throw new ExcelAppException("jp.ecuacion.util.excel.CellContainsError.message",
           ArrayUtils.addAll(
-              Arg.strings(cell.getRow().getSheet().getSheetName(),
-                  cell.getAddress().formatAsString()),
-              StringUtils.isEmpty(filename) ? Arg.strings("", "")
-                  : new Arg[] {Arg.message("jp.ecuacion.util.excel.common.messageItemSeparator"),
+              new Object[] {cell.getRow().getSheet().getSheetName(),
+                  cell.getAddress().formatAsString()},
+              StringUtils.isEmpty(filename) ? new Object[] {"", ""}
+                  : new Object[] {
+                      Arg.message("jp.ecuacion.util.excel.common.messageItemSeparator"),
                       Arg.message("jp.ecuacion.util.excel.common.filename", filename)}));
 
     } else if (cellType == CellType.BOOLEAN) {
