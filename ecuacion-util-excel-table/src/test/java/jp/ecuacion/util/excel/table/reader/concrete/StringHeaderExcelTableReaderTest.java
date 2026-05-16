@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import java.util.stream.Stream;
 import jp.ecuacion.util.excel.exception.ExcelAppException;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -120,7 +121,8 @@ public class StringHeaderExcelTableReaderTest {
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
       }
     }
@@ -162,7 +164,8 @@ public class StringHeaderExcelTableReaderTest {
             .withIgnoresAdditionalColumnsOfHeaderData(ignores);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
       }
     }
@@ -185,7 +188,8 @@ public class StringHeaderExcelTableReaderTest {
             "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
       }
     }
@@ -206,7 +210,8 @@ public class StringHeaderExcelTableReaderTest {
             "Sheet1", new String[]{"header1", "header2"});
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo(
                 "jp.ecuacion.util.excel.reader.FarLeftHeaderLabelNotFound.message");
       }
@@ -261,7 +266,8 @@ public class StringHeaderExcelTableReaderTest {
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
       }
     }
@@ -338,7 +344,8 @@ public class StringHeaderExcelTableReaderTest {
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message");
       }
     }

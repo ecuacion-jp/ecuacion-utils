@@ -18,6 +18,7 @@ package jp.ecuacion.util.excel.table.writer;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfExcelTable;
@@ -229,6 +230,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public ExcelTableWriter<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
@@ -241,6 +243,7 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public ExcelTableWriter<T> isVerticalAndHorizontalOpposite(boolean value) {
@@ -320,14 +323,15 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
       if (ownedWorkbook == null) {
         return;
       }
+      
       try {
         if (destPath != null) {
           try (FileOutputStream out = new FileOutputStream(destPath)) {
-            ownedWorkbook.write(out);
+            Objects.requireNonNull(ownedWorkbook).write(out);
           }
         }
       } finally {
-        ownedWorkbook.close();
+        Objects.requireNonNull(ownedWorkbook).close();
       }
     }
   }

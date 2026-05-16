@@ -21,6 +21,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellCopyPolicy;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.util.CellUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides the excel table writer interface 
@@ -41,7 +42,9 @@ public interface IfDataTypeCellExcelTableWriter
    * @param sourceCellData sourceCellData
    * @param destCell destCell
    */
-  public default void writeToCell(int columnNumberFromZero, Cell sourceCellData, Cell destCell) {
+  @Override
+  public default void writeToCell(int columnNumberFromZero, @Nullable Cell sourceCellData,
+      Cell destCell) {
     CellCopyPolicy policy = new CellCopyPolicy();
     policy.setCopyCellFormula(false);
 
@@ -79,7 +82,7 @@ public interface IfDataTypeCellExcelTableWriter
       }
     }
   }
-  
+
   /**
    * Sets copiesDataFormatOnly value.
    *

@@ -46,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 @DisplayName("StringHeaderExcelTableToBeanReader")
 public class StringHeaderExcelTableToBeanReaderTest {
 
+  @SuppressWarnings("null")
   @TempDir
   Path tempDir;
 
@@ -64,7 +65,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** @ExcelColumn を使う Bean（getFieldNameArray オーバーライドなし）。 */
+  /** {@code @ExcelColumn} を使う Bean（getFieldNameArray オーバーライドなし）。 */
   static class AnnotatedBean extends StringExcelTableBean {
     @ExcelColumn("name") @NotBlank @Nullable String name;
     @ExcelColumn("age") @Min(1) @Nullable Integer age;
@@ -74,7 +75,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** @ExcelColumn を持つスーパークラス。 */
+  /** {@code @ExcelColumn} を持つスーパークラス。 */
   static class AnnotatedBaseBean extends StringExcelTableBean {
     @ExcelColumn("id") @Min(1) @Nullable Integer id;
 
@@ -92,7 +93,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** @ExcelColumn なし・getFieldNameArray オーバーライドなし。 */
+  /** {@code @ExcelColumn} なし・getFieldNameArray オーバーライドなし。 */
   static class NoAnnotationNoOverrideBean extends StringExcelTableBean {
     @Nullable String name;
 

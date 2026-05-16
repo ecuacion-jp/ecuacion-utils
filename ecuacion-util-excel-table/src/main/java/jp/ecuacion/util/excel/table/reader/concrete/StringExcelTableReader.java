@@ -44,7 +44,7 @@ public abstract class StringExcelTableReader extends ExcelTableReader<String>
   /**
    * Constructs a new instance.
    *
-   * {@see ExcelTableReader}
+   * @see ExcelTableReader
    */
   public StringExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber, @Nullable Integer tableRowSize,

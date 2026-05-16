@@ -158,7 +158,7 @@ public class SheetRenderer {
     float printableWidth = pageSize.getWidth() - leftMargin - rightMargin;
     float printableHeight = pageSize.getHeight() - topMargin - bottomMargin;
 
-    float scaleFactor = computeScaleFactor(sheet, ps, firstRow, lastRow, firstCol, lastCol,
+    float scaleFactor = computeScaleFactor(sheet, firstRow, lastRow, firstCol, lastCol,
         printableWidth, printableHeight);
 
     float[] colWidths = new float[lastCol - firstCol + 1];
@@ -254,7 +254,7 @@ public class SheetRenderer {
     int pageNumber = 1;
     for (int[] colPage : colPages) {
       for (int[] rowPage : rowPages) {
-        renderPage(sheet, pageSize, leftMargin, rightMargin, topMargin, bottomMargin,
+        renderPage(sheet, pageSize, leftMargin, rightMargin, topMargin,
             headerMarginPt, footerMarginPt, rowPage[0], rowPage[1], colPage[0], colPage[1],
             firstRow, firstCol, rowHeights, colWidths, scaleFactor, mergedRegionMap, repeatFirst,
             repeatLast, repeatFirstCol, repeatLastCol, repeatingColsWidth, pageNumber, totalPages);
@@ -319,7 +319,8 @@ public class SheetRenderer {
   /** Returns the 0-based column index from a cell reference like "A1" or "AB3". */
   private int cellRefToCol(String ref) {
     int col = 0;
-    for (char ch : ref.toCharArray()) {
+    for (int i = 0; i < ref.length(); i++) {
+      char ch = ref.charAt(i);
       if (Character.isLetter(ch)) {
         col = col * 26 + (Character.toUpperCase(ch) - 'A' + 1);
       }
@@ -353,7 +354,7 @@ public class SheetRenderer {
    * @param printableHeight available height in points (page height minus top and bottom margins)
    * @return the scale factor to apply to column widths and row heights
    */
-  private float computeScaleFactor(Sheet sheet, PrintSetup ps, int firstRow, int lastRow,
+  private float computeScaleFactor(Sheet sheet, int firstRow, int lastRow,
       int firstCol, int lastCol, float printableWidth, float printableHeight) {
     // For XSSF sheets, check whether the scale attribute is explicitly present in the XML.
     if (sheet instanceof XSSFSheet xssfSheet && xssfSheet.getCTWorksheet().isSetPageSetup()) {
@@ -496,7 +497,7 @@ public class SheetRenderer {
   // -------------------------------------------------------------------------
 
   private void renderPage(Sheet sheet, PDRectangle pageSize, float leftMargin, float rightMargin,
-      float topMargin, float bottomMargin, float headerMarginPt, float footerMarginPt,
+      float topMargin, float headerMarginPt, float footerMarginPt,
       int firstPageRow, int lastPageRow, int firstPageCol, int lastPageCol, int printFirstRow,
       int printFirstCol, float[] rowHeights, float[] colWidths, float scaleFactor,
       Map<String, CellRangeAddress> mergedRegionMap, int repeatFirst, int repeatLast,
@@ -544,7 +545,7 @@ public class SheetRenderer {
 
       // Shapes are rendered on top of cells
       renderShapes(sheet, cs, pageSize, leftMargin, topMargin, firstPageRow, lastPageRow,
-          firstPageCol, lastPageCol, printFirstRow, printFirstCol, rowHeights, colWidths,
+          firstPageCol, printFirstRow, printFirstCol, rowHeights, colWidths,
           scaleFactor);
 
       // Header and footer
@@ -623,7 +624,7 @@ public class SheetRenderer {
 
   private void renderShapes(Sheet sheet, PDPageContentStream cs, PDRectangle pageSize,
       float leftMargin, float topMargin, int firstPageRow, int lastPageRow, int firstPageCol,
-      int lastPageCol, int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
+      int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
       float scaleFactor) throws IOException {
 
     if (!(sheet instanceof XSSFSheet xssfSheet)) {

@@ -18,6 +18,7 @@ package jp.ecuacion.util.excel.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -275,7 +276,8 @@ public class ExcelWriteUtilTest {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .isInstanceOf(ExcelAppException.class)
-              .extracting(e -> ((ExcelAppException) e).getMessageId())
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
               .isEqualTo(
                   "jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message");
         }
@@ -288,7 +290,8 @@ public class ExcelWriteUtilTest {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .isInstanceOf(ExcelAppException.class)
-              .extracting(e -> ((ExcelAppException) e).getMessageId())
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
               .isEqualTo(
                   "jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message");
         }
@@ -300,12 +303,12 @@ public class ExcelWriteUtilTest {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelAppException.class)
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
               .satisfies(e -> {
-                assertThat(((ExcelAppException) e).getMessageId())
+                assertThat(e.getMessageId())
                     .isEqualTo(
                         "jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message");
-                assertThat(((ExcelAppException) e).getCause())
+                assertThat(e.getCause())
                     .isInstanceOf(FormulaParseException.class);
               });
         }
@@ -335,12 +338,12 @@ public class ExcelWriteUtilTest {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelAppException.class)
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
               .satisfies(e -> {
-                assertThat(((ExcelAppException) e).getMessageId())
+                assertThat(e.getMessageId())
                     .isEqualTo(
                         "jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message");
-                assertThat(((ExcelAppException) e).getCause())
+                assertThat(e.getCause())
                     .isInstanceOf(ClassCastException.class);
               });
         }

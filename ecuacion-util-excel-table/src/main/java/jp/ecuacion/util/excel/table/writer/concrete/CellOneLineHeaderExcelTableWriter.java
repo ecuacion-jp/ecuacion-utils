@@ -101,6 +101,7 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
     return columnStyleMap;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public CellOneLineHeaderExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
