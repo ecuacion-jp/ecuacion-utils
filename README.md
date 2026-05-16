@@ -9,8 +9,18 @@
 
 ## What is it?
 
-`ecuacion-utils` provides various utilities.  
-This library is dependent on `ecuacion-lib`.
+`ecuacion-utils` provides Java utilities for Excel and PDF manipulation built on Apache POI and Apache PDFBox.
+
+**What's included:**
+
+- `ecuacion-util-excel-table` — Read/write Excel tables with header or free-format layouts (`List<List<String>>`, Bean mapping, POI Cell access)
+- `ecuacion-util-excel-report-to-pdf` — Generate PDF reports from Excel templates
+
+This library depends on `ecuacion-lib`.
+
+## Versioning
+
+This project follows the spirit of [Semantic Versioning](https://semver.org/). Major version increments indicate breaking changes.
 
 ## System Requirements
 
@@ -44,3 +54,7 @@ This library is dependent on `ecuacion-lib`.
 
 2. Add the required external modules to your `pom.xml`.
    (Check the `Dependent External Libraries > Manual Load Needed Libraries` section of the `README` in the module you want to add to your project.)
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report bugs, suggest features, and submit pull requests.
