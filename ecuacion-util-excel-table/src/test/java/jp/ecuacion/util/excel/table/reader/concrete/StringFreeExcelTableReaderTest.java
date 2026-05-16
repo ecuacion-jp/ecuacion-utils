@@ -17,6 +17,7 @@ package jp.ecuacion.util.excel.table.reader.concrete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import java.util.List;
 import java.util.stream.Stream;
 import jp.ecuacion.util.excel.enums.NoDataString;
@@ -288,8 +289,8 @@ public class StringFreeExcelTableReaderTest {
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
       }
     }
@@ -302,8 +303,8 @@ public class StringFreeExcelTableReaderTest {
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message");
       }
     }

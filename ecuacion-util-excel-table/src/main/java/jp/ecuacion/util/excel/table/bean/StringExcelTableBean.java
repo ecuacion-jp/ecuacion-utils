@@ -213,6 +213,8 @@ public abstract class StringExcelTableBean {
       return null;
     }
 
+    Objects.requireNonNull(value);
+    
     try {
       if (fieldType == Integer.class || fieldType == int.class) {
         return Integer.valueOf(value);

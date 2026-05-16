@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.lib.core.violation.Violations;
@@ -202,8 +203,7 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
    * @throws EncryptedDocumentException EncryptedDocumentException
    * @throws IOException IOException
    */
-  public List<T> readToBean(String filePath)
-      throws EncryptedDocumentException, IOException {
+  public List<T> readToBean(String filePath) throws EncryptedDocumentException, IOException {
     return readToBean(filePath, true);
   }
 
@@ -227,10 +227,8 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
         int excelRowNumber = dataStartExcelRowNumber + i;
         new Violations()
             .addAll(Validation.buildDefaultValidatorFactory().getValidator().validate(bean))
-            .messageParameters(Violations.newMessageParameters()
-                .isMessageWithItemName(true)
-                .messagePostfix(Arg.message(msgId,
-                    getSheetName(), String.valueOf(excelRowNumber))))
+            .messageParameters(Violations.newMessageParameters().isMessageWithItemName(true)
+                .messagePostfix(Arg.message(msgId, getSheetName(), String.valueOf(excelRowNumber))))
             .throwIfAny();
 
         bean.afterReading();
@@ -314,6 +312,7 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
     for (Class<?> c : hierarchy) {
       for (Field f : c.getDeclaredFields()) {
         if (f.isAnnotationPresent(ExcelColumn.class)) {
+          @SuppressWarnings("null")
           String[] annotLabels = f.getAnnotation(ExcelColumn.class).value();
           int colIdx = findColumnIndex(h, numCols, annotLabels);
           if (colIdx < 0) {
@@ -403,13 +402,12 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
       throws IOException {
     Arg postfix = violations.messageParameters().getMessagePostfix();
     if (postfix == null || postfix.getMessageArgs().length < 2) {
-      throw new IllegalArgumentException(
-          "Violations does not contain cell location info. "
-              + "Make sure the violations are from readToBean().");
+      throw new IllegalArgumentException("Violations does not contain cell location info. "
+          + "Make sure the violations are from readToBean().");
     }
 
     int excelRowNumber =
-        Integer.parseInt((String) postfix.getMessageArgs()[1]);
+        Integer.parseInt((String) Objects.requireNonNull(postfix.getMessageArgs()[1]));
 
     Set<String> violatedFieldNames = new LinkedHashSet<>();
     for (ConstraintViolation<?> cv : violations.getConstraintViolations()) {
@@ -466,7 +464,7 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
     for (Class<?> c : hierarchy) {
       for (Field f : c.getDeclaredFields()) {
         if (f.isAnnotationPresent(ExcelColumn.class)) {
-          String[] annotLabels = f.getAnnotation(ExcelColumn.class).value();
+          String[] annotLabels = Objects.requireNonNull(f.getAnnotation(ExcelColumn.class)).value();
           int colIdx = findColumnIndex(h, numCols, annotLabels);
           if (colIdx >= 0) {
             fieldToColIdx.put(f.getName(), tableStartColumnNumber - 1 + colIdx);
@@ -502,10 +500,10 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
         dateTimeFormat);
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
-  public StringHeaderExcelTableToBeanReader<T> ignoresAdditionalColumnsOfHeaderData(
-      boolean value) {
+  public StringHeaderExcelTableToBeanReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
     return withIgnoresAdditionalColumnsOfHeaderData(value);
   }
 
