@@ -1,0 +1,17 @@
+name: Check PR source branch
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify source is a release branch
+        run: |
+          if [[ ! "${{ github.head_ref }}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: PRs to main must come from a release branch (e.g. 4.8, 5.0)."
+            echo "Source branch was: ${{ github.head_ref }}"
+            exit 1
+          fi
