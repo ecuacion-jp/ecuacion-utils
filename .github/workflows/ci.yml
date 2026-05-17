@@ -29,11 +29,11 @@ jobs:
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
-        run: mvn install -DskipTests -q
+        run: mvn install -DskipTests
 
       - name: Verify
         working-directory: ecuacion-utils
-        run: mvn verify -Dwagon.skip=true
+        run: mvn verify -Dwagon.skip=true -e
 
       - name: Upload coverage to Codecov
         if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main')
