@@ -45,7 +45,7 @@
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependencies</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>15.1.0</version>
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies/pom.xml</relativePath>
 	</parent>
 	<properties>
