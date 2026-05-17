@@ -16,6 +16,7 @@
 package jp.ecuacion.util.excel.table.writer.concrete;
 
 import java.io.IOException;
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
@@ -155,8 +156,7 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
   @Override
   protected void headerCheck(Workbook workbook) throws EncryptedDocumentException, IOException {
     new StringHeaderExcelTableReader(getSheetName(), headerLabels2d)
-        .tableStartRowNumber(tableStartRowNumber)
-        .tableStartColumnNumber(tableStartColumnNumber)
+        .tableStartRowNumber(tableStartRowNumber).tableStartColumnNumber(tableStartColumnNumber)
         .tableRowSize(1)
         .withIgnoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
         .withVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);
@@ -173,7 +173,8 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
    */
   public void writeHeaders(Sheet sheet) {
     int poiBasisStartCol = tableStartColumnNumber - 1;
-    int poiBasisStartRow = tableStartRowNumber != null ? tableStartRowNumber - 1 : 0;
+    int poiBasisStartRow =
+        tableStartRowNumber != null ? Objects.requireNonNull(tableStartRowNumber) - 1 : 0;
 
     // Write cell values.
     for (int rowIdx = 0; rowIdx < headerLabels2d.length; rowIdx++) {
@@ -182,8 +183,7 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
         row = sheet.createRow(poiBasisStartRow + rowIdx);
       }
       for (int colIdx = 0; colIdx < headerLabels2d[rowIdx].length; colIdx++) {
-        row.createCell(poiBasisStartCol + colIdx)
-            .setCellValue(headerLabels2d[rowIdx][colIdx]);
+        row.createCell(poiBasisStartCol + colIdx).setCellValue(headerLabels2d[rowIdx][colIdx]);
       }
     }
 
@@ -194,14 +194,12 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
       int startColIdx = 0;
       while (startColIdx < labels.length) {
         int endColIdx = startColIdx;
-        while (endColIdx + 1 < labels.length
-            && labels[endColIdx + 1].equals(labels[startColIdx])) {
+        while (endColIdx + 1 < labels.length && labels[endColIdx + 1].equals(labels[startColIdx])) {
           endColIdx++;
         }
         if (endColIdx > startColIdx) {
-          sheet.addMergedRegion(new CellRangeAddress(
-              poiRow, poiRow,
-              poiBasisStartCol + startColIdx, poiBasisStartCol + endColIdx));
+          sheet.addMergedRegion(new CellRangeAddress(poiRow, poiRow, poiBasisStartCol + startColIdx,
+              poiBasisStartCol + endColIdx));
         }
         startColIdx = endColIdx + 1;
       }
@@ -220,9 +218,8 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
         }
         if (allSame) {
           int poiCol = poiBasisStartCol + colIdx;
-          sheet.addMergedRegion(new CellRangeAddress(
-              poiBasisStartRow, poiBasisStartRow + headerLabels2d.length - 1,
-              poiCol, poiCol));
+          sheet.addMergedRegion(new CellRangeAddress(poiBasisStartRow,
+              poiBasisStartRow + headerLabels2d.length - 1, poiCol, poiCol));
         }
       }
     }

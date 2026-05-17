@@ -61,7 +61,6 @@
 		<dependency>
 			<groupId>jp.ecuacion.util</groupId>
 			<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- others -->
@@ -83,4 +82,23 @@
 		</dependency>
 
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

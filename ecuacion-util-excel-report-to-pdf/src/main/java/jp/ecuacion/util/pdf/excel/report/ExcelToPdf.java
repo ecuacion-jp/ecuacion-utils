@@ -20,7 +20,6 @@ import java.io.IOException;
 import jp.ecuacion.lib.core.exception.ViolationException;
 import jp.ecuacion.lib.core.violation.BusinessViolation;
 import jp.ecuacion.lib.core.violation.Violations;
-import jp.ecuacion.util.pdf.excel.report.internal.CoordinatesManager;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -98,13 +97,11 @@ public class ExcelToPdf {
                 "jp.ecuacion.util.pdf.excel.report.SheetNotExist.message")));
       }
 
-      CoordinatesManager manager = new CoordinatesManager(wb, sheet);
-
       PDPage page = new PDPage(PDRectangle.A5);
       document.addPage(page);
 
       if (showsMarginAreas) {
-        showMarginAreas(wb, sheet, document, page, manager);
+        showMarginAreas(document, page);
       }
 
       PDPageContentStream contentStream = new PDPageContentStream(document, page);
@@ -127,8 +124,7 @@ public class ExcelToPdf {
     document.close();
   }
 
-  private void showMarginAreas(Workbook workbook, Sheet sheet, PDDocument document, PDPage page,
-      CoordinatesManager manager) throws IOException {
+  private void showMarginAreas(PDDocument document, PDPage page) throws IOException {
 
     PDPageContentStream contentStream = new PDPageContentStream(document, page);
 

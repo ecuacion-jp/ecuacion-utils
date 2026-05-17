@@ -40,8 +40,6 @@ public class ExcelReadUtil {
 
   private static DetailLogger detailLog = new DetailLogger(ExcelReadUtil.class);
 
-  private static final String EMPTY_STRING = "";
-
   private static DateTimeFormatter defaultDateTimeFormat =
       DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -60,7 +58,7 @@ public class ExcelReadUtil {
    */
   public static @Nullable String getNoDataStringIfNoData(@Nullable String value,
       @Nullable String noDataString) {
-    if (value == null || value.equals(EMPTY_STRING)) {
+    if (value == null || value.equals("")) {
       return noDataString;
 
     } else {
@@ -202,6 +200,7 @@ public class ExcelReadUtil {
    * @return String value of the cell, may be null when the value in the cell is empty.
    * @throws ExcelAppException ExcelAppException
    */
+  @SuppressWarnings("null")
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
       Cell cell, @Nullable String filename, @Nullable CellType cellType,
       @Nullable String noDataString, @Nullable DateTimeFormatter dateTimeFormat)

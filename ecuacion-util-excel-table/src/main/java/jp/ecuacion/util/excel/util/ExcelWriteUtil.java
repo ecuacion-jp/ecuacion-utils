@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
@@ -112,7 +113,7 @@ public class ExcelWriteUtil {
    * Gets ready to write table data.
    */
   public static <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
-      Workbook workbook, String sheetName, int tableStartColumnNumber) throws ExcelAppException {
+      Workbook workbook, String sheetName, int tableStartColumnNumber) {
 
     detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to write excel file.");
@@ -337,7 +338,7 @@ public class ExcelWriteUtil {
    * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelAppException ExcelAppException
    */
-  public static void evaluateFormula(Cell cell, String fileInfo) throws ExcelAppException {
+  public static void evaluateFormula(Cell cell, String fileInfo) {
     Object fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
     String sheetName = cell.getSheet().getSheetName();
@@ -352,7 +353,8 @@ public class ExcelWriteUtil {
       if (ex.getCause() instanceof NotImplementedFunctionException) {
         NotImplementedFunctionException cause = (NotImplementedFunctionException) ex.getCause();
         String msg = MSG_PREFIX + "NotImplementedException.ReasonUnimplementedFunction.message";
-        reason = Arg.message(msg, cause.getFunctionName().replace("_xlfn.", ""));
+        reason =
+            Arg.message(msg, Objects.requireNonNull(cause).getFunctionName().replace("_xlfn.", ""));
 
       } else {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
@@ -363,10 +365,10 @@ public class ExcelWriteUtil {
           .cause(ex);
 
     } catch (IllegalStateException ex) {
-      if (ex.getCause() != null && ex.getCause().getCause() != null
-          && ex.getCause().getCause() instanceof WorkbookNotFoundException) {
-        Object[] args =
-            new Object[] {sheetName, cellAddress, cell.getCellFormula(), fileInfoArg};
+      if (ex.getCause() != null && Objects.requireNonNull(ex.getCause()).getCause() != null
+          && Objects.requireNonNull(ex.getCause())
+              .getCause() instanceof WorkbookNotFoundException) {
+        Object[] args = new Object[] {sheetName, cellAddress, cell.getCellFormula(), fileInfoArg};
         throw new ExcelAppException(MSG_PREFIX + "WorkbookNotFoundException.message", args)
             .cell(cell).cause(ex);
 

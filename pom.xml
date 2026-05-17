@@ -20,9 +20,28 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
-	<version>${revision}</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>ecuacion-util-parent</name>
+	<description>OSS Java utility library providing Excel table read/write (Apache POI) and Excel-to-PDF report generation (Apache PDFBox).</description>
+	<url>https://github.com/ecuacion-jp/ecuacion-utils</url>
 	<packaging>pom</packaging>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>ecuacion.jp</name>
+			<email>info@ecuacion.jp</email>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:https://github.com/ecuacion-jp/ecuacion-utils.git</connection>
+		<developerConnection>scm:git:https://github.com/ecuacion-jp/ecuacion-utils.git</developerConnection>
+		<url>https://github.com/ecuacion-jp/ecuacion-utils</url>
+	</scm>
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependencies</artifactId>
@@ -30,8 +49,6 @@
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies/pom.xml</relativePath>
 	</parent>
 	<properties>
-		<!-- CI Friendly Versions: default for local builds. Overridden by -Drevision=<version> at deploy time. -->
-		<revision>0.0.1-SNAPSHOT</revision>
 		<!-- Overrides the inherited property so that versions:update-properties can update it to the latest release at deploy time. -->
 		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
 		<org.apache.poi.version>5.4.0</org.apache.poi.version>
@@ -53,18 +70,12 @@
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-table</artifactId>
-				<version>${revision}</version>
+				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			
-			<dependency>
-				<groupId>jakarta.annotation</groupId>
-				<artifactId>jakarta.annotation-api</artifactId>
-				<version>3.0.0</version>
+				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
 			
 		</dependencies>
@@ -74,15 +85,29 @@
 	<modules>
 		<module>ecuacion-util-excel-table</module>
 		<module>ecuacion-util-excel-report-to-pdf</module>
+		<module>ecuacion-util-excel-table-sample</module>
+		<module>ecuacion-util-excel-report-to-pdf-sample</module>
 	</modules>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${org.apache.maven.plugins.maven-gpg-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.sonatype.central</groupId>
+					<artifactId>central-publishing-maven-plugin</artifactId>
+					<version>${org.sonatype.central.central-publishing-maven-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<!--
-				Required for Maven CI Friendly Versions (<version>${revision}</version>).
 				ossrh mode expands name/description/url/scm/developers from the parent POM so that
 				Maven Central validation succeeds even when the parent is a SNAPSHOT.
-				pomElements additionally resolves ${revision} in version and parent.
 			-->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -91,10 +116,6 @@
 				<configuration>
 					<updatePomFile>true</updatePomFile>
 					<flattenMode>ossrh</flattenMode>
-					<pomElements>
-						<version>resolve</version>
-						<parent>resolve</parent>
-					</pomElements>
 				</configuration>
 				<executions>
 					<execution>

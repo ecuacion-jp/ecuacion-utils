@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import jp.ecuacion.util.excel.exception.ExcelAppException;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -118,7 +119,8 @@ public class StringFreeExcelTableWriterTest {
             new StringFreeExcelTableWriter("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("a"))))
             .isInstanceOf(ExcelAppException.class)
-            .extracting(e -> ((ExcelAppException) e).getMessageId())
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+            .extracting(ExcelAppException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
       }
     }

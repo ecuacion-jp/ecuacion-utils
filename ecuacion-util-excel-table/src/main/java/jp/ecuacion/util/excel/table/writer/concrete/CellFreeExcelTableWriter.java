@@ -88,6 +88,7 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
     return columnStyleMap;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public CellFreeExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {

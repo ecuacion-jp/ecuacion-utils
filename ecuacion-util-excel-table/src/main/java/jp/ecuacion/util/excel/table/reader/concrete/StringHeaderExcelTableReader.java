@@ -416,6 +416,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
     return (StringHeaderExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public StringHeaderExcelTableReader ignoresAdditionalColumnsOfHeaderData(boolean value) {
@@ -428,6 +429,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
     return this;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public StringHeaderExcelTableReader isVerticalAndHorizontalOpposite(boolean value) {

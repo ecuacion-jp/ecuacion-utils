@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
@@ -122,8 +123,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  public List<List<T>> read(String filePath)
-      throws EncryptedDocumentException, IOException {
+  public List<List<T>> read(String filePath) throws EncryptedDocumentException, IOException {
     ObjectsUtil.requireNonNull(filePath);
 
     try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
@@ -142,8 +142,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws IOException IOException
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
-  public List<List<T>> read(Workbook workbook)
-      throws EncryptedDocumentException, IOException {
+  public List<List<T>> read(Workbook workbook) throws EncryptedDocumentException, IOException {
 
     // validate the header line
     List<List<T>> headerData = readTableData(workbook, true);
@@ -241,9 +240,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     // when readsHeaderOnly == true, return data is used to validate the header labels,
     // so ignoresColumnSizeSetInReader should also be true.
-    ContextContainer context =
-        getReadyToReadTableData(this, workbook, getSheetName(), tableStartColumnNumber,
-            (readsHeaderOnly) ? getNumberOfHeaderLines() : null, readsHeaderOnly);
+    ContextContainer context = getReadyToReadTableData(this, workbook, getSheetName(),
+        tableStartColumnNumber, readsHeaderOnly ? getNumberOfHeaderLines() : null, readsHeaderOnly);
 
     List<List<T>> rowList = new ArrayList<>();
     try {
@@ -279,12 +277,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws ExcelAppException ExcelAppException
    */
   public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
-      int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader)
-      throws ExcelAppException {
+      int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader) {
     ObjectsUtil.requireNonNull(sheet);
 
     if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
-      return tableColumnSizeGivenByConstructor;
+      return Objects.requireNonNull(tableColumnSizeGivenByConstructor);
     }
 
     // the following is executed when tableColumnSize value needs to be analyzed dynamically.
@@ -363,8 +360,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
     }
 
-    if (context.tableRowSize != null
-        && rowNumber >= context.poiBasisTableStartRowNumber + context.tableRowSize) {
+    if (context.tableRowSize != null && rowNumber >= context.poiBasisTableStartRowNumber
+        + Objects.requireNonNull(context.tableRowSize)) {
       throw new LoopBreakException();
     }
 
@@ -372,8 +369,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     boolean isEmptyRow = true;
 
     int tableColumnSize = java.util.Objects.requireNonNull(context.tableColumnSize);
-    for (int j = context.poiBasisTableStartColumnNumber;
-        j < context.poiBasisTableStartColumnNumber + tableColumnSize; j++) {
+    for (int j = context.poiBasisTableStartColumnNumber; j < context.poiBasisTableStartColumnNumber
+        + tableColumnSize; j++) {
 
       if (reader.isVerticalAndHorizontalOpposite()) {
         Row row = context.sheet.getRow(j);
@@ -432,8 +429,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   public static <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader,
       Workbook workbook, String sheetName, int tableStartColumnNumber,
       @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
-      boolean ignoresColumnSizeSetInReader)
-      throws ExcelAppException {
+      boolean ignoresColumnSizeSetInReader) throws ExcelAppException {
     detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
@@ -508,7 +504,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     @Override
     public void close() throws IOException {
       if (ownedWorkbook != null) {
-        ownedWorkbook.close();
+        Objects.requireNonNull(ownedWorkbook).close();
       }
     }
   }
@@ -548,24 +544,18 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
       List<T> rtn = null;
 
+      rtn = readTableLine(reader, context, rowNumber);
+
+      rowNumber++;
+
+      // check for hasNext
       try {
-        rtn = readTableLine(reader, context, rowNumber);
-
-        rowNumber++;
-
-        // check for hasNext
-        try {
-          readTableLine(reader, context, rowNumber);
-        } catch (LoopBreakException ex) {
-          hasNext = false;
-        }
-
-        return rtn;
-
-      } catch (ExcelAppException ex) {
-        throw ex;
+        readTableLine(reader, context, rowNumber);
+      } catch (LoopBreakException ex) {
+        hasNext = false;
       }
 
+      return rtn;
     }
   }
 
@@ -613,6 +603,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
@@ -625,6 +616,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Override
   @Deprecated
   public ExcelTableReader<T> isVerticalAndHorizontalOpposite(boolean value) {

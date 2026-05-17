@@ -1,0 +1,7 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "4.8"  # 新リリースブランチ作成時に更新する

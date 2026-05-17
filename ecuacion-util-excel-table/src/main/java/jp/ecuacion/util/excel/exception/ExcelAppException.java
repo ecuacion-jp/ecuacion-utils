@@ -15,6 +15,7 @@
  */
 package jp.ecuacion.util.excel.exception;
 
+import java.util.Objects;
 import jp.ecuacion.lib.core.exception.ViolationException;
 import jp.ecuacion.lib.core.violation.BusinessViolation;
 import jp.ecuacion.lib.core.violation.Violations;
@@ -114,7 +115,7 @@ public class ExcelAppException extends ViolationException {
   public ExcelAppException cell(Cell cell) {
     this.cell = cell;
     this.sheet = cell.getSheet();
-    this.workbook = sheet.getWorkbook();
+    this.workbook = Objects.requireNonNull(sheet).getWorkbook();
 
     return this;
   }

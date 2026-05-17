@@ -104,6 +104,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    *
    * @return sheet name
    */
+  @Override
   public String getSheetName() {
     return ObjectsUtil.requireNonNull(sheetName);
   }
