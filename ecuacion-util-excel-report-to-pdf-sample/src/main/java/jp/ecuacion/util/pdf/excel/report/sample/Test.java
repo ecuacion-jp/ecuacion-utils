@@ -15,14 +15,32 @@
  */
 package jp.ecuacion.util.pdf.excel.report.sample;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import jp.ecuacion.util.pdf.excel.report.util.ExcelToPdfUtil;
 
 public class Test {
+  @SuppressWarnings("null")
   public static void main(String[] args) throws Exception {
+    new File("target/test-result").mkdirs();
 
-    ExcelToPdfUtil.generate(Path.of("test.xlsx"), List.of("testSheet"),
-        Path.of("test.pdf"), null);
+    var reg = Test.class.getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
+    var bold = Test.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
+    PdfGenerateOptions options = PdfGenerateOptions.builder()
+        .useSystemFonts(true)
+        .regularFontPath(Path.of(reg.toURI()))  // system font が見つからない場合のフォールバック
+        .boldFontPath(Path.of(bold.toURI()))
+        .build();
+
+    ExcelToPdfUtil.generate(Path.of("test-data/invoice-1.xlsx"), List.of("invoice"),
+        Path.of("target/test-result/invoice-1.pdf"), options);
+
+    ExcelToPdfUtil.generate(Path.of("test-data/invoice-2.xlsx"), List.of("invoice"),
+        Path.of("target/test-result/invoice-2.pdf"), options);
+
+    ExcelToPdfUtil.generate(Path.of("test-data/invoice-3.xlsx"), List.of("invoice"),
+        Path.of("target/test-result/invoice-3.pdf"), options);
   }
 }

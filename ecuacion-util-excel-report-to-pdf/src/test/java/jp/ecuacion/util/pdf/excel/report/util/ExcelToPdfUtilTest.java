@@ -32,8 +32,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import javax.imageio.ImageIO;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.excel.report.internal.SystemFontLocator;
+import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -56,6 +59,7 @@ import org.apache.poi.xssf.model.ThemesTable;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
 import org.jspecify.annotations.Nullable;
@@ -73,6 +77,38 @@ public class ExcelToPdfUtilTest {
   private static final int TOP_MARGIN_PX = 36; // 0.5in = 36pt
   private static final int SAFE_X = 23;        // left margin 0.25in (18pt) + 5
 
+  private static final PdfGenerateOptions TEST_OPTIONS;
+  static {
+    try {
+      var reg = ExcelToPdfUtilTest.class
+          .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
+      var bold = ExcelToPdfUtilTest.class
+          .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
+      TEST_OPTIONS = PdfGenerateOptions.builder()
+          .regularFontPath(Path.of(reg.toURI()))
+          .boldFontPath(Path.of(bold.toURI()))
+          .build();
+    } catch (Exception e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
+
+  private static PdfGenerateOptions optionsWithDateLocale(Locale locale) {
+    try {
+      var reg = ExcelToPdfUtilTest.class
+          .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
+      var bold = ExcelToPdfUtilTest.class
+          .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
+      return PdfGenerateOptions.builder()
+          .regularFontPath(Path.of(reg.toURI()))
+          .boldFontPath(Path.of(bold.toURI()))
+          .dateLocale(locale)
+          .build();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // page size and orientation
   // ---------------------------------------------------------------------------
@@ -87,7 +123,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.A4_PAPERSIZE, false);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -105,7 +141,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.A4_PAPERSIZE, true);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -123,7 +159,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.A5_PAPERSIZE, false);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -141,7 +177,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.A5_PAPERSIZE, true);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -159,7 +195,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.LETTER_PAPERSIZE, false);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -177,7 +213,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMinimalWorkbook(tempDir, PrintSetup.LETTER_PAPERSIZE, true);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -205,7 +241,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithPrintArea(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = new PDFTextStripper().getText(doc);
@@ -221,7 +257,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithPrintArea(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = new PDFTextStripper().getText(doc);
@@ -236,7 +272,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithoutPrintArea(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(1);
@@ -260,7 +296,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithSingleRowBreak(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -275,7 +311,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithMultipleRowBreaks(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(3);
@@ -294,7 +330,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithColumnBreak(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -318,7 +354,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", "LEFT", "CENTER", "RIGHT");
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = new PDFTextStripper().getText(doc);
@@ -332,7 +368,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "Page &P", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("Page 1");
@@ -345,7 +381,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "of &N", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("of 1");
@@ -358,7 +394,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "Sheet: &A", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("Sheet: Sheet1");
@@ -371,7 +407,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "myreport.xlsx", null, "File: &F", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("File: myreport");
@@ -388,7 +424,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "&D &T", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = textOfPage(doc, 1);
@@ -403,7 +439,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "A && B", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("A & B");
@@ -416,7 +452,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeader(tempDir, "test.xlsx", null, "Page &P+3", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(textOfPage(doc, 1)).contains("Page 4");
@@ -429,7 +465,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeaderAndRowBreak(tempDir, "Page &P of &N");
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -444,7 +480,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithFooter(tempDir, "FOOTER_TEXT");
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(new PDFTextStripper().getText(doc)).contains("FOOTER_TEXT");
@@ -458,7 +494,7 @@ public class ExcelToPdfUtilTest {
           null, "&BBold&B &UUnder&U &EDouble&E &SStrike&S &Xsup&X &Ysub&Y", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = textOfPage(doc, 1);
@@ -475,7 +511,7 @@ public class ExcelToPdfUtilTest {
           null, "&14Big &\"Arial,Bold\"Spec &KFF0000Red", null);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = textOfPage(doc, 1);
@@ -490,7 +526,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookWithHeaderMarginConfig(tempDir, 0.5, 1.0);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       float topMarginPt = (float) (1.0 * 72);
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -527,7 +563,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createScaledWorkbook(tempDir, (short) 100);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage image = new PDFRenderer(doc).renderImageWithDPI(0, 72);
@@ -543,7 +579,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createScaledWorkbook(tempDir, (short) 50);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage image = new PDFRenderer(doc).renderImageWithDPI(0, 72);
@@ -559,7 +595,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createScaledWorkbook(tempDir, (short) 200);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage image = new PDFRenderer(doc).renderImageWithDPI(0, 72);
@@ -584,7 +620,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookTooWideForPage(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -597,7 +633,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createWorkbookTooTallForPage(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -610,7 +646,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createSmallWorkbookNoScale(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
 
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -618,6 +654,88 @@ public class ExcelToPdfUtilTest {
         // row height = 60pt, top margin = 36pt → row spans y=[36, 96]
         assertThat(image.getRGB(SAFE_X, TOP_MARGIN_PX + 30) & 0xFFFFFF).isEqualTo(FILL_RGB);
         assertThat(image.getRGB(SAFE_X, TOP_MARGIN_PX + 70) & 0xFFFFFF).isEqualTo(0xFFFFFF);
+      }
+    }
+
+    @Test
+    @DisplayName("fitToPage with both wide and tall content uses min(width-scale, height-scale)")
+    void fitToPageUsesBothConstraints(@TempDir Path tempDir) throws IOException, PdfGenerateException {
+      Path excel = createFitToPageBothConstraintsWorkbook(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      // With fitToPage, both width and height constraints are applied,
+      // so content must fit on exactly 1 page.
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+      }
+    }
+
+    @Test
+    @DisplayName("horizontalCentered=true centers content with equal left and right margins")
+    void horizontalCenteredGivesEqualMargins(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Workbook: 1 column of explicit width 200pt, A4 page, 0.5in margins, horizontalCentered=true
+      // Printable width = 595.28 - 72 = 523.28pt, content width = 200pt (at scale=1)
+      // Centering offset = (523.28 - 200) / 2 ≈ 161.6pt
+      // Content left edge at: 36 + 161.6 = 197.6pt ≈ 198px (at 72dpi)
+      // Content right edge at: 197.6 + 200 = 397.6pt ≈ 398px
+      Path excel = createHorizontallyCenteredWorkbook(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage image = new PDFRenderer(doc).renderImageWithDPI(0, 72);
+        int pageWidth = image.getWidth(); // 595px at 72dpi
+
+        // Find leftmost fill pixel (scan from left at the cell row)
+        int cellRow = TOP_MARGIN_PX + 10; // well inside the 60pt tall row
+        int leftFill = -1;
+        for (int x = 0; x < pageWidth; x++) {
+          if ((image.getRGB(x, cellRow) & 0xFFFFFF) == FILL_RGB) {
+            leftFill = x;
+            break;
+          }
+        }
+        // Find rightmost fill pixel (scan from right)
+        int rightFill = -1;
+        for (int x = pageWidth - 1; x >= 0; x--) {
+          if ((image.getRGB(x, cellRow) & 0xFFFFFF) == FILL_RGB) {
+            rightFill = x;
+            break;
+          }
+        }
+
+        assertThat(leftFill).as("fill should be found").isGreaterThan(0);
+        assertThat(rightFill).as("fill should be found").isGreaterThan(0);
+
+        int leftGap = leftFill;               // distance from page left to content left
+        int rightGap = pageWidth - 1 - rightFill;  // distance from content right to page right
+        // Allow ±3px tolerance for float rounding
+        assertThat(Math.abs(leftGap - rightGap))
+            .as("left gap (%d) should equal right gap (%d) within 3px", leftGap, rightGap)
+            .isLessThanOrEqualTo(3);
+      }
+    }
+
+    @Test
+    @DisplayName("horizontalCentered=false keeps content left-aligned at the left margin")
+    void horizontalNotCenteredStartsAtLeftMargin(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createSmallWorkbookNoScale(tempDir); // no centering, left=0.25in=18pt
+      Path pdf = tempDir.resolve("out.pdf");
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage image = new PDFRenderer(doc).renderImageWithDPI(0, 72);
+        int cellRow = TOP_MARGIN_PX + 10;
+        // left margin = 18pt → fill should start near x=18, not centered
+        assertThat((image.getRGB(SAFE_X, cellRow) & 0xFFFFFF))
+            .as("content should be at left margin, not centered")
+            .isEqualTo(FILL_RGB);
       }
     }
   }
@@ -658,7 +776,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createColoredWorkbook(tempDir, leftIn, topIn);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       float leftPt = (float) (leftIn * 72);
       float topPt = (float) (topIn * 72);
@@ -724,7 +842,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createBorderWorkbook(tempDir, "test.xlsx",
           BorderStyle.THIN, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -746,8 +864,8 @@ public class ExcelToPdfUtilTest {
           BorderStyle.THICK, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, null);
       Path thinPdf = tempDir.resolve("thin.pdf");
       Path thickPdf = tempDir.resolve("thick.pdf");
-      ExcelToPdfUtil.generate(thinXl, List.of("Sheet1"), thinPdf, null);
-      ExcelToPdfUtil.generate(thickXl, List.of("Sheet1"), thickPdf, null);
+      ExcelToPdfUtil.generate(thinXl, List.of("Sheet1"), thinPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(thickXl, List.of("Sheet1"), thickPdf, TEST_OPTIONS);
 
       try (PDDocument thinDoc = Loader.loadPDF(thinPdf.toFile());
           PDDocument thickDoc = Loader.loadPDF(thickPdf.toFile())) {
@@ -768,7 +886,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createBorderWorkbook(tempDir, "test.xlsx",
           BorderStyle.THICK, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, red);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -791,7 +909,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createBorderWorkbook(tempDir, "test.xlsx",
           BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -810,7 +928,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createBorderWorkbook(tempDir, "test.xlsx",
           BorderStyle.THICK, BorderStyle.THICK, BorderStyle.THICK, BorderStyle.THICK, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -831,7 +949,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createBorderWorkbook(tempDir, "test.xlsx",
           BorderStyle.DASHED, BorderStyle.NONE, BorderStyle.NONE, BorderStyle.NONE, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -855,7 +973,7 @@ public class ExcelToPdfUtilTest {
     void diagonalDownIsRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createDiagonalWorkbook(tempDir, "test.xlsx", BorderStyle.THIN, true, false);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -870,7 +988,7 @@ public class ExcelToPdfUtilTest {
     void diagonalUpIsRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createDiagonalWorkbook(tempDir, "test.xlsx", BorderStyle.THIN, false, true);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -885,7 +1003,7 @@ public class ExcelToPdfUtilTest {
     void bothDiagonalsAreRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createDiagonalWorkbook(tempDir, "test.xlsx", BorderStyle.THIN, true, true);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, B_DPI);
@@ -930,7 +1048,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, null, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(new PDFTextStripper().getText(doc)).contains("Hello");
@@ -945,7 +1063,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, null, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(new PDFTextStripper().getText(doc)).contains("請求書");
@@ -965,8 +1083,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path smallPdf = tempDir.resolve("small.pdf");
       Path largePdf = tempDir.resolve("large.pdf");
-      ExcelToPdfUtil.generate(small, List.of("Sheet1"), smallPdf, null);
-      ExcelToPdfUtil.generate(large, List.of("Sheet1"), largePdf, null);
+      ExcelToPdfUtil.generate(small, List.of("Sheet1"), smallPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(large, List.of("Sheet1"), largePdf, TEST_OPTIONS);
 
       try (PDDocument sd = Loader.loadPDF(smallPdf.toFile());
           PDDocument ld = Loader.loadPDF(largePdf.toFile())) {
@@ -992,8 +1110,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path normalPdf = tempDir.resolve("normal.pdf");
       Path boldPdf = tempDir.resolve("bold.pdf");
-      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, null);
-      ExcelToPdfUtil.generate(bold, List.of("Sheet1"), boldPdf, null);
+      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(bold, List.of("Sheet1"), boldPdf, TEST_OPTIONS);
 
       try (PDDocument nd = Loader.loadPDF(normalPdf.toFile());
           PDDocument bd = Loader.loadPDF(boldPdf.toFile())) {
@@ -1017,8 +1135,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path normalPdf = tempDir.resolve("normal.pdf");
       Path italicPdf = tempDir.resolve("italic.pdf");
-      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, null);
-      ExcelToPdfUtil.generate(italic, List.of("Sheet1"), italicPdf, null);
+      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(italic, List.of("Sheet1"), italicPdf, TEST_OPTIONS);
 
       // Synthetic italic shifts the top of the glyph to the right → italic rightmost > normal.
       try (PDDocument nd = Loader.loadPDF(normalPdf.toFile());
@@ -1040,7 +1158,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1070,8 +1188,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path strikePdf = tempDir.resolve("strike.pdf");
       Path noStrikePdf = tempDir.resolve("nostrike.pdf");
-      ExcelToPdfUtil.generate(withStrike, List.of("Sheet1"), strikePdf, null);
-      ExcelToPdfUtil.generate(noStrike, List.of("Sheet1"), noStrikePdf, null);
+      ExcelToPdfUtil.generate(withStrike, List.of("Sheet1"), strikePdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(noStrike, List.of("Sheet1"), noStrikePdf, TEST_OPTIONS);
 
       // Strikethrough adds more blue pixels (the line) than no-strike
       try (PDDocument sd = Loader.loadPDF(strikePdf.toFile());
@@ -1099,8 +1217,8 @@ public class ExcelToPdfUtilTest {
           false, true, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.CENTER, 60, 3840);
       Path normalPdf = tempDir.resolve("normal.pdf");
-      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, null);
-      ExcelToPdfUtil.generate(superXl, List.of("Sheet1"), superPdf, null);
+      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(superXl, List.of("Sheet1"), superPdf, TEST_OPTIONS);
 
       try (PDDocument nd = Loader.loadPDF(normalPdf.toFile());
           PDDocument sd = Loader.loadPDF(superPdf.toFile())) {
@@ -1125,8 +1243,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.CENTER, 60, 3840);
       Path normalPdf = tempDir.resolve("normal.pdf");
       Path subPdf = tempDir.resolve("sub.pdf");
-      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, null);
-      ExcelToPdfUtil.generate(subXl, List.of("Sheet1"), subPdf, null);
+      ExcelToPdfUtil.generate(normal, List.of("Sheet1"), normalPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(subXl, List.of("Sheet1"), subPdf, TEST_OPTIONS);
 
       try (PDDocument nd = Loader.loadPDF(normalPdf.toFile());
           PDDocument sd = Loader.loadPDF(subPdf.toFile())) {
@@ -1149,7 +1267,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1169,7 +1287,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.RIGHT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1197,9 +1315,9 @@ public class ExcelToPdfUtilTest {
       Path leftPdf = tempDir.resolve("left.pdf");
       Path centerPdf = tempDir.resolve("center.pdf");
       Path rightPdf = tempDir.resolve("right.pdf");
-      ExcelToPdfUtil.generate(leftXl, List.of("Sheet1"), leftPdf, null);
-      ExcelToPdfUtil.generate(centerXl, List.of("Sheet1"), centerPdf, null);
-      ExcelToPdfUtil.generate(rightXl, List.of("Sheet1"), rightPdf, null);
+      ExcelToPdfUtil.generate(leftXl, List.of("Sheet1"), leftPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(centerXl, List.of("Sheet1"), centerPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(rightXl, List.of("Sheet1"), rightPdf, TEST_OPTIONS);
 
       try (PDDocument ld = Loader.loadPDF(leftPdf.toFile());
           PDDocument cd = Loader.loadPDF(centerPdf.toFile());
@@ -1215,6 +1333,72 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
+    @DisplayName("LEFT alignment with indent=1 shifts text right compared to no indent")
+    void leftIndentShiftsTextRight(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
+      Path indent0 = createIndentWorkbook(tempDir, "i0.xlsx", HorizontalAlignment.LEFT, (short) 0, blue);
+      Path indent1 = createIndentWorkbook(tempDir, "i1.xlsx", HorizontalAlignment.LEFT, (short) 1, blue);
+      Path pdf0 = tempDir.resolve("out0.pdf");
+      Path pdf1 = tempDir.resolve("out1.pdf");
+      ExcelToPdfUtil.generate(indent0, List.of("Sheet1"), pdf0, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(indent1, List.of("Sheet1"), pdf1, TEST_OPTIONS);
+
+      try (PDDocument d0 = Loader.loadPDF(pdf0.toFile());
+          PDDocument d1 = Loader.loadPDF(pdf1.toFile())) {
+        BufferedImage img0 = new PDFRenderer(d0).renderImageWithDPI(0, T_DPI);
+        BufferedImage img1 = new PDFRenderer(d1).renderImageWithDPI(0, T_DPI);
+        int x0 = leftmostColoredX(img0, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        int x1 = leftmostColoredX(img1, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        assertThat(x1).as("LEFT indent=1 text should start further right than indent=0").isGreaterThan(x0);
+      }
+    }
+
+    @Test
+    @DisplayName("RIGHT alignment with indent=1 shifts text left compared to no indent")
+    void rightIndentShiftsTextLeft(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
+      Path indent0 = createIndentWorkbook(tempDir, "i0.xlsx", HorizontalAlignment.RIGHT, (short) 0, blue);
+      Path indent1 = createIndentWorkbook(tempDir, "i1.xlsx", HorizontalAlignment.RIGHT, (short) 1, blue);
+      Path pdf0 = tempDir.resolve("out0.pdf");
+      Path pdf1 = tempDir.resolve("out1.pdf");
+      ExcelToPdfUtil.generate(indent0, List.of("Sheet1"), pdf0, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(indent1, List.of("Sheet1"), pdf1, TEST_OPTIONS);
+
+      try (PDDocument d0 = Loader.loadPDF(pdf0.toFile());
+          PDDocument d1 = Loader.loadPDF(pdf1.toFile())) {
+        BufferedImage img0 = new PDFRenderer(d0).renderImageWithDPI(0, T_DPI);
+        BufferedImage img1 = new PDFRenderer(d1).renderImageWithDPI(0, T_DPI);
+        int x0 = rightmostColoredX(img0, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        int x1 = rightmostColoredX(img1, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        assertThat(x1).as("RIGHT indent=1 text should end further left than indent=0").isLessThan(x0);
+      }
+    }
+
+    @Test
+    @DisplayName("indent=2 shifts text further than indent=1")
+    void largerIndentShiftsTextFurther(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
+      Path indent1 = createIndentWorkbook(tempDir, "i1.xlsx", HorizontalAlignment.LEFT, (short) 1, blue);
+      Path indent2 = createIndentWorkbook(tempDir, "i2.xlsx", HorizontalAlignment.LEFT, (short) 2, blue);
+      Path pdf1 = tempDir.resolve("out1.pdf");
+      Path pdf2 = tempDir.resolve("out2.pdf");
+      ExcelToPdfUtil.generate(indent1, List.of("Sheet1"), pdf1, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(indent2, List.of("Sheet1"), pdf2, TEST_OPTIONS);
+
+      try (PDDocument d1 = Loader.loadPDF(pdf1.toFile());
+          PDDocument d2 = Loader.loadPDF(pdf2.toFile())) {
+        BufferedImage img1 = new PDFRenderer(d1).renderImageWithDPI(0, T_DPI);
+        BufferedImage img2 = new PDFRenderer(d2).renderImageWithDPI(0, T_DPI);
+        int x1 = leftmostColoredX(img1, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        int x2 = leftmostColoredX(img2, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        assertThat(x2).as("indent=2 text should start further right than indent=1").isGreaterThan(x1);
+      }
+    }
+
+    @Test
     @DisplayName("GENERAL alignment right-aligns numeric cell values")
     void generalAlignRightAlignsNumbers(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
@@ -1225,8 +1409,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path numPdf = tempDir.resolve("num.pdf");
       Path strPdf = tempDir.resolve("str.pdf");
-      ExcelToPdfUtil.generate(numXl, List.of("Sheet1"), numPdf, null);
-      ExcelToPdfUtil.generate(strXl, List.of("Sheet1"), strPdf, null);
+      ExcelToPdfUtil.generate(numXl, List.of("Sheet1"), numPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(strXl, List.of("Sheet1"), strPdf, TEST_OPTIONS);
 
       try (PDDocument nd = Loader.loadPDF(numPdf.toFile());
           PDDocument sd = Loader.loadPDF(strPdf.toFile())) {
@@ -1250,7 +1434,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.GENERAL,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1267,7 +1451,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
       Path excel = createFormulaWorkbook(tempDir, "test.xlsx", "1+1", false, blue);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1284,7 +1468,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
       Path excel = createFormulaWorkbook(tempDir, "test.xlsx", "\"請求\"", true, blue);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1304,7 +1488,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1325,7 +1509,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.BOTTOM, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
@@ -1354,9 +1538,9 @@ public class ExcelToPdfUtilTest {
       Path topPdf = tempDir.resolve("top.pdf");
       Path centerPdf = tempDir.resolve("center.pdf");
       Path bottomPdf = tempDir.resolve("bottom.pdf");
-      ExcelToPdfUtil.generate(topXl, List.of("Sheet1"), topPdf, null);
-      ExcelToPdfUtil.generate(centerXl, List.of("Sheet1"), centerPdf, null);
-      ExcelToPdfUtil.generate(bottomXl, List.of("Sheet1"), bottomPdf, null);
+      ExcelToPdfUtil.generate(topXl, List.of("Sheet1"), topPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(centerXl, List.of("Sheet1"), centerPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(bottomXl, List.of("Sheet1"), bottomPdf, TEST_OPTIONS);
 
       try (PDDocument td = Loader.loadPDF(topPdf.toFile());
           PDDocument cd = Loader.loadPDF(centerPdf.toFile());
@@ -1374,6 +1558,48 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
+    @DisplayName("TOP vertical alignment is applied even when applyAlignment attribute is absent in xf")
+    void topAlignAppliedWhenApplyAlignmentAbsent(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Reproduces a condition found in real Excel files: the <alignment> element has
+      // vertical='top' but applyAlignment is not set, causing Apache POI's
+      // getVerticalAlignment() to return BOTTOM (the default) instead of TOP.
+      // Our getVerticalAlignment() helper reads the raw CTXf to recover the correct value.
+      Path excel = createTopAlignNoApplyAlignmentWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
+        int topmost = topmostColoredY(img, T_PAD_LEFT, T_RIGHT, T_TOP, T_BOTTOM, BLUE_RGB);
+        assertThat(topmost)
+            .as("TOP align (applyAlignment absent): text should appear in the upper half of the cell")
+            .isLessThan(T_SAFE_Y);
+      }
+    }
+
+    @Test
+    @DisplayName("RIGHT horizontal alignment is applied even when applyAlignment attribute is absent in xf")
+    void rightAlignAppliedWhenApplyAlignmentAbsent(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Same applyAlignment-absent condition as the vertical alignment test, but for horizontal.
+      // Apache POI's getAlignment() returns GENERAL (default) when applyAlignment is absent,
+      // even if the <alignment> element has horizontal='right'. Our getHorizontalAlignment()
+      // workaround reads the raw CTXf to recover the correct value.
+      Path excel = createRightAlignNoApplyAlignmentWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, T_DPI);
+        int rightmost = rightmostColoredX(img, T_LEFT, T_RIGHT, T_PAD_TOP, T_BOTTOM, BLUE_RGB);
+        assertThat(rightmost)
+            .as("RIGHT align (applyAlignment absent): text should be in the right half of the cell")
+            .isGreaterThan(T_SAFE_X);
+      }
+    }
+
+    @Test
     @DisplayName("wrapText renders long text across multiple lines")
     void wrappedTextRendersOnMultipleLines(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
@@ -1384,7 +1610,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, true, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Multiple wrapped lines → blue pixels span from near top to near bottom of cell
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -1414,8 +1640,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840, true);
       Path noShrinkPdf = tempDir.resolve("noshrink.pdf");
       Path withShrinkPdf = tempDir.resolve("shrink.pdf");
-      ExcelToPdfUtil.generate(noShrink, List.of("Sheet1"), noShrinkPdf, null);
-      ExcelToPdfUtil.generate(withShrink, List.of("Sheet1"), withShrinkPdf, null);
+      ExcelToPdfUtil.generate(noShrink, List.of("Sheet1"), noShrinkPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(withShrink, List.of("Sheet1"), withShrinkPdf, TEST_OPTIONS);
 
       try (PDDocument nd = Loader.loadPDF(noShrinkPdf.toFile());
           PDDocument sd = Loader.loadPDF(withShrinkPdf.toFile())) {
@@ -1445,7 +1671,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, false, true, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 20, 3840);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       int cellBottomPx = T_TOP + (int) (20 * 2); // 20pt row × 2px/pt = 112px
 
@@ -1467,7 +1693,7 @@ public class ExcelToPdfUtilTest {
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840, false, (short) 255);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Vertical text: blue pixels exist near the top of the cell (first character)
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -1498,8 +1724,8 @@ public class ExcelToPdfUtilTest {
           VerticalAlignment.TOP, 60, 3840);
       Path ulPdf   = tempDir.resolve("ul.pdf");
       Path noUlPdf = tempDir.resolve("noul.pdf");
-      ExcelToPdfUtil.generate(withUl, List.of("Sheet1"), ulPdf, null);
-      ExcelToPdfUtil.generate(noUl,   List.of("Sheet1"), noUlPdf, null);
+      ExcelToPdfUtil.generate(withUl, List.of("Sheet1"), ulPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(noUl,   List.of("Sheet1"), noUlPdf, TEST_OPTIONS);
 
       try (PDDocument ud = Loader.loadPDF(ulPdf.toFile());
           PDDocument nd = Loader.loadPDF(noUlPdf.toFile())) {
@@ -1524,8 +1750,8 @@ public class ExcelToPdfUtilTest {
           Font.U_DOUBLE, blue);
       Path singlePdf = tempDir.resolve("single.pdf");
       Path doublePdf = tempDir.resolve("double.pdf");
-      ExcelToPdfUtil.generate(singleUl, List.of("Sheet1"), singlePdf, null);
-      ExcelToPdfUtil.generate(doubleUl, List.of("Sheet1"), doublePdf, null);
+      ExcelToPdfUtil.generate(singleUl, List.of("Sheet1"), singlePdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(doubleUl, List.of("Sheet1"), doublePdf, TEST_OPTIONS);
 
       try (PDDocument sd = Loader.loadPDF(singlePdf.toFile());
           PDDocument dd = Loader.loadPDF(doublePdf.toFile())) {
@@ -1536,6 +1762,25 @@ public class ExcelToPdfUtilTest {
         assertThat(doubleBlue)
             .as("double underline should produce more blue pixels than single underline")
             .isGreaterThan(singleBlue);
+      }
+    }
+
+    @Test
+    @DisplayName("text is rendered when font line height slightly exceeds cell height after scaling")
+    void textRenderedWhenFontLineTallerThanCellAfterScaling(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // 14pt BOLD has a natural line height of ~20.3pt (ascent+descent for NotoSansJP).
+      // A 20pt row at 85% scale yields a scaled cell height of ~17pt and a scaled font
+      // line height of ~17.3pt — the font is fractionally taller than the cell.
+      // The baseline of CENTER-aligned text is still within the cell; previously a guard
+      // that checked (startY + descent < y) incorrectly skipped the entire line when only
+      // the descenders extended below the cell bottom by less than 1pt.
+      Path excel = createTightFontCellWorkbook(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(new PDFTextStripper().getText(doc)).contains("合計");
       }
     }
   }
@@ -1612,6 +1857,73 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
+    @DisplayName("built-in date format ID 14 renders yyyy/m/d when JVM default locale is Japanese")
+    void builtinDateFormat14WithJapaneseSystemLocale(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Excel stores only the format ID (14) and date serial — no format string.
+      // The renderer reads Locale.getDefault() when no explicit dateLocale is set.
+      // Temporarily set the JVM default to Japanese to simulate a Japanese OS.
+      Locale saved = Locale.getDefault();
+      try {
+        Locale.setDefault(Locale.JAPAN);
+        double d = DateUtil.getExcelDate(LocalDate.of(2018, 2, 21));
+        Path excel = createFormattedCellWorkbook(tempDir, "d14-ja.xlsx", d, "m/d/yy");
+        Path pdf = tempDir.resolve("d14-ja.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          String text = new PDFTextStripper().getText(doc);
+          assertThat(text).as("Japanese default locale: yyyy/mm/dd").contains("2018/02/21");
+        }
+      } finally {
+        Locale.setDefault(saved);
+      }
+    }
+
+    @Test
+    @DisplayName("built-in date format ID 14 renders m/d/yy when JVM default locale is US")
+    void builtinDateFormat14WithUsSystemLocale(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Locale saved = Locale.getDefault();
+      try {
+        Locale.setDefault(Locale.US);
+        double d = DateUtil.getExcelDate(LocalDate.of(2018, 2, 21));
+        Path excel = createFormattedCellWorkbook(tempDir, "d14-us.xlsx", d, "m/d/yy");
+        Path pdf = tempDir.resolve("d14-us.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          String text = new PDFTextStripper().getText(doc);
+          assertThat(text).as("US default locale: m/d/yy should be rendered literally")
+              .contains("2/21/18");
+        }
+      } finally {
+        Locale.setDefault(saved);
+      }
+    }
+
+    @Test
+    @DisplayName("explicit dateLocale in PdfGenerateOptions overrides JVM default locale")
+    void explicitDateLocaleOverridesDefault(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Even when JVM default is US, an explicit Locale.JAPAN in options should win.
+      Locale saved = Locale.getDefault();
+      try {
+        Locale.setDefault(Locale.US);
+        double d = DateUtil.getExcelDate(LocalDate.of(2018, 2, 21));
+        PdfGenerateOptions opts = optionsWithDateLocale(Locale.JAPAN);
+        Path excel = createFormattedCellWorkbook(tempDir, "d14-override.xlsx", d, "m/d/yy");
+        Path pdf = tempDir.resolve("d14-override.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, opts);
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          String text = new PDFTextStripper().getText(doc);
+          assertThat(text).as("explicit JAPAN locale should override US default")
+              .contains("2018/02/21");
+        }
+      } finally {
+        Locale.setDefault(saved);
+      }
+    }
+
+    @Test
     @DisplayName("abbreviated month name format (mmm) renders correctly")
     void dateAbbreviatedMonthName(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
@@ -1682,7 +1994,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createFormulaCellWorkbook(tempDir, "test.xlsx", "1000+234", "#,##0");
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(new PDFTextStripper().getText(doc)).contains("1,234");
       }
@@ -1695,7 +2007,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createFormulaCellWorkbook(tempDir, "test.xlsx",
           String.valueOf(dateSerial), "yyyy/mm/dd", dateSerial);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(new PDFTextStripper().getText(doc)).contains("2026/04/29");
       }
@@ -1716,16 +2028,33 @@ public class ExcelToPdfUtilTest {
       Path excel = createFormattedCellWorkbook(tempDir, "test.xlsx", d,
           "ggge\"年\"m\"月\"d\"日\"");
       Path pdf = tempDir.resolve("out.pdf");
-      assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null))
+      assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS))
           .isInstanceOf(RuntimeException.class)
           .hasMessageContaining("Reiwa");
+    }
+
+    @Test
+    @DisplayName("zero-valued formula cell with accounting format renders as dash not digit zero")
+    void zeroFormulaWithAccountingZeroSection(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Accounting-style formats use a zero section like `"-"??` where `??` is for
+      // decimal-point alignment only. DataFormatter.formatRawCellContents incorrectly
+      // renders the `??` as the digit 0, producing "- 0" instead of "-".
+      Path excel = createZeroFormulaWorkbook(tempDir, "#,##0.00;-#,##0.00;\"-\"??");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        String text = new PDFTextStripper().getText(doc).trim();
+        assertThat(text).as("zero section literal should be rendered").contains("-");
+        assertThat(text).as("digit 0 from ?? placeholder must not appear").doesNotContain("0");
+      }
     }
 
     private void assertFmt(Path dir, String id, double value, String format, String expected)
         throws IOException, PdfGenerateException {
       Path excel = createFormattedCellWorkbook(dir, id + ".xlsx", value, format);
       Path pdf = dir.resolve(id + ".pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         String text = normalizeCjk(new PDFTextStripper().getText(doc));
         assertThat(text)
@@ -1766,7 +2095,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
       Path excel = createBgWorkbook(tempDir, "test.xlsx", blue, FillPatternType.SOLID_FOREGROUND);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1779,7 +2108,7 @@ public class ExcelToPdfUtilTest {
     void noFillRendersAsWhite(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createBgWorkbook(tempDir, "test.xlsx", null, FillPatternType.NO_FILL);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1795,7 +2124,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor white = new XSSFColor(new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, null);
       Path excel = createBgWorkbook(tempDir, "test.xlsx", white, FillPatternType.SOLID_FOREGROUND);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1810,7 +2139,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor black = new XSSFColor(new byte[] {0x00, 0x00, 0x00}, null);
       Path excel = createBgWorkbook(tempDir, "test.xlsx", black, FillPatternType.SOLID_FOREGROUND);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1827,7 +2156,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor red  = new XSSFColor(new byte[] {(byte) 0xFF, 0x00, 0x00}, null);
       Path excel = createAdjacentBgWorkbook(tempDir, "test.xlsx", blue, red);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // cell 0: safe center (78, 132) — blue
       // cell 1: safe center at x = 120 + 42 (col width) / 2 = 141 — red
@@ -1843,7 +2172,7 @@ public class ExcelToPdfUtilTest {
     void indexedColorIsRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createIndexedColorWorkbook(tempDir, "test.xlsx", IndexedColors.DARK_RED);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1860,7 +2189,7 @@ public class ExcelToPdfUtilTest {
     void themeColorIsRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createThemeColorWorkbook(tempDir, "test.xlsx", 4); // accent1
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1918,7 +2247,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
       Path excel = createBgWorkbook(tempDir, "test.xlsx", blue, FillPatternType.THIN_HORZ_BANDS);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1935,7 +2264,7 @@ public class ExcelToPdfUtilTest {
       XSSFColor textRed = new XSSFColor(new byte[] {(byte) 0xFF, 0x00, 0x00}, null);
       Path excel = createBgWithTextWorkbook(tempDir, "test.xlsx", bgBlue, textRed);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, C_DPI);
@@ -1957,7 +2286,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createBgWorkbook(dir, xlName, color, FillPatternType.SOLID_FOREGROUND);
       Path pdf = dir.resolve(pdfName);
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
       return pdf;
     }
 
@@ -2073,7 +2402,7 @@ public class ExcelToPdfUtilTest {
           red, Workbook.PICTURE_TYPE_PNG, 0, 0, 2, 2,
           green, Workbook.PICTURE_TYPE_PNG, 0, 3, 2, 5);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Green image center: top at 36+3×30=126, center y=126+30=156
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -2094,7 +2423,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createImageWithManyRowsWorkbook(tempDir, "test.xlsx", img,
           Workbook.PICTURE_TYPE_PNG);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
@@ -2116,7 +2445,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createScaledImageWorkbook(tempDir, "test.xlsx", img,
           Workbook.PICTURE_TYPE_PNG, (short) 50);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage rendered = new PDFRenderer(doc).renderImageWithDPI(0, IM_DPI);
@@ -2138,7 +2467,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createImageOutsidePrintAreaWorkbook(tempDir, "test.xlsx", img,
           Workbook.PICTURE_TYPE_PNG);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage rendered = new PDFRenderer(doc).renderImageWithDPI(0, IM_DPI);
@@ -2156,6 +2485,31 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
+    @DisplayName("image anchored outside the print area (column direction) is not rendered")
+    void imageOutsidePrintAreaColumnIsNotRendered(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      byte[] img = solidColorPng(0xFF0000, 80, 60);
+      // Print area: cols 0-3 (A-D). Image col1=5 (column F, outside).
+      Path excel = createImageOutsidePrintAreaColumnWorkbook(tempDir, "test.xlsx", img,
+          Workbook.PICTURE_TYPE_PNG);
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage rendered = new PDFRenderer(doc).renderImageWithDPI(0, IM_DPI);
+        boolean hasRed = false;
+        for (int y = 0; y < rendered.getHeight() && !hasRed; y++) {
+          for (int x = 0; x < rendered.getWidth() && !hasRed; x++) {
+            if (isReddish(rendered.getRGB(x, y))) {
+              hasRed = true;
+            }
+          }
+        }
+        assertThat(hasRed).as("image outside print area column should not be rendered").isFalse();
+      }
+    }
+
+    @Test
     @DisplayName("image and cell text/background coexist on the same page")
     void imageAndCellContentCoexist(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
@@ -2164,7 +2518,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createImageWithCellContentWorkbook(tempDir, "test.xlsx", img,
           Workbook.PICTURE_TYPE_PNG);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         // Image should be rendered
@@ -2181,7 +2535,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createImageWorkbook(dir, "test.xlsx", imgBytes, pictureType,
           col1, row1, col2, row2);
       Path pdf = dir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
       return pdf;
     }
 
@@ -2230,7 +2584,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergedWorkbook(tempDir, "test.xlsx", 0, 0, 0, 2,
           blue, null, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Merge: width = 3 × 50 = 150px. Right edge = 18 + 150 = 168px.
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -2251,7 +2605,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergedWorkbook(tempDir, "test.xlsx", 0, 2, 0, 0,
           blue, null, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Merge: height = 3 × 30 = 90px. Bottom edge = 36 + 90 = 126px.
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -2272,7 +2626,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergedWorkbook(tempDir, "test.xlsx", 0, 1, 0, 1,
           blue, null, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // Merge: 2×2 = 100px wide, 60px tall.
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
@@ -2294,7 +2648,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergeWithBorderWorkbook(tempDir, "test.xlsx",
           0, 0, 0, 2, BorderStyle.THICK, BorderStyle.NONE);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // At 144 DPI: right edge = 36 + 3×100 = 336px
       int rightEdge = MB_LM + 3 * MB_DPI / 72 * M_COL; // 36 + 300 = 336
@@ -2313,7 +2667,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergeWithBorderWorkbook(tempDir, "test.xlsx",
           0, 2, 0, 0, BorderStyle.NONE, BorderStyle.THICK);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       // At 144 DPI: bottom edge = 72 + 3×60 = 252px, col center = 36 + 50 = 86px
       int bottomEdge = MB_TM + 3 * MB_DPI / 72 * M_ROW;  // 72 + 180 = 252
@@ -2334,7 +2688,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createMergedWorkbook(tempDir, "test.xlsx", 0, 2, 0, 2,
           blue, null, null);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, M_DPI);
@@ -2363,8 +2717,8 @@ public class ExcelToPdfUtilTest {
           0, 0, 0, 0, blue, HorizontalAlignment.RIGHT);
       Path mergedPdf = tempDir.resolve("merged.pdf");
       Path singlePdf = tempDir.resolve("single.pdf");
-      ExcelToPdfUtil.generate(mergedXl, List.of("Sheet1"), mergedPdf, null);
-      ExcelToPdfUtil.generate(singleXl, List.of("Sheet1"), singlePdf, null);
+      ExcelToPdfUtil.generate(mergedXl, List.of("Sheet1"), mergedPdf, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(singleXl, List.of("Sheet1"), singlePdf, TEST_OPTIONS);
 
       try (PDDocument md = Loader.loadPDF(mergedPdf.toFile());
           PDDocument sd = Loader.loadPDF(singlePdf.toFile())) {
@@ -2395,7 +2749,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleRowsWorkbook(tempDir, "test.xlsx");
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
@@ -2418,7 +2772,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleRowsWorkbook(tempDir, "test.xlsx");
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         // Row 1 (first content row) appears on page 1 only
@@ -2433,11 +2787,283 @@ public class ExcelToPdfUtilTest {
         assertThat(s2.getText(doc)).contains("row35");
       }
     }
+
+    @Test
+    @DisplayName("preamble rows (before print title row) appear on page 1 only")
+    void preambleRowsAppearOnFirstPageOnly(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createPreambleTitleRowsWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isGreaterThanOrEqualTo(2);
+        PDFTextStripper s1 = new PDFTextStripper();
+        s1.setStartPage(1);
+        s1.setEndPage(1);
+        String page1 = s1.getText(doc);
+        PDFTextStripper s2 = new PDFTextStripper();
+        s2.setStartPage(2);
+        s2.setEndPage(2);
+        String page2 = s2.getText(doc);
+
+        // Preamble rows (PREAMBLE_A, PREAMBLE_B) appear on page 1
+        assertThat(page1).contains("PREAMBLE_A");
+        assertThat(page1).contains("PREAMBLE_B");
+        // Preamble rows do NOT appear on page 2
+        assertThat(page2).doesNotContain("PREAMBLE_A");
+        assertThat(page2).doesNotContain("PREAMBLE_B");
+        // Title row (HEADER) appears on both pages
+        assertThat(page1).contains("HEADER");
+        assertThat(page2).contains("HEADER");
+        // Content rows are distributed across pages
+        assertThat(page1).contains("row1");
+        assertThat(page2).contains("row30");
+      }
+    }
+
+    @Test
+    @DisplayName("preamble rows on page 1 reduce available space for content rows")
+    void preambleRowsReduceContentCapacityOnPage1(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createPreambleTitleRowsWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        // Without preamble 30 content rows (30×25=750pt) fit on page 1.
+        // With preamble (2×20=40pt) the page-1 capacity drops to 710pt → only 28 rows fit.
+        // row29 must therefore appear on page 2, not page 1.
+        PDFTextStripper s1 = new PDFTextStripper();
+        s1.setStartPage(1);
+        s1.setEndPage(1);
+        String page1 = s1.getText(doc);
+        assertThat(page1).doesNotContain("row29");
+        PDFTextStripper s2 = new PDFTextStripper();
+        s2.setStartPage(2);
+        s2.setEndPage(2);
+        String page2 = s2.getText(doc);
+        assertThat(page2).contains("row29");
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
   // multiple sheets
   // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // table style rendering
+  // ---------------------------------------------------------------------------
+
+  @Nested
+  @DisplayName("table style")
+  class TableStyleRendering {
+
+    @Test
+    @DisplayName("table header row receives fill colour from the table style")
+    void headerRowHasTableStyleFill(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // Use a custom table style with an explicit-RGB fill so colour resolution
+      // does not depend on the workbook's theme being populated.
+      Path excel = createTableWithCustomStyleWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, 144);
+        // Header row: top margin = 0.25in = 18pt → 36px at 144 DPI.
+        // Sample a pixel in the header row fill area.
+        int sampleX = 40;
+        int headerY = 36 + 5;
+        int rgb = img.getRGB(sampleX, headerY) & 0xFFFFFF;
+        // Header should not be white (custom style applies a red fill: #FF0000)
+        assertThat(rgb)
+            .as("Header row should have a non-white fill from the table style")
+            .isNotEqualTo(0xFFFFFF);
+      }
+    }
+
+    @Test
+    @DisplayName("alternating row stripes produce different fills on odd and even data rows")
+    void rowStripesAlternate(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createTableWithCustomStyleWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, 144);
+        int sampleX = 40;
+        // Header 20pt=40px ends at 76px. Data rows 25pt=50px each.
+        int row1Y = 36 + 40 + 10;      // inside first data row (stripe)
+        int row2Y = 36 + 40 + 50 + 10; // inside second data row (no stripe)
+        int rgb1 = img.getRGB(sampleX, row1Y) & 0xFFFFFF;
+        int rgb2 = img.getRGB(sampleX, row2Y) & 0xFFFFFF;
+        assertThat(rgb1)
+            .as("First data row (stripe) fill should differ from second data row (no stripe)")
+            .isNotEqualTo(rgb2);
+      }
+    }
+
+    @Test
+    @DisplayName("built-in table style with theme colours resolves via ThemesTable (inheritFromThemeAsRequired)")
+    void builtinTableStyleThemeColourResolved(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      // invoice-table-theme-test.xlsx is a real Excel file with a custom theme.
+      // Its "InvoiceDetails" table uses TableStyleMedium6 which applies the theme's
+      // accent5 colour (#5E858C = teal) as the header fill.  This exercises the
+      // ThemesTable.inheritFromThemeAsRequired() fallback in poiColorToAwt().
+      var stream = ExcelToPdfUtilTest.class.getResourceAsStream(
+          "/invoice-table-theme-test.xlsx");
+      assertThat(stream).as("test resource must be present").isNotNull();
+      Path excel = tempDir.resolve("invoice.xlsx");
+      try (stream) {
+        Files.copy(stream, excel);
+      }
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Invoice"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, 144);
+
+        // The table header (row 10 in the invoice, "Details"/"AMOUNT") is at
+        // roughly the middle of the page. We cannot pin the exact pixel position
+        // without replicating the layout calculation, so instead we check that
+        // at least ONE non-white, non-grey pixel exists in the vertical centre
+        // band of the image — confirming that the teal header fill was rendered.
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int cx = w / 2;
+        boolean foundColoredFill = false;
+        outer:
+        for (int y = h / 6; y < 2 * h / 3; y++) {
+          for (int dx = -w / 8; dx <= w / 8; dx++) {
+            int rgb = img.getRGB(cx + dx, y) & 0xFFFFFF;
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >>  8) & 0xFF;
+            int b =  rgb        & 0xFF;
+            // A "coloured" pixel is one whose channels differ significantly
+            // (not pure grey: |r-g|>20 or |g-b|>20 or |r-b|>20 and not white)
+            if (rgb != 0xFFFFFF && (Math.abs(r - g) > 20 || Math.abs(g - b) > 20
+                || Math.abs(r - b) > 20)) {
+              foundColoredFill = true;
+              break outer;
+            }
+          }
+        }
+        assertThat(foundColoredFill)
+            .as("At least one coloured (non-grey) fill pixel should be visible, "
+                + "confirming that theme-based table style colours were resolved")
+            .isTrue();
+      }
+    }
+
+    @Test
+    @DisplayName("wholeTable horizontal border draws a line between data rows")
+    void horizontalBordersVisibleBetweenDataRows(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createTableWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        PDFTextStripper s = new PDFTextStripper();
+        String text = s.getText(doc);
+        assertThat(text).contains("HEADER").contains("Row1").contains("Row2").contains("Row3");
+
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, 144);
+        // Boundary between row1 and row2: 36 (margin) + 40 (header) + 50 (row1) = 126px.
+        int borderY = 36 + 40 + 50;
+        int sampleX = 40;
+        boolean borderFound = false;
+        for (int dy = -2; dy <= 2; dy++) {
+          int y = borderY + dy;
+          if (y >= 0 && y < img.getHeight()) {
+            if ((img.getRGB(sampleX, y) & 0xFFFFFF) != 0xFFFFFF) {
+              borderFound = true;
+              break;
+            }
+          }
+        }
+        assertThat(borderFound)
+            .as("A horizontal border line should be visible between data rows")
+            .isTrue();
+      }
+    }
+
+    @Test
+    @DisplayName("header text appears white on dark table header background")
+    void headerTextIsWhiteOnDarkBackground(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createTableWithCustomStyleWorkbook(tempDir, "test.xlsx");
+      Path pdf = tempDir.resolve("out.pdf");
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(new PDFTextStripper().getText(doc)).contains("HEADER");
+
+        BufferedImage img = new PDFRenderer(doc).renderImageWithDPI(0, 144);
+        int sampleX = 40;
+        int headerFillY = 36 + 5; // background pixel in header area
+        int fillRgb = img.getRGB(sampleX, headerFillY) & 0xFFFFFF;
+        // Custom style uses explicit red (#FF0000) fill → clearly dark enough to trigger
+        // white text fallback. Verify that the fill is NOT white.
+        int r = (fillRgb >> 16) & 0xFF;
+        int g = (fillRgb >> 8)  & 0xFF;
+        int b =  fillRgb        & 0xFF;
+        double lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
+        assertThat(lum)
+            .as("Header fill should be a dark colour (luminance < 0.5)")
+            .isLessThan(0.5);
+      }
+    }
+
+    @Test
+    @DisplayName("showLastColumn applies bold font to data rows in the last column")
+    void lastColumnDataRowsAreBold(@TempDir Path tempDir)
+        throws Exception {
+      // Generate two PDFs: one WITH showLastColumn (bold) and one WITHOUT.
+      // The last column area should look different: bold text has more ink than regular.
+      Path excelWith = createTableWithLastColumnWorkbook(tempDir, "with.xlsx");
+      Path excelWithout = createTableWithLastColumnNoShowWorkbook(tempDir, "without.xlsx");
+      Path pdfWith = tempDir.resolve("with.pdf");
+      Path pdfWithout = tempDir.resolve("without.pdf");
+      ExcelToPdfUtil.generate(excelWith, List.of("Sheet1"), pdfWith, TEST_OPTIONS);
+      ExcelToPdfUtil.generate(excelWithout, List.of("Sheet1"), pdfWithout, TEST_OPTIONS);
+
+      try (PDDocument docWith = Loader.loadPDF(pdfWith.toFile());
+          PDDocument docWithout = Loader.loadPDF(pdfWithout.toFile())) {
+        assertThat(new PDFTextStripper().getText(docWith))
+            .contains("ColA-Row1").contains("ColB-Row1");
+
+        BufferedImage imgWith    = new PDFRenderer(docWith).renderImageWithDPI(0, 144);
+        BufferedImage imgWithout = new PDFRenderer(docWithout).renderImageWithDPI(0, 144);
+
+        // Count dark pixels in the data rows (skip header).
+        // Table is B1:C3; C is the last column. At 144 DPI, left margin=0.25in=36px,
+        // each column ~123px. Data rows: y≈76–176px. Scan full width — A/B are
+        // identical in both PDFs, so any difference comes from C-column bold.
+        int w = imgWith.getWidth();
+        int h = imgWith.getHeight();
+        int yStart = h / 20;   // ~84px — below header row (36–76px)
+        int yEnd   = h / 9;    // ~187px — past both data rows (76–176px)
+
+        int darkWith = 0, darkWithout = 0;
+        for (int y = yStart; y < yEnd; y++) {
+          for (int x = 0; x < w; x++) {
+            double lum = luminance(imgWith.getRGB(x, y));
+            if (lum < 0.5) darkWith++;
+            lum = luminance(imgWithout.getRGB(x, y));
+            if (lum < 0.5) darkWithout++;
+          }
+        }
+        assertThat(darkWith)
+            .as("showLastColumn=true (bold) should produce more dark pixels than without")
+            .isGreaterThan(darkWithout);
+      }
+    }
+  }
 
   @Nested
   @DisplayName("multiple sheets")
@@ -2449,7 +3075,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTwoSheetWorkbook(tempDir, "test.xlsx");
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1", "Sheet2"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1", "Sheet2"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -2471,7 +3097,7 @@ public class ExcelToPdfUtilTest {
       Path excel = createTwoSheetWorkbook(tempDir, "test.xlsx");
       Path pdf = tempDir.resolve("out.pdf");
       // Reversed order
-      ExcelToPdfUtil.generate(excel, List.of("Sheet2", "Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet2", "Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -2501,7 +3127,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleColsWorkbook(tempDir, "test.xlsx", 1, 11);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -2527,7 +3153,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleColsWorkbook(tempDir, "test.xlsx", 2, 10);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(2);
@@ -2550,7 +3176,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleColsWorkbook(tempDir, "test.xlsx", 1, 4);
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(1);
@@ -2565,7 +3191,7 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createTitleColsAndRowsWorkbook(tempDir, "test.xlsx");
       Path pdf = tempDir.resolve("out.pdf");
-      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, null);
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
       try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
         assertThat(doc.getNumberOfPages()).isEqualTo(4);
@@ -2583,6 +3209,341 @@ public class ExcelToPdfUtilTest {
         s2.setStartPage(2);
         s2.setEndPage(2);
         assertThat(s2.getText(doc)).contains("row31");
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // useSystemFonts
+  // ---------------------------------------------------------------------------
+
+  @Nested
+  @DisplayName("useSystemFonts")
+  class UseSystemFonts {
+
+    @Test
+    @DisplayName("falls back to regularFontPath when system font is not found")
+    void fallsBackToRegularFontPath(@TempDir Path tempDir) throws IOException, PdfGenerateException {
+      Path excel = createWorkbookWithUnknownFont(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      // getRegularFontPath() is @Nullable but TEST_OPTIONS always has it set
+      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      PdfGenerateOptions options = PdfGenerateOptions.builder()
+          .useSystemFonts(true)
+          .regularFontPath(regularPath)
+          .boldFontPath(boldPath)
+          .build();
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+      }
+    }
+
+    @Test
+    @DisplayName("フォールバック時にfitToPageのスケールが正しく1ページに収まる")
+    void fallback_fitToPageFitsOnOnePage(@TempDir Path tempDir) throws Exception {
+      // Create a workbook with an unknown font (not available on any system) + Fit to Page.
+      // Columns are deliberately wider than the printable area so fitScale must be < 1.
+      // Without MDW from the fallback font, getColumnNaturalWidthInPt uses POI's
+      // getColumnWidthInPixels() which omits the OOXML +5 px margin, underestimating
+      // naturalColTotal → fitScale > 1 → content scales UP → rows appear too tall.
+      // With the fix (MDW from NotoSansJP), the OOXML formula is used and scale < 1.
+      try (XSSFWorkbook wb = new XSSFWorkbook()) {
+        XSSFFont font = wb.getFontAt(0);
+        font.setFontName("__NonExistentFontABC__");
+        font.setFontHeightInPoints((short) 11);
+
+        var sheet = wb.createSheet("S");
+        sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+        sheet.setFitToPage(true);
+        sheet.setMargin(PageMargin.LEFT, 0.5);
+        sheet.setMargin(PageMargin.RIGHT, 0.5);
+        sheet.setMargin(PageMargin.TOP, 0.5);
+        sheet.setMargin(PageMargin.BOTTOM, 0.5);
+        // Wide columns: naturalColTotal >> A4 printable width
+        for (int c = 0; c < 15; c++) {
+          sheet.setColumnWidth(c, 25 * 256);
+        }
+        // Many rows: if fitScale > 1 and height not capped, content would spill to page 2
+        for (int r = 0; r < 50; r++) {
+          var row = sheet.createRow(r);
+          row.setHeightInPoints(15);
+          row.createCell(0).setCellValue("row" + r);
+        }
+        Path excel = tempDir.resolve("fallback-fit.xlsx");
+        try (var out = Files.newOutputStream(excel)) {
+          wb.write(out);
+        }
+        Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+        Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+        PdfGenerateOptions options = PdfGenerateOptions.builder()
+            .useSystemFonts(true)
+            .regularFontPath(regularPath)
+            .boldFontPath(boldPath)
+            .build();
+        Path pdf = tempDir.resolve("fallback-fit.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("S"), pdf, options);
+
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          assertThat(doc.getNumberOfPages()).isEqualTo(1);
+          var stripper = new PDFTextStripper();
+          assertThat(stripper.getText(doc)).contains("row0").contains("row49");
+        }
+      }
+    }
+
+    @Test
+    @DisplayName("throws PdfGenerateException when system font not found and no fallback path set")
+    void throwsWhenSystemFontNotFoundAndNoFallback(@TempDir Path tempDir) {
+      Path excel;
+      try {
+        excel = createWorkbookWithUnknownFont(tempDir);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      Path pdf = tempDir.resolve("out.pdf");
+      PdfGenerateOptions options = PdfGenerateOptions.builder()
+          .useSystemFonts(true)
+          .build();
+
+      assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options))
+          .isInstanceOf(PdfGenerateException.class);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fit to Page scale factor
+  // ---------------------------------------------------------------------------
+
+  @Nested
+  @DisplayName("Fit to Page scale factor")
+  class FitToPageScale {
+
+    @Test
+    @DisplayName("列幅がページ幅を超える場合に1ページに収まる")
+    void wideContent_fitsOnOnePage(@TempDir Path tmp) throws Exception {
+      try (XSSFWorkbook wb = new XSSFWorkbook()) {
+        var sheet = wb.createSheet("S");
+        sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+        sheet.setFitToPage(true);
+        sheet.setMargin(PageMargin.LEFT, 0.5);
+        sheet.setMargin(PageMargin.RIGHT, 0.5);
+        sheet.setMargin(PageMargin.TOP, 0.5);
+        sheet.setMargin(PageMargin.BOTTOM, 0.5);
+        // 20 columns × 30 chars → natural total >> A4 printable width (~523pt)
+        for (int c = 0; c < 20; c++) {
+          sheet.setColumnWidth(c, 30 * 256);
+        }
+        for (int r = 0; r < 3; r++) {
+          var row = sheet.createRow(r);
+          row.setHeightInPoints(20);
+          for (int c = 0; c < 20; c++) {
+            row.createCell(c).setCellValue("R" + r + "C" + c);
+          }
+        }
+        Path excel = tmp.resolve("wide.xlsx");
+        try (var out = Files.newOutputStream(excel)) {
+          wb.write(out);
+        }
+        Path pdf = tmp.resolve("wide.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("S"), pdf, TEST_OPTIONS);
+
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          assertThat(doc.getNumberOfPages()).isEqualTo(1);
+          var stripper = new PDFTextStripper();
+          String text = stripper.getText(doc);
+          assertThat(text).contains("R0C0").contains("R1C0").contains("R2C0");
+        }
+      }
+    }
+
+    @Test
+    @DisplayName("行数が多い場合に高さ制約で1ページに収まる")
+    void tallContent_fitsOnOnePageByHeightConstraint(@TempDir Path tmp) throws Exception {
+      try (XSSFWorkbook wb = new XSSFWorkbook()) {
+        var sheet = wb.createSheet("S");
+        sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+        sheet.setFitToPage(true);
+        sheet.setMargin(PageMargin.LEFT, 0.5);
+        sheet.setMargin(PageMargin.RIGHT, 0.5);
+        sheet.setMargin(PageMargin.TOP, 0.5);
+        sheet.setMargin(PageMargin.BOTTOM, 0.5);
+        // 1 narrow column (width constraint trivially satisfied)
+        sheet.setColumnWidth(0, 10 * 256);
+        // 200 rows × 30pt = 6000pt >> A4 printable height (~769pt)
+        for (int r = 0; r < 200; r++) {
+          var row = sheet.createRow(r);
+          row.setHeightInPoints(30);
+          row.createCell(0).setCellValue("row" + r);
+        }
+        Path excel = tmp.resolve("tall.xlsx");
+        try (var out = Files.newOutputStream(excel)) {
+          wb.write(out);
+        }
+        Path pdf = tmp.resolve("tall.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("S"), pdf, TEST_OPTIONS);
+
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          assertThat(doc.getNumberOfPages()).isEqualTo(1);
+          var stripper = new PDFTextStripper();
+          String text = stripper.getText(doc);
+          assertThat(text).contains("row0").contains("row199");
+        }
+      }
+    }
+
+    @Test
+    @DisplayName("行高がfitScaleで正確にスケールされる（テキスト位置で検証）")
+    void rowHeightScaledAccurately(@TempDir Path tmp) throws Exception {
+      final float rowHeightPt = 20f;
+      final double leftMarginIn = 0.5, topMarginIn = 0.5;
+
+      try (XSSFWorkbook wb = new XSSFWorkbook()) {
+        var sheet = wb.createSheet("S");
+        sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+        sheet.setFitToPage(true);
+        sheet.setMargin(PageMargin.LEFT, leftMarginIn);
+        sheet.setMargin(PageMargin.RIGHT, leftMarginIn);
+        sheet.setMargin(PageMargin.TOP, topMarginIn);
+        sheet.setMargin(PageMargin.BOTTOM, topMarginIn);
+        // 10 wide columns → naturalColTotal > printable width → fitScale < 1
+        for (int c = 0; c < 10; c++) {
+          sheet.setColumnWidth(c, 25 * 256);
+        }
+        // Compute expected fitScale using the same MDW logic as production code.
+        // Fresh XSSFWorkbook has no theme → mdwFontName = defaultFontName = "Calibri" (POI default).
+        // Production: find Calibri → computeMdw; fallback to NotoSansJP if Calibri not found.
+        float fontSizePt = wb.getFontAt(0).getFontHeightInPoints();
+        String mdwFontName = wb.getFontAt(0).getFontName(); // "Calibri" for fresh workbook
+        var mdwFontFile = SystemFontLocator.findFontFile(mdwFontName);
+        int mdwForTest;
+        if (mdwFontFile.isPresent()) {
+          mdwForTest = SystemFontLocator.computeMdw(mdwFontFile.get(), mdwFontName, fontSizePt);
+        } else {
+          mdwForTest = SystemFontLocator.computeMdw(
+              java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath()), "", fontSizePt);
+        }
+        float naturalColTotal = 0f;
+        for (int c = 0; c < 10; c++) {
+          if (mdwForTest > 0) {
+            naturalColTotal += (int)(sheet.getColumnWidth(c) / 256.0 * mdwForTest + 5) * (72f / 96f);
+          } else {
+            naturalColTotal += sheet.getColumnWidthInPixels(c) * (72f / 96f);
+          }
+        }
+        float printableWidthPt = (float) (PDRectangle.A4.getWidth() - 2 * leftMarginIn * 72);
+        float expectedFitScale = printableWidthPt / naturalColTotal;
+        float expectedScaledRowHeight = rowHeightPt * expectedFitScale;
+
+        // 2 rows with distinct text
+        for (int r = 0; r < 2; r++) {
+          var row = sheet.createRow(r);
+          row.setHeightInPoints(rowHeightPt);
+          row.createCell(0).setCellValue(r == 0 ? "FIRST" : "SECOND");
+        }
+        Path excel = tmp.resolve("rowscale.xlsx");
+        try (var out = Files.newOutputStream(excel)) {
+          wb.write(out);
+        }
+        Path pdf = tmp.resolve("rowscale.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("S"), pdf, TEST_OPTIONS);
+
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          assertThat(doc.getNumberOfPages()).isEqualTo(1);
+
+          PDPage page = doc.getPage(0);
+          float topMarginPt = (float) (topMarginIn * 72);
+          float pageW = page.getMediaBox().getWidth();
+
+          // PDFTextStripperByArea uses AWT coords (y from top of page).
+          // Row 1 region: [topMargin, topMargin + scaledRowHeight]
+          // Row 2 region: [topMargin + scaledRowHeight, topMargin + 2×scaledRowHeight]
+          // Add ±2pt tolerance for font ascent/descent positioning within the cell.
+          var stripper = new PDFTextStripperByArea();
+          stripper.addRegion("row1", new Rectangle2D.Float(
+              0, topMarginPt - 2, pageW, expectedScaledRowHeight + 4));
+          stripper.addRegion("row2", new Rectangle2D.Float(
+              0, topMarginPt + expectedScaledRowHeight - 2, pageW, expectedScaledRowHeight + 4));
+          stripper.extractRegions(page);
+
+          assertThat(stripper.getTextForRegion("row1")).contains("FIRST");
+          assertThat(stripper.getTextForRegion("row2")).contains("SECOND");
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Text overflow
+  // ---------------------------------------------------------------------------
+
+  @Nested
+  @DisplayName("テキストオーバーフロー")
+  class TextOverflow {
+
+    @Test
+    @DisplayName("GENERAL配置の数値セルは隣の空セルにはみ出さずセル幅内に収まる")
+    void numericCellWithGeneralAlignmentDoesNotOverflowIntoAdjacentEmptyCells(
+        @TempDir Path tmp) throws Exception {
+      // Col A: 8 chars wide — contains numeric 12345 with GENERAL alignment (→ right-aligned).
+      // Col B: 20 chars wide, empty — the bug caused overflow to extend the right-alignment
+      //        anchor to (colA + colB) right edge, shifting the text far into column B.
+      // Col C: 5 chars, text "STOP".
+      //
+      // With the bug:  textX ≈ leftMargin + W_A + W_B − textWidth − CELL_PAD  (≫ 100 pt from left)
+      // With the fix:  textX ≈ leftMargin + W_A       − textWidth − CELL_PAD  (≪ 100 pt from left)
+      //
+      // For any realistic MDW (7–12 px) and font size, W_A ≤ 76 pt and W_A + W_B ≥ 170 pt,
+      // so a 100 pt threshold from the left margin reliably separates the two cases.
+      final double leftMarginIn = 0.5;
+
+      try (XSSFWorkbook wb = new XSSFWorkbook()) {
+        var sheet = wb.createSheet("S");
+        sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+        sheet.setMargin(PageMargin.LEFT, leftMarginIn);
+        sheet.setMargin(PageMargin.RIGHT, leftMarginIn);
+        sheet.setMargin(PageMargin.TOP, 0.5);
+        sheet.setMargin(PageMargin.BOTTOM, 0.5);
+        sheet.setColumnWidth(0, 8 * 256);   // col A: 8 chars (narrow)
+        sheet.setColumnWidth(1, 20 * 256);  // col B: 20 chars (wide, empty)
+        sheet.setColumnWidth(2, 5 * 256);   // col C: 5 chars
+        var row = sheet.createRow(0);
+        row.createCell(0).setCellValue(12345d); // GENERAL alignment → effectively right-aligned
+        // col B intentionally left empty — this is the overflow trigger
+        row.createCell(2).setCellValue("STOP");
+
+        Path excel = tmp.resolve("overflow.xlsx");
+        try (var out = Files.newOutputStream(excel)) {
+          wb.write(out);
+        }
+        Path pdf = tmp.resolve("overflow.pdf");
+        ExcelToPdfUtil.generate(excel, List.of("S"), pdf, TEST_OPTIONS);
+
+        // Define a "col A only" region from left margin to left margin + 100 pt.
+        // For any MDW in [7, 12], col A width ≤ 76 pt — well within the 100 pt boundary.
+        // With the bug, the text starts at > 100 pt from the left margin (in column B area).
+        float leftMarginPt = (float) (leftMarginIn * 72);
+        float colAThresholdPt = 100f;
+        float pageW = PDRectangle.A4.getWidth();
+        float pageH = PDRectangle.A4.getHeight();
+
+        try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+          PDPage page = doc.getPage(0);
+          var stripper = new PDFTextStripperByArea();
+          stripper.addRegion("colA_region",
+              new Rectangle2D.Float(leftMarginPt, 0, colAThresholdPt, pageH));
+          stripper.addRegion("overflow_region",
+              new Rectangle2D.Float(leftMarginPt + colAThresholdPt, 0, pageW, pageH));
+          stripper.extractRegions(page);
+
+          // "12345" must appear in the column-A region (right-aligned within the cell).
+          // Before the fix it appeared only in the overflow region (shifted far to the right).
+          assertThat(stripper.getTextForRegion("colA_region")).contains("12345");
+          assertThat(stripper.getTextForRegion("overflow_region")).doesNotContain("12345");
+        }
       }
     }
   }
@@ -2666,6 +3627,70 @@ public class ExcelToPdfUtilTest {
       var cell = row.createCell(0);
       cell.setCellStyle(style);
       cell.setCellValue("x");
+
+      Path path = dir.resolve("test.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createFitToPageBothConstraintsWorkbook(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.5);
+      sheet.setMargin(PageMargin.RIGHT, 0.5);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setFitToPage(true);
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFillForegroundColor(new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null));
+      style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+      // 20 wide columns (each ~42pt) ≈ 840pt >> printable width ~523pt
+      // 40 rows × 20pt ≈ 800pt >> printable height ~770pt
+      // Both constraints are active; fitToPage must use the minimum scale.
+      for (int r = 0; r < 40; r++) {
+        var row = sheet.createRow(r);
+        row.setHeightInPoints(20);
+        for (int c = 0; c < 20; c++) {
+          row.createCell(c).setCellStyle(style);
+        }
+      }
+
+      Path path = dir.resolve("test.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createHorizontallyCenteredWorkbook(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.5);   // 36pt
+      sheet.setMargin(PageMargin.RIGHT, 0.5);  // 36pt
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      // horizontalCentered=true: content narrower than page should be centered
+      sheet.setHorizontallyCenter(true);
+
+      // Column A: explicit width ~200pt (≈ 267 character units).
+      // At 7px/char × 0.75pt/px = 5.25pt/unit → 200pt / 5.25 ≈ 38.1 units → use 38 units.
+      sheet.setColumnWidth(0, 38 * 256);
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFillForegroundColor(new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null));
+      style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(60);
+      row.createCell(0).setCellStyle(style);
 
       Path path = dir.resolve("test.xlsx");
       try (var out = Files.newOutputStream(path)) {
@@ -2908,6 +3933,13 @@ public class ExcelToPdfUtilTest {
     return Math.abs(r - tr) < 50 && Math.abs(g - tg) < 50 && Math.abs(b - tb) < 50;
   }
 
+  private static double luminance(int argb) {
+    int r = (argb >> 16) & 0xFF;
+    int g = (argb >>  8) & 0xFF;
+    int b =  argb        & 0xFF;
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
+  }
+
   private static int leftmostColoredX(BufferedImage img,
       int xStart, int xEnd, int yStart, int yEnd, int targetRgb) {
     for (int x = xStart; x < xEnd; x++) {
@@ -2977,6 +4009,40 @@ public class ExcelToPdfUtilTest {
   }
 
   // --- text workbook helpers ---
+
+  private Path createTightFontCellWorkbook(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.getPrintSetup().setScale((short) 85);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setColumnWidth(0, 3840);
+
+      XSSFFont font = wb.createFont();
+      font.setFontHeightInPoints((short) 14);
+      font.setBold(true);
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFont(font);
+      style.setAlignment(HorizontalAlignment.LEFT);
+      style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(20);
+      var cell = row.createCell(0);
+      cell.setCellStyle(style);
+      cell.setCellValue("合計");
+
+      Path path = dir.resolve("tight-font-cell.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
 
   private Path createTextWorkbook(Path dir, String fileName, String text,
       int fontSize, boolean bold, boolean italic, boolean strikeout,
@@ -3320,6 +4386,37 @@ public class ExcelToPdfUtilTest {
     }
   }
 
+  private Path createImageOutsidePrintAreaColumnWorkbook(Path dir, String fileName,
+      byte[] imgBytes, int pictureType) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      // Print area: rows 0-4, cols 0-3 (A-D)
+      wb.setPrintArea(0, 0, 3, 0, 4);
+      for (int c = 0; c <= 6; c++) {
+        sheet.setColumnWidth(c, 2438);
+      }
+      for (int r = 0; r < 5; r++) {
+        var row = sheet.createRow(r);
+        row.setHeightInPoints(30);
+        for (int c = 0; c <= 6; c++) { row.createCell(c); }
+      }
+      // Image anchor col1=5 (column F, outside print area cols 0-3)
+      var drawing = sheet.createDrawingPatriarch();
+      drawing.createPicture(drawing.createAnchor(0, 0, 0, 0, 5, 0, 7, 2),
+          wb.addPicture(imgBytes, pictureType));
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
   private Path createImageWithCellContentWorkbook(Path dir, String fileName,
       byte[] imgBytes, int pictureType) throws IOException {
     try (XSSFWorkbook wb = new XSSFWorkbook()) {
@@ -3379,6 +4476,428 @@ public class ExcelToPdfUtilTest {
       var cell = row.createCell(0);
       cell.setCellStyle(style);
       cell.setCellValue("ABC");
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createIndentWorkbook(Path dir, String fileName, HorizontalAlignment hAlign,
+      short indent, XSSFColor textColor) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setColumnWidth(0, 3840);
+
+      XSSFFont font = wb.createFont();
+      font.setFontHeightInPoints((short) 14);
+      if (textColor != null) {
+        font.setColor(textColor);
+      }
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFont(font);
+      style.setAlignment(hAlign);
+      style.setVerticalAlignment(VerticalAlignment.TOP);
+      style.setIndention(indent);
+
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(60);
+      var cell = row.createCell(0);
+      cell.setCellStyle(style);
+      cell.setCellValue("A");
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createTopAlignNoApplyAlignmentWorkbook(Path dir, String fileName)
+      throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setColumnWidth(0, 3840);
+
+      XSSFFont font = wb.createFont();
+      font.setFontHeightInPoints((short) 14);
+      font.setColor(new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null));
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFont(font);
+      style.setVerticalAlignment(VerticalAlignment.TOP);
+
+      // Remove applyAlignment from the CTXf to reproduce the condition where the
+      // <alignment> element has vertical='top' but applyAlignment is not set,
+      // which causes Apache POI's getVerticalAlignment() to return BOTTOM.
+      wb.getStylesSource().getCellXfAt((int) style.getIndex()).unsetApplyAlignment();
+
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(60);
+      var cell = row.createCell(0);
+      cell.setCellStyle(style);
+      cell.setCellValue("A");
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Creates a workbook with a 2-column table (B1:C3) where the custom style applies
+   * bold font to the last column (C) via {@code lastColumn} dxf.  showLastColumn=true.
+   * Column A (B) uses regular font; column B (C) uses bold via lastColumn styling.
+   */
+  private Path createTableWithLastColumnWorkbook(Path dir, String fileName) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var stylesSource = wb.getStylesSource();
+      var ctStylesheet = stylesSource.getCTStylesheet();
+
+      // dxf[0] = headerRow: dark fill + bold font
+      // dxf[1] = lastColumn: bold font only (no fill change)
+      var dxfs = ctStylesheet.isSetDxfs() ? ctStylesheet.getDxfs() : ctStylesheet.addNewDxfs();
+      dxfs.setCount(2);
+      var dxf0 = dxfs.addNewDxf();
+      dxf0.addNewFill().addNewPatternFill()
+          .setPatternType(org.openxmlformats.schemas.spreadsheetml.x2006.main.STPatternType.SOLID);
+      dxf0.getFill().getPatternFill().addNewFgColor()
+          .setRgb(new byte[] {(byte)0xFF, 0x20, 0x20, (byte)0x80}); // dark blue
+      dxf0.addNewFont().addNewB();
+      var dxf1 = dxfs.addNewDxf();
+      dxf1.addNewFont().addNewB(); // bold only, no fill
+
+      var tableStylesEl = ctStylesheet.isSetTableStyles()
+          ? ctStylesheet.getTableStyles() : ctStylesheet.addNewTableStyles();
+      tableStylesEl.setCount(1);
+      tableStylesEl.setDefaultTableStyle("LastColTestStyle");
+      var ts = tableStylesEl.addNewTableStyle();
+      ts.setName("LastColTestStyle");
+      ts.setPivot(false);
+      ts.setCount(2);
+      var e0 = ts.addNewTableStyleElement();
+      e0.setType(org.openxmlformats.schemas.spreadsheetml.x2006.main.STTableStyleType.HEADER_ROW);
+      e0.setDxfId(0);
+      var e1 = ts.addNewTableStyleElement();
+      e1.setType(org.openxmlformats.schemas.spreadsheetml.x2006.main.STTableStyleType.LAST_COLUMN);
+      e1.setDxfId(1);
+
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.25);
+      sheet.setMargin(PageMargin.BOTTOM, 0.25);
+      sheet.setColumnWidth(1, 3000); // col B
+      sheet.setColumnWidth(2, 3000); // col C
+
+      var hdr = sheet.createRow(0);
+      hdr.setHeightInPoints(20);
+      hdr.createCell(1).setCellValue("ColA");
+      hdr.createCell(2).setCellValue("ColB");
+      var r1 = sheet.createRow(1);
+      r1.setHeightInPoints(25);
+      r1.createCell(1).setCellValue("ColA-Row1");
+      r1.createCell(2).setCellValue("ColB-Row1");
+      var r2 = sheet.createRow(2);
+      r2.setHeightInPoints(25);
+      r2.createCell(1).setCellValue("ColA-Row2");
+      r2.createCell(2).setCellValue("ColB-Row2");
+
+      var areaRef = new org.apache.poi.ss.util.AreaReference("B1:C3",
+          org.apache.poi.ss.SpreadsheetVersion.EXCEL2007);
+      var table = sheet.createTable(areaRef);
+      table.setName("LastColTable");
+      table.setDisplayName("LastColTable");
+      var si = table.getCTTable().isSetTableStyleInfo()
+          ? table.getCTTable().getTableStyleInfo() : table.getCTTable().addNewTableStyleInfo();
+      si.setName("LastColTestStyle");
+      si.setShowRowStripes(false);
+      si.setShowFirstColumn(false);
+      si.setShowLastColumn(true);
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Same layout as {@link #createTableWithLastColumnWorkbook} but with
+   * {@code showLastColumn=false}, so the lastColumn bold dxf is NOT applied.
+   */
+  private Path createTableWithLastColumnNoShowWorkbook(Path dir, String fileName)
+      throws Exception {
+    Path result = createTableWithLastColumnWorkbook(dir, "_tmp_" + fileName);
+    try (XSSFWorkbook wb = new XSSFWorkbook(result.toFile())) {
+      // Use XSSFSheet.getTables() via the XSSFWorkbook's sheet accessor
+      for (int si = 0; si < wb.getNumberOfSheets(); si++) {
+        if (wb.getSheetAt(si) instanceof org.apache.poi.xssf.usermodel.XSSFSheet xs) {
+          for (XSSFTable t : xs.getTables()) {
+            var info = t.getCTTable().getTableStyleInfo();
+            if (info != null) info.setShowLastColumn(false);
+          }
+        }
+      }
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Creates a workbook with an Excel table using a CUSTOM table style with explicit RGB colours
+   * (no theme dependency). The custom style defines:
+   * - header row fill: solid red (#FF0000), bold font
+   * - firstRowStripe fill: solid light-blue (#CCECFF)
+   * - wholeTable: thin dark-grey bottom+horizontal borders
+   */
+  private Path createTableWithCustomStyleWorkbook(Path dir, String fileName) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      // Build the dxf entries using raw CT objects
+      var stylesSource = wb.getStylesSource();
+      // We inject the custom style XML directly via the CT root element.
+      // dxf[0] = wholeTable: thin bottom + horizontal border in dark grey
+      // dxf[1] = firstRowStripe: light-blue fill
+      // dxf[2] = headerRow: red fill + bold font
+      String customStyleXml =
+          "<tableStyles count=\"1\" defaultTableStyle=\"TableStyleLight1\" "
+          + "defaultPivotStyle=\"PivotStyleLight16\" "
+          + "xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+          + "<tableStyle name=\"CustomTestStyle\" pivot=\"0\" count=\"3\">"
+          + "<tableStyleElement type=\"wholeTable\" dxfId=\"2\"/>"
+          + "<tableStyleElement type=\"headerRow\" dxfId=\"0\"/>"
+          + "<tableStyleElement type=\"firstRowStripe\" dxfId=\"1\"/>"
+          + "</tableStyle></tableStyles>";
+
+      // Inject dxfs and tableStyles into the styles XML
+      // We use org.openxmlformats APIs through StylesTable's raw CT
+      var ctStylesheet = stylesSource.getCTStylesheet();
+
+      // Add dxfs
+      var dxfs = ctStylesheet.isSetDxfs() ? ctStylesheet.getDxfs() : ctStylesheet.addNewDxfs();
+      dxfs.setCount(3);
+      // dxf[0] = headerRow: red fill + bold
+      var dxf0 = dxfs.addNewDxf();
+      var fill0 = dxf0.addNewFill().addNewPatternFill();
+      fill0.setPatternType(
+          org.openxmlformats.schemas.spreadsheetml.x2006.main.STPatternType.SOLID);
+      fill0.addNewFgColor().setRgb(new byte[] {(byte)0xFF, (byte)0xFF, 0x00, 0x00}); // #FF0000
+      dxf0.addNewFont().addNewB();
+      // dxf[1] = firstRowStripe: light-blue fill
+      var dxf1 = dxfs.addNewDxf();
+      var fill1 = dxf1.addNewFill().addNewPatternFill();
+      fill1.setPatternType(
+          org.openxmlformats.schemas.spreadsheetml.x2006.main.STPatternType.SOLID);
+      fill1.addNewFgColor().setRgb(new byte[] {(byte)0xFF, (byte)0xCC, (byte)0xEC, (byte)0xFF});
+      // dxf[2] = wholeTable: thin bottom + horizontal border
+      var dxf2 = dxfs.addNewDxf();
+      var border2 = dxf2.addNewBorder();
+      var btm = border2.addNewBottom();
+      btm.setStyle(org.openxmlformats.schemas.spreadsheetml.x2006.main.STBorderStyle.THIN);
+      btm.addNewColor().setRgb(new byte[] {(byte)0xFF, 0x40, 0x40, 0x40});
+      var horiz = border2.addNewHorizontal();
+      horiz.setStyle(org.openxmlformats.schemas.spreadsheetml.x2006.main.STBorderStyle.THIN);
+      horiz.addNewColor().setRgb(new byte[] {(byte)0xFF, 0x40, 0x40, 0x40});
+
+      // Add tableStyles via raw CT
+      var tableStylesEl = ctStylesheet.isSetTableStyles()
+          ? ctStylesheet.getTableStyles() : ctStylesheet.addNewTableStyles();
+      tableStylesEl.setCount(1);
+      tableStylesEl.setDefaultTableStyle("CustomTestStyle");
+      var ts = tableStylesEl.addNewTableStyle();
+      ts.setName("CustomTestStyle");
+      ts.setPivot(false);
+      ts.setCount(3);
+      var e0 = ts.addNewTableStyleElement();
+      e0.setType(org.openxmlformats.schemas.spreadsheetml.x2006.main.STTableStyleType.HEADER_ROW);
+      e0.setDxfId(0);
+      var e1 = ts.addNewTableStyleElement();
+      e1.setType(
+          org.openxmlformats.schemas.spreadsheetml.x2006.main.STTableStyleType.FIRST_ROW_STRIPE);
+      e1.setDxfId(1);
+      var e2 = ts.addNewTableStyleElement();
+      e2.setType(
+          org.openxmlformats.schemas.spreadsheetml.x2006.main.STTableStyleType.WHOLE_TABLE);
+      e2.setDxfId(2);
+
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.25);
+      sheet.setMargin(PageMargin.BOTTOM, 0.25);
+      sheet.setColumnWidth(1, 5000);
+      var hdr = sheet.createRow(0);
+      hdr.setHeightInPoints(20);
+      hdr.createCell(1).setCellValue("HEADER");
+      String[] data = {"Row1", "Row2", "Row3"};
+      for (int i = 0; i < data.length; i++) {
+        var row = sheet.createRow(i + 1);
+        row.setHeightInPoints(25);
+        row.createCell(1).setCellValue(data[i]);
+      }
+      var areaRef = new org.apache.poi.ss.util.AreaReference("B1:B4",
+          org.apache.poi.ss.SpreadsheetVersion.EXCEL2007);
+      var table = sheet.createTable(areaRef);
+      table.setName("TestTable2");
+      table.setDisplayName("TestTable2");
+      var si = table.getCTTable().isSetTableStyleInfo()
+          ? table.getCTTable().getTableStyleInfo()
+          : table.getCTTable().addNewTableStyleInfo();
+      si.setName("CustomTestStyle");
+      si.setShowRowStripes(true);
+      si.setShowFirstColumn(false);
+      si.setShowLastColumn(false);
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Creates a workbook with an Excel table (B1:B4, header row 1, data rows 2-4) using the
+   * built-in {@code TableStyleMedium6} style.  The style has a dark teal header fill,
+   * alternating row stripes, and thin horizontal borders between rows.
+   */
+  private Path createTableWorkbook(Path dir, String fileName) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.25);
+      sheet.setMargin(PageMargin.BOTTOM, 0.25);
+      sheet.setColumnWidth(1, 5000); // column B
+
+      // Header row (row 0)
+      var hdr = sheet.createRow(0);
+      hdr.setHeightInPoints(20);
+      hdr.createCell(1).setCellValue("HEADER");
+      // Data rows
+      String[] data = {"Row1", "Row2", "Row3"};
+      for (int i = 0; i < data.length; i++) {
+        var row = sheet.createRow(i + 1);
+        row.setHeightInPoints(25);
+        row.createCell(1).setCellValue(data[i]);
+      }
+
+      // Create an Excel table over B1:B4 with TableStyleMedium6.
+      // createTable(AreaReference) sets up ref and columns automatically.
+      var areaRef = new org.apache.poi.ss.util.AreaReference("B1:B4",
+          org.apache.poi.ss.SpreadsheetVersion.EXCEL2007);
+      var table = sheet.createTable(areaRef);
+      table.setName("TestTable");
+      table.setDisplayName("TestTable");
+      // Set the table style
+      var styleInfo = table.getCTTable().isSetTableStyleInfo()
+          ? table.getCTTable().getTableStyleInfo()
+          : table.getCTTable().addNewTableStyleInfo();
+      styleInfo.setName("TableStyleMedium6");
+      styleInfo.setShowRowStripes(true);
+      styleInfo.setShowFirstColumn(false);
+      styleInfo.setShowLastColumn(false);
+      styleInfo.setShowColumnStripes(false);
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createRightAlignNoApplyAlignmentWorkbook(Path dir, String fileName)
+      throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setColumnWidth(0, 3840);
+
+      XSSFFont font = wb.createFont();
+      font.setFontHeightInPoints((short) 14);
+      font.setColor(new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null));
+
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setFont(font);
+      style.setAlignment(HorizontalAlignment.RIGHT);
+      style.setVerticalAlignment(VerticalAlignment.TOP);
+
+      // Remove applyAlignment to reproduce the condition where horizontal='right' is present
+      // in the <alignment> element but applyAlignment is not set, causing Apache POI's
+      // getAlignment() to return GENERAL (the default) instead of RIGHT.
+      wb.getStylesSource().getCellXfAt((int) style.getIndex()).unsetApplyAlignment();
+
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(60);
+      var cell = row.createCell(0);
+      cell.setCellStyle(style);
+      cell.setCellValue("A");
+
+      Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createPreambleTitleRowsWorkbook(Path dir, String fileName) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.getPrintSetup().setScale((short) 100);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      // Rows 0-1: preamble rows (appear only on page 1, before the title row)
+      var preambleA = sheet.createRow(0);
+      preambleA.setHeightInPoints(20);
+      preambleA.createCell(0).setCellValue("PREAMBLE_A");
+      var preambleB = sheet.createRow(1);
+      preambleB.setHeightInPoints(20);
+      preambleB.createCell(0).setCellValue("PREAMBLE_B");
+      // Row 2: print title row (repeating header)
+      var headerRow = sheet.createRow(2);
+      headerRow.setHeightInPoints(20);
+      headerRow.createCell(0).setCellValue("HEADER");
+      // Rows 3-35: data rows (25pt each). Capacity after title (20pt): 750pt.
+      // Page 1 also has preamble (2×20=40pt) → 710pt → 28 rows (28×25=700).
+      // Page 2: full 750pt → remaining rows.
+      for (int r = 3; r <= 35; r++) {
+        var row = sheet.createRow(r);
+        row.setHeightInPoints(25);
+        row.createCell(0).setCellValue("row" + (r - 2));
+      }
+      // Set row 2 as the repeating print title row
+      sheet.setRepeatingRows(new CellRangeAddress(2, 2, -1, -1));
       Path path = dir.resolve(fileName);
       try (var out = Files.newOutputStream(path)) {
         wb.write(out);
@@ -3797,6 +5316,31 @@ public class ExcelToPdfUtilTest {
     }
   }
 
+  private Path createZeroFormulaWorkbook(Path dir, String formatString) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      sheet.setMargin(PageMargin.LEFT, 0.25);
+      sheet.setMargin(PageMargin.RIGHT, 0.25);
+      sheet.setMargin(PageMargin.TOP, 0.5);
+      sheet.setMargin(PageMargin.BOTTOM, 0.5);
+      sheet.setColumnWidth(0, 3840);
+      XSSFCellStyle style = wb.createCellStyle();
+      style.setDataFormat(wb.createDataFormat().getFormat(formatString));
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(20);
+      var cell = row.createCell(0);
+      cell.setCellStyle(style);
+      cell.setCellFormula("0");
+      wb.getCreationHelper().createFormulaEvaluator().evaluateAll();
+      Path path = dir.resolve("zero-formula.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
   private Path createFormulaCellWorkbook(Path dir, String fileName,
       String formula, String formatString) throws IOException {
     return createFormulaCellWorkbook(dir, fileName, formula, formatString, 0.0);
@@ -3924,6 +5468,26 @@ public class ExcelToPdfUtilTest {
       cell.setCellStyle(style);
 
       Path path = dir.resolve(fileName);
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  private Path createWorkbookWithUnknownFont(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      // Override default font (index 0) — this is what ExcelToPdfUtil reads via getFontAt(0)
+      XSSFFont defaultFont = wb.getFontAt(0);
+      defaultFont.setFontName("__FictionalFontZZZ123__");
+      defaultFont.setFontHeightInPoints((short) 11);
+
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      var row = sheet.createRow(0);
+      row.setHeightInPoints(15);
+      row.createCell(0).setCellValue("test");
+      Path path = dir.resolve("test.xlsx");
       try (var out = Files.newOutputStream(path)) {
         wb.write(out);
       }

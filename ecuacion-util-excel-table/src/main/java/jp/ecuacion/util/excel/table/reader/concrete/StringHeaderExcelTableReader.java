@@ -22,7 +22,7 @@ import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.enums.NoDataString;
 import jp.ecuacion.util.excel.exception.ExcelAppException;
-import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
+import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -48,7 +48,7 @@ import org.jspecify.annotations.Nullable;
  *     {@link jp.ecuacion.util.excel.table.bean.ExcelColumn} matching.</p>
  */
 public class StringHeaderExcelTableReader extends StringExcelTableReader
-    implements IfFormatOneLineHeaderExcelTable<String> {
+    implements IfFormatHeaderExcelTable<String> {
 
   /** All header rows' labels: {@code headerLabels2d[row][col]}. */
   private String[][] headerLabels2d;

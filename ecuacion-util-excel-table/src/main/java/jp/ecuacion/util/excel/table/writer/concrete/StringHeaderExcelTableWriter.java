@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
-import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
+import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableReader;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
 import jp.ecuacion.util.excel.table.writer.IfDataTypeStringExcelTableWriter;
@@ -43,7 +43,7 @@ import org.jspecify.annotations.Nullable;
  * <p>The header in the template file is validated against {@code headerLabels} before writing.</p>
  */
 public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
-    implements IfDataTypeStringExcelTableWriter, IfFormatOneLineHeaderExcelTable<String> {
+    implements IfDataTypeStringExcelTableWriter, IfFormatHeaderExcelTable<String> {
 
   private String[][] headerLabels2d;
 

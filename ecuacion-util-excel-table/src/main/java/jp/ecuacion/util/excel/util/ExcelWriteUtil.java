@@ -129,8 +129,8 @@ public class ExcelWriteUtil {
     int poiBasisTableStartRowNumber =
         writer.getPoiBasisDeterminedTableStartRowNumber(sheet, tableStartColumnNumber);
 
-    // // Skip the header line if the writer is OneLineHeaderFormat
-    // if (writer instanceof IfFormatOneLineHeaderExcelTable) {
+    // // Skip the header line if the writer is HeaderFormat
+    // if (writer instanceof IfFormatHeaderExcelTable) {
     // poiBasisTableStartRowNumber++;
     // }
 

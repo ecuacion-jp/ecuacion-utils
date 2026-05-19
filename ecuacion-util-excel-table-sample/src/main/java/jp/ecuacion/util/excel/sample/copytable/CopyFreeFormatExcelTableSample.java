@@ -16,10 +16,8 @@
 package jp.ecuacion.util.excel.sample.copytable;
 
 import java.io.File;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import jp.ecuacion.util.excel.table.reader.concrete.CellFreeExcelTableReader;
 import jp.ecuacion.util.excel.table.writer.concrete.CellFreeExcelTableWriter;
@@ -53,27 +51,19 @@ public class CopyFreeFormatExcelTableSample {
 
   private static List<List<Cell>> read() throws Exception {
 
-    // Get the path of the excel file.
-    URL sourceUrl =
-        CopyFreeFormatExcelTableSample.class.getClassLoader().getResource("sample.xlsx");
-    Path sourcePath = Path.of(sourceUrl.toURI()).toAbsolutePath();
-
     // Get the table data.
     return new CellFreeExcelTableReader("Member")
         .tableStartRowNumber(HEADER_START_ROW)
         .tableStartColumnNumber(START_COL)
-        .read(sourcePath.toString());
+        .read(Path.of("test-data/sample.xlsx").toAbsolutePath().toString());
   }
 
   private static void write(List<List<Cell>> dataList) throws Exception {
 
-    // Create a new file from a template excel file and write the table data to it.
-    // The new file will be created as "result.xlsx" at the current path.
-    URL templateUrl =
-        CopyOneLineHeaderFormatExcelTableSample.class.getClassLoader().getResource("template.xlsx");
-    String templatePath = Path.of(templateUrl.toURI()).toAbsolutePath().toString();
+    new File("target/test-result").mkdirs();
 
-    destPath = Path.of(Paths.get("").toAbsolutePath().toString() + "/" + "result.xlsx");
+    String templatePath = Path.of("test-data/template.xlsx").toAbsolutePath().toString();
+    destPath = Path.of("target/test-result/result.xlsx").toAbsolutePath();
 
     // If the created file already exists, delete it.
     if (new File(destPath.toString()).exists()) {

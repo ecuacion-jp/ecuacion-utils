@@ -31,6 +31,7 @@ module jp.ecuacion.util.pdf.excel.report {
   requires transitive org.apache.poi.poi;
   requires org.apache.poi.ooxml;
   requires org.apache.pdfbox;
+  requires org.apache.pdfbox.io;
   requires org.apache.commons.lang3;
   requires org.apache.fontbox;
   requires java.desktop;
