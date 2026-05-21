@@ -18,19 +18,21 @@ package jp.ecuacion.util.pdf.excel.report.sample;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import jp.ecuacion.util.pdf.excel.report.util.ExcelToPdfUtil;
 
-public class Test {
-  @SuppressWarnings("null")
+public class InvoiceToPdfSample {
   public static void main(String[] args) throws Exception {
     new File("target/test-result").mkdirs();
 
-    var reg = Test.class.getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
-    var bold = Test.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
+    var reg = Objects.requireNonNull(
+        InvoiceToPdfSample.class.getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf"));
+    var bold = Objects.requireNonNull(
+        InvoiceToPdfSample.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf"));
     PdfGenerateOptions options = PdfGenerateOptions.builder()
         .useSystemFonts(true)
-        .regularFontPath(Path.of(reg.toURI()))  // system font が見つからない場合のフォールバック
+        .regularFontPath(Path.of(reg.toURI()))  // fallback when no system font is found
         .boldFontPath(Path.of(bold.toURI()))
         .build();
 

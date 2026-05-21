@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-@DisplayName("StringHeaderExcelTableToBeanReader")
+@DisplayName("StringOneLineHeaderExcelTableToBeanReader / StringHeaderExcelTableToBeanReader")
 public class StringHeaderExcelTableToBeanReaderTest {
 
   @SuppressWarnings("null")
@@ -65,7 +65,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** {@code @ExcelColumn} を使う Bean（getFieldNameArray オーバーライドなし）。 */
+  /** Bean using {@code @ExcelColumn} (no getFieldNameArray override). */
   static class AnnotatedBean extends StringExcelTableBean {
     @ExcelColumn("name") @NotBlank @Nullable String name;
     @ExcelColumn("age") @Min(1) @Nullable Integer age;
@@ -75,7 +75,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** {@code @ExcelColumn} を持つスーパークラス。 */
+  /** Superclass with {@code @ExcelColumn}. */
   static class AnnotatedBaseBean extends StringExcelTableBean {
     @ExcelColumn("id") @Min(1) @Nullable Integer id;
 
@@ -84,7 +84,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** スーパークラスと自クラス両方に @ExcelColumn を持つ Bean。 */
+  /** Bean with @ExcelColumn on both superclass and subclass. */
   static class AnnotatedSubBean extends AnnotatedBaseBean {
     @ExcelColumn("name") @Nullable String name;
 
@@ -93,7 +93,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
   }
 
-  /** {@code @ExcelColumn} なし・getFieldNameArray オーバーライドなし。 */
+  /** Bean with no {@code @ExcelColumn} and no getFieldNameArray override. */
   static class NoAnnotationNoOverrideBean extends StringExcelTableBean {
     @Nullable String name;
 
@@ -123,11 +123,11 @@ public class StringHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("正常系")
+  @DisplayName("Normal")
   class Normal {
 
     @Test
-    @DisplayName("バリデーション違反なし → List を正常返却")
+    @DisplayName("no violations → returns list successfully")
     void noViolations() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -137,7 +137,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "25");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<TestBean> result = reader.readToBean(file.toString());
 
@@ -147,7 +147,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("validates=false → バリデーション違反があっても例外なし")
+    @DisplayName("validates=false → no exception even when violations exist")
     void validatesFalse() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -157,7 +157,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "-1"); // @Min(1) violation
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         assertThatNoException().isThrownBy(() -> reader.readToBean(file.toString(), false));
       }
@@ -165,7 +165,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("行番号付きエラーメッセージ")
+  @DisplayName("row number in error message")
   class RowNumberInMessage {
 
     private @Nullable Arg getPostfix(Throwable ex) {
@@ -174,7 +174,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("データ1行目に違反 → messagePostfix の行番号引数が 2")
+    @DisplayName("violation in first data row → messagePostfix row number arg is 2")
     void firstDataRowViolation() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -184,7 +184,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "-1"); // Excel row 2, @Min(1) violation
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
@@ -197,7 +197,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("データ2行目に違反 → messagePostfix の行番号引数が 3")
+    @DisplayName("violation in second data row → messagePostfix row number arg is 3")
     void secondDataRowViolation() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -209,7 +209,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 2, 1, "-1"); // Excel row 3, @Min(1) violation
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
@@ -222,7 +222,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("tableStartRowNumber=3 → データ1行目の違反で行番号引数が 4")
+    @DisplayName("tableStartRowNumber=3 → violation in first data row gives row number arg 4")
     void tableStartRowNumber3() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -233,7 +233,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 3, 1, "-1"); // Excel row 4
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(3);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
@@ -246,7 +246,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("tableStartRowNumber=null（自動検索）→ 実際の行番号引数が含まれる")
+    @DisplayName("tableStartRowNumber=null (auto-detect) → actual row number is in the message")
     void autoDetectStartRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -258,7 +258,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 2, 1, "-1"); // Excel row 3
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"});
 
         assertThatThrownBy(() -> reader.readToBean(file.toString()))
@@ -271,7 +271,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("messagePostfix にシート名引数が含まれる")
+    @DisplayName("sheet name is included in messagePostfix")
     void sheetNameInMessage() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("EmployeeSheet");
@@ -281,7 +281,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "-1");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "EmployeeSheet", new String[] {"name", "age"})
             .tableStartRowNumber(1);
 
@@ -300,9 +300,9 @@ public class StringHeaderExcelTableToBeanReaderTest {
   class AfterReading {
 
     @Test
-    @DisplayName("afterReading() が RuntimeException をスローした場合伝播する")
+    @DisplayName("afterReading() RuntimeException propagates")
     void afterReadingExceptionPropagates() {
-      var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+      var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
           TestBean.class, "Sheet1", new String[] {"name", "age"}) {
         @Override
         protected List<TestBean> excelTableToBeanList(String filePath) {
@@ -323,11 +323,11 @@ public class StringHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("@ExcelColumn アノテーション")
+  @DisplayName("@ExcelColumn annotation")
   class ExcelColumnAnnotation {
 
     @Test
-    @DisplayName("@ExcelColumn のラベルが headerLabels と同順 → 正しくマッピング")
+    @DisplayName("@ExcelColumn labels in same order as headerLabels → mapped correctly")
     void sameOrderAsHeaderLabels() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -337,7 +337,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "25");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
 
@@ -348,18 +348,18 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("列順独立: headerLabels と異なる列順でも @ExcelColumn で正しくマッピング")
+    @DisplayName("column-order independent: @ExcelColumn maps correctly regardless of column order")
     void columnOrderIndependent() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
-        // Excel の列順は age → name（Bean の宣言順 name → age と逆）
+        // Excel column order is age → name (opposite of Bean field declaration order name → age)
         setCell(sheet, 0, 0, "age");
         setCell(sheet, 0, 1, "name");
         setCell(sheet, 1, 0, "25");
         setCell(sheet, 1, 1, "Alice");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"age", "name"}).tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
 
@@ -369,7 +369,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("headerLabels に対応する @ExcelColumn がない列はスキップ")
+    @DisplayName("columns with no matching @ExcelColumn are skipped")
     void skipsUnmappedColumns() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -381,8 +381,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 2, "25");
         Path file = writeTempExcel(wb);
 
-        // AnnotatedBean には @ExcelColumn("memo") がないので memo 列はスキップされる
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        // AnnotatedBean has no @ExcelColumn("memo"), so the "memo" column is skipped
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "memo", "age"})
             .tableStartRowNumber(1);
         List<AnnotatedBean> result = reader.readToBean(file.toString(), false);
@@ -393,7 +393,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("スーパークラスの @ExcelColumn フィールドも有効")
+    @DisplayName("@ExcelColumn on superclass fields is also effective")
     void inheritedAnnotations() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -403,7 +403,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "Alice");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedSubBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedSubBean>(
             AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}).tableStartRowNumber(1);
         List<AnnotatedSubBean> result = reader.readToBean(file.toString(), false);
 
@@ -413,16 +413,16 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("@ExcelColumn のラベルが headerLabels に存在しない → RuntimeException")
+    @DisplayName("@ExcelColumn label not found in headerLabels → RuntimeException")
     void unknownColumnLabel() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
-        // headerLabels に "age" がない（"name" だけ）
+        // headerLabels has no "age" (only "name")
         setCell(sheet, 0, 0, "name");
         setCell(sheet, 1, 0, "Alice");
         Path file = writeTempExcel(wb);
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name"}).tableStartRowNumber(1);
 
         assertThatThrownBy(() -> reader.readToBean(file.toString(), false))
@@ -432,7 +432,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("getFieldNameArray() オーバーライドあり・@ExcelColumn なし → 従来通り動く")
+    @DisplayName("getFieldNameArray() override without @ExcelColumn → works as before")
     void backwardCompatibleOverride() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -442,8 +442,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
         setCell(sheet, 1, 1, "25");
         Path file = writeTempExcel(wb);
 
-        // TestBean は getFieldNameArray() をオーバーライドしており @ExcelColumn は使わない
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        // TestBean overrides getFieldNameArray() and does not use @ExcelColumn
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         List<TestBean> result = reader.readToBean(file.toString(), false);
 
@@ -453,7 +453,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("@ExcelColumn なし・getFieldNameArray() もなし → RuntimeException")
+    @DisplayName("no @ExcelColumn and no getFieldNameArray() → RuntimeException")
     void noAnnotationNoOverride() {
       assertThatThrownBy(() -> new NoAnnotationNoOverrideBean(List.of("Alice")))
           .isInstanceOf(RuntimeException.class)
@@ -480,18 +480,18 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("@ExcelColumn bean の1フィールド違反 → そのセルのみ赤くなる")
+    @DisplayName("single field violation in @ExcelColumn bean → only that cell turns red")
     void singleFieldViolation() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "name");
         setCell(sheet, 0, 1, "age");
         setCell(sheet, 1, 0, "Alice");
-        setCell(sheet, 1, 1, "-1"); // @Min(1) 違反
+        setCell(sheet, 1, 1, "-1"); // @Min(1) violation
         Path input = writeTempExcel(wb);
         Path output = tempDir.resolve("output.xlsx");
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
@@ -508,20 +508,20 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("@ExcelColumn bean の複数フィールド違反 → 複数セルが赤くなる")
+    @DisplayName("multiple field violations in @ExcelColumn bean → multiple cells turn red")
     void multipleFieldViolations() throws Exception {
-      // @NotBlank + @Min(1) を持つ Bean を直接使う
-      // name=null(@NotBlank 違反) + age=-1(@Min(1) 違反)
+      // Use a bean with both @NotBlank and @Min(1) directly
+      // name=null (@NotBlank violation) + age=-1 (@Min(1) violation)
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "name");
         setCell(sheet, 0, 1, "age");
-        setCell(sheet, 1, 0, null);  // @NotBlank 違反
-        setCell(sheet, 1, 1, "-1"); // @Min(1) 違反
+        setCell(sheet, 1, 0, null);  // @NotBlank violation
+        setCell(sheet, 1, 1, "-1"); // @Min(1) violation
         Path input = writeTempExcel(wb);
         Path output = tempDir.resolve("output.xlsx");
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
@@ -538,19 +538,19 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("tableStartColumnNumber=2 → 列オフセットが考慮されて正しい列がハイライト")
+    @DisplayName("tableStartColumnNumber=2 → column offset respected, correct column highlighted")
     void respectsTableStartColumnNumber() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
-        // テーブルが B 列(POI col=1)から始まる
+        // Table starts at column B (POI col=1)
         setCell(sheet, 0, 1, "name");
         setCell(sheet, 0, 2, "age");
         setCell(sheet, 1, 1, "Alice");
-        setCell(sheet, 1, 2, "-1"); // age 違反
+        setCell(sheet, 1, 2, "-1"); // age violation
         Path input = writeTempExcel(wb);
         Path output = tempDir.resolve("output.xlsx");
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"})
             .tableStartRowNumber(1).tableStartColumnNumber(2);
         try {
@@ -568,18 +568,18 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("スーパークラスの @ExcelColumn フィールド違反 → 継承チェーンを辿ってハイライト")
+    @DisplayName("superclass @ExcelColumn field violation → highlighted by traversing inheritance chain")
     void inheritedFieldHighlighted() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "id");
         setCell(sheet, 0, 1, "name");
-        setCell(sheet, 1, 0, "-1"); // @Min(1) 違反（スーパークラスのフィールド）
+        setCell(sheet, 1, 0, "-1"); // @Min(1) violation (superclass field)
         setCell(sheet, 1, 1, "Alice");
         Path input = writeTempExcel(wb);
         Path output = tempDir.resolve("output.xlsx");
 
-        var reader = new StringHeaderExcelTableToBeanReader<AnnotatedSubBean>(
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedSubBean>(
             AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
@@ -589,14 +589,14 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         try (Workbook out = ExcelReadUtil.openForRead(output.toString())) {
           Sheet s = out.getSheet("Sheet1");
-          assertThat(isRedCell(s, 1, 0)).isTrue();  // id (スーパークラス) → red
+          assertThat(isRedCell(s, 1, 0)).isTrue();  // id (superclass field) → red
           assertThat(isRedCell(s, 1, 1)).isFalse(); // name → not red
         }
       }
     }
 
     @Test
-    @DisplayName("@ExcelColumn なし bean → 違反行の全データセルが赤くなる")
+    @DisplayName("bean without @ExcelColumn → all data cells in the violation row turn red")
     void nonAnnotatedBeanHighlightsEntireRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -607,8 +607,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
         Path input = writeTempExcel(wb);
         Path output = tempDir.resolve("output.xlsx");
 
-        // TestBean は getFieldNameArray() override あり、@ExcelColumn なし
-        var reader = new StringHeaderExcelTableToBeanReader<TestBean>(
+        // TestBean has getFieldNameArray() override, no @ExcelColumn
+        var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
           reader.readToBean(input.toString());
@@ -618,7 +618,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         try (Workbook out = ExcelReadUtil.openForRead(output.toString())) {
           Sheet s = out.getSheet("Sheet1");
-          // 全データセルが赤くなる
+          // All data cells turn red
           assertThat(isRedCell(s, 1, 0)).isTrue(); // name → red
           assertThat(isRedCell(s, 1, 1)).isTrue(); // age  → red
         }
@@ -627,7 +627,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("複数行ヘッダー + @ExcelColumn")
+  @DisplayName("multi-row header + @ExcelColumn")
   class MultiLineHeaderWithExcelColumn {
 
     /** Bean for 2-row header: group + column. */
@@ -642,7 +642,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("2行ヘッダーで @ExcelColumn({\"group\",\"col\"}) が正しくマッピングされる")
+    @DisplayName("2-row header with @ExcelColumn({\"group\",\"col\"}) is mapped correctly")
     void multiRowHeaderMapping() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -671,7 +671,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("列順独立: Excel の列順が変わっても @ExcelColumn で正しくマッピング")
+    @DisplayName("column-order independent: @ExcelColumn maps correctly even when Excel column order changes")
     void multiRowHeaderColumnOrderIndependent() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -700,7 +700,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("@ExcelColumn(\"#\") 単一要素が縦結合列（全行一致）にマッチする")
+    @DisplayName("single-element @ExcelColumn(\"#\") matches a vertically merged column")
     void singleElementAnnotationMatchesVerticalMerge() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");

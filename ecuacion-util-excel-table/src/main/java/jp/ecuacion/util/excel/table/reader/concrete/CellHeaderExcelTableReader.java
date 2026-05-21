@@ -15,8 +15,10 @@
  */
 package jp.ecuacion.util.excel.table.reader.concrete;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.excel.table.reader.IfDataTypeCellExcelTableReader;
 import jp.ecuacion.util.excel.table.reader.IfFormatHeaderExcelTableReader;
@@ -24,71 +26,74 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Reads tables with known number of columns, known header labels 
- * and known start position of the table.
- * 
- * <p>It obtains cell values as {@code Cell} object.</p>
- * 
- * <p>The header line is required.
- *     This class reads the table at the designated position and designated lines and columns.<br>
- *     Finish reading if all the columns are empty in a line.</p>
+ * Reads tables with one or multiple header rows, returning cell values as {@code Cell}.
+ *
+ * <p>For the common case of a single header row use
+ *     {@link CellOneLineHeaderExcelTableReader} with a {@code String[]} argument.
+ *     For tables with two or more header rows use this class
+ *     with a {@code String[][]} argument.</p>
+ *
+ * <p>The last header row determines the column count.
+ *     Merged cells in the header area are <em>not</em> automatically expanded;
+ *     supply the expanded (non-merged) label array explicitly.</p>
  */
 public class CellHeaderExcelTableReader extends ExcelTableReader<Cell>
     implements IfFormatHeaderExcelTableReader<Cell>, IfDataTypeCellExcelTableReader {
 
-  private String[] headerLabels;
+  /** All header rows' labels: {@code headerLabels2d[row][col]}. */
+  private String[][] headerLabels2d;
 
   /**
-   * Constructs a new instance with the sheet name and header labels.
+   * Constructs a new instance with the sheet name and multiple header rows.
    *
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
    *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null}.</p>
    *
    * @param sheetName See {@link jp.ecuacion.util.excel.table.ExcelTable#sheetName}.
-   * @param headerLabels expected header labels
+   * @param headerLabels expected labels for each header row: {@code headerLabels[row][col]},
+   *     top row first
    */
-  public CellHeaderExcelTableReader(String sheetName, String[] headerLabels) {
+  public CellHeaderExcelTableReader(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
-    setTableColumnSize(getHeaderLabels().length);
-  }
-
-  /**
-   * Constructs a new instance. the obtained value
-   *     from an empty cell is {@code null}.
-   *
-   * <p>{@code tableColumnSize} is not designated
-   *     because {@code tableColumnSize} of the table is obviously equal to
-   *     the length of the header array.</p>
-   *
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
-   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
-   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public CellHeaderExcelTableReader(String sheetName, String[] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize) {
-
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
-
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
-
-    // Since "Cannot refer to an instance method while explicitly invoking a constructor",
-    // First set "null" in "super(...)" and then set the actual value here.
+    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
     setTableColumnSize(getHeaderLabels().length);
   }
 
   @Override
   public String getFarLeftAndTopHeaderLabel() {
-    return Objects.requireNonNull(getHeaderLabels()[0]);
+    ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
+    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
   }
 
   @Override
   public String[] getHeaderLabels() {
-    return headerLabels;
+    return headerLabels2d[headerLabels2d.length - 1];
+  }
+
+  @Override
+  public String[][] getHeaderLabelData() {
+    return headerLabels2d;
+  }
+
+  @Override
+  public int getNumberOfHeaderLines() {
+    return headerLabels2d.length;
+  }
+
+  @Override
+  public List<List<String>> updateAndGetHeaderData(List<List<Cell>> excelData)
+      throws ExcelTableException {
+    List<List<String>> headerRows = new ArrayList<>();
+    int numHeaderRows = getNumberOfHeaderLines();
+    for (int i = 0; i < numHeaderRows && !excelData.isEmpty(); i++) {
+      List<Cell> rawRow = excelData.remove(0);
+      List<String> strRow = new ArrayList<>();
+      for (Cell cell : rawRow) {
+        strRow.add(getStringValue(cell));
+      }
+      headerRows.add(strRow);
+    }
+    return headerRows;
   }
 
   @Override
@@ -113,8 +118,7 @@ public class CellHeaderExcelTableReader extends ExcelTableReader<Cell>
 
   @Override
   public CellHeaderExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
-    return (CellHeaderExcelTableReader)
-        super.withIgnoresAdditionalColumnsOfHeaderData(value);
+    return (CellHeaderExcelTableReader) super.withIgnoresAdditionalColumnsOfHeaderData(value);
   }
 
   @Override

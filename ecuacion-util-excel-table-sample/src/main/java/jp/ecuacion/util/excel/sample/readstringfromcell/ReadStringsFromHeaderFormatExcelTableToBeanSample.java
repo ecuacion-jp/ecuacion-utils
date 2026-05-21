@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.sample.readstringfromcell;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableToBeanReader;
+import jp.ecuacion.util.excel.table.reader.concrete.StringOneLineHeaderExcelTableToBeanReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,15 +40,15 @@ public class ReadStringsFromHeaderFormatExcelTableToBeanSample {
     // read
     List<SampleTableBean> beanList = read();
 
-    beanList.stream().forEach(bean -> logger.info(bean.toString()));
+    beanList.forEach(bean -> logger.info(bean.toString()));
 
-    logger.info("Procedure finshed.");
+    logger.info("Procedure finished.");
   }
 
   private static List<SampleTableBean> read() throws Exception {
 
     // Get the table data.
-    return new StringHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
+    return new StringOneLineHeaderExcelTableToBeanReader<SampleTableBean>(SampleTableBean.class,
         "Member", headerLabels)
             .tableStartRowNumber(HEADER_START_ROW)
             .tableStartColumnNumber(START_COL)

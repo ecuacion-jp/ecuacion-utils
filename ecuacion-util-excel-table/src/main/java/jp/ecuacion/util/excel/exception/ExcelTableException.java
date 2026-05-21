@@ -25,9 +25,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Provides {@code ViolationException} for Excel errors with workbook, sheet, and cell context.
+ * Exception thrown when a table-related error occurs in {@code ecuacion-util-excel-table}.
  */
-public class ExcelAppException extends ViolationException {
+public class ExcelTableException extends ViolationException {
 
   private static final long serialVersionUID = 1L;
 
@@ -41,7 +41,7 @@ public class ExcelAppException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelAppException(String messageId, @Nullable Object... messageArgs) {
+  public ExcelTableException(String messageId, @Nullable Object... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
@@ -64,14 +64,13 @@ public class ExcelAppException extends ViolationException {
   }
 
   /**
-   * Sets workbook and returns ExcelAppException for method chain.
+   * Sets workbook and returns self for method chain.
    *
    * @param workbook workbook to set.
-   * @return ExcelAppException
+   * @return ExcelTableException
    */
-  public ExcelAppException workbook(Workbook workbook) {
+  public ExcelTableException workbook(Workbook workbook) {
     this.workbook = workbook;
-
     return this;
   }
 
@@ -85,15 +84,14 @@ public class ExcelAppException extends ViolationException {
   }
 
   /**
-   * Sets sheet and returns ExcelAppException for method chain.
+   * Sets sheet and returns self for method chain.
    *
    * @param sheet sheet to set.
-   * @return ExcelAppException
+   * @return ExcelTableException
    */
-  public ExcelAppException sheet(Sheet sheet) {
+  public ExcelTableException sheet(Sheet sheet) {
     this.sheet = sheet;
     this.workbook = sheet.getWorkbook();
-
     return this;
   }
 
@@ -107,16 +105,15 @@ public class ExcelAppException extends ViolationException {
   }
 
   /**
-   * Sets cell and returns ExcelAppException for method chain.
+   * Sets cell and returns self for method chain.
    *
    * @param cell cell to set.
-   * @return ExcelAppException
+   * @return ExcelTableException
    */
-  public ExcelAppException cell(Cell cell) {
+  public ExcelTableException cell(Cell cell) {
     this.cell = cell;
     this.sheet = cell.getSheet();
     this.workbook = Objects.requireNonNull(sheet).getWorkbook();
-
     return this;
   }
 
@@ -124,9 +121,9 @@ public class ExcelAppException extends ViolationException {
    * Sets cause exception and returns self for method chain.
    *
    * @param th throwable to set as cause
-   * @return ExcelAppException
+   * @return ExcelTableException
    */
-  public ExcelAppException cause(Throwable th) {
+  public ExcelTableException cause(Throwable th) {
     initCause(th);
     return this;
   }

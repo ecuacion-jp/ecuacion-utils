@@ -29,6 +29,7 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFPicture;
@@ -38,7 +39,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.XSSFTextParagraph;
 import org.apache.poi.xssf.usermodel.XSSFTextRun;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.jspecify.annotations.Nullable;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTGeomGuide;
 import org.openxmlformats.schemas.drawingml.x2006.main.CTLineProperties;
@@ -274,9 +274,13 @@ class ShapeRenderer {
   }
 
   private double readAdj(CTShapeProperties spPr, double defaultVal) {
-    if (!spPr.isSetPrstGeom()) return defaultVal;
+    if (!spPr.isSetPrstGeom()) {
+      return defaultVal;
+    }
     CTPresetGeometry2D prstGeom = spPr.getPrstGeom();
-    if (!prstGeom.isSetAvLst()) return defaultVal;
+    if (!prstGeom.isSetAvLst()) {
+      return defaultVal;
+    }
     for (CTGeomGuide gd : prstGeom.getAvLst().getGdList()) {
       if ("adj".equals(gd.getName()) && gd.getFmla() != null) {
         String fmla = gd.getFmla().trim();
@@ -352,9 +356,15 @@ class ShapeRenderer {
       long leftIns = 91440L;
       long rightIns = 91440L;
       long topIns = 45720L;
-      if (bodyPr.isSetLIns()) leftIns = ((Number) bodyPr.getLIns()).longValue();
-      if (bodyPr.isSetRIns()) rightIns = ((Number) bodyPr.getRIns()).longValue();
-      if (bodyPr.isSetTIns()) topIns = ((Number) bodyPr.getTIns()).longValue();
+      if (bodyPr.isSetLIns()) {
+        leftIns = ((Number) bodyPr.getLIns()).longValue();
+      }
+      if (bodyPr.isSetRIns()) {
+        rightIns = ((Number) bodyPr.getRIns()).longValue();
+      }
+      if (bodyPr.isSetTIns()) {
+        topIns = ((Number) bodyPr.getTIns()).longValue();
+      }
       leftInset = leftIns / 12700f * scaleFactor;
       rightInset = rightIns / 12700f * scaleFactor;
       topInset = topIns / 12700f * scaleFactor;
@@ -365,24 +375,32 @@ class ShapeRenderer {
     for (int paraIdx = 0; paraIdx < paragraphs.size(); paraIdx++) {
       XSSFTextParagraph para = paragraphs.get(paraIdx);
       List<XSSFTextRun> runs = para.getTextRuns();
-      if (runs.isEmpty()) continue;
+      if (runs.isEmpty()) {
+        continue;
+      }
 
       StringBuilder sb = new StringBuilder();
       for (XSSFTextRun run : runs) {
         sb.append(run.getText());
       }
       String lineText = sb.toString();
-      if (lineText.isBlank()) continue;
+      if (lineText.isBlank()) {
+        continue;
+      }
 
       XSSFTextRun firstRun = runs.get(0);
       double fontSizePt = firstRun.getFontSize();
-      if (fontSizePt <= 0) fontSizePt = 11.0;
+      if (fontSizePt <= 0) {
+        fontSizePt = 11.0;
+      }
       float fontSize = (float) fontSizePt * scaleFactor;
       boolean bold = firstRun.isBold();
       PDType0Font font = fontManager.getFont(bold);
 
       Color textColor = firstRun.getFontColor();
-      if (textColor == null) textColor = Color.BLACK;
+      if (textColor == null) {
+        textColor = Color.BLACK;
+      }
 
       float textWidth;
       try {

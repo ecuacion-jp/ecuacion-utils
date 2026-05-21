@@ -15,15 +15,14 @@
  */
 package jp.ecuacion.util.excel.sample.copytable;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import jp.ecuacion.util.excel.table.reader.concrete.CellHeaderExcelTableReader;
+import jp.ecuacion.util.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter.IterableWriter;
-import jp.ecuacion.util.excel.table.writer.concrete.CellHeaderExcelTableWriter;
+import jp.ecuacion.util.excel.table.writer.concrete.CellOneLineHeaderExcelTableWriter;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
 import jp.ecuacion.util.excel.util.ExcelWriteUtil;
 import org.apache.poi.EncryptedDocumentException;
@@ -39,7 +38,7 @@ public class IterativeCopyHeaderFormatExcelTableSample {
 
   private static final int HEADER_START_ROW = 3;
   private static final int START_COL = 2;
-  
+
   private static String destPath;
 
   public static void main(String[] args) throws Exception {
@@ -53,14 +52,14 @@ public class IterativeCopyHeaderFormatExcelTableSample {
         FileOutputStream out = openToOutput();) {
 
       // reader
-      Iterable<List<Cell>> itReader = new CellHeaderExcelTableReader("Member", headerLabels)
+      Iterable<List<Cell>> itReader = new CellOneLineHeaderExcelTableReader("Member", headerLabels)
           .tableStartRowNumber(HEADER_START_ROW)
           .tableStartColumnNumber(START_COL)
           .tableRowSize(3)
           .getIterable(readWb);
       // writer
       IterableWriter<Cell> itWriter =
-          new CellHeaderExcelTableWriter("Sheet1", headerLabels)
+          new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels)
               .tableStartRowNumber(HEADER_START_ROW)
               .tableStartColumnNumber(START_COL)
               .getIterable(writeWb);
@@ -74,7 +73,7 @@ public class IterativeCopyHeaderFormatExcelTableSample {
     }
 
     logger.info("A new excel file created and table data copied to: " + destPath.toString());
-    logger.info("Procedure finshed.");
+    logger.info("Procedure finished.");
   }
 
   private static Workbook openToRead() throws EncryptedDocumentException, IOException {
@@ -88,12 +87,12 @@ public class IterativeCopyHeaderFormatExcelTableSample {
 
   private static FileOutputStream openToOutput() throws Exception {
 
-    new File("target/test-result").mkdirs();
+    Files.createDirectories(Path.of("target/test-result"));
 
     destPath = Path.of("target/test-result/result.xlsx").toAbsolutePath().toString();
 
     // If the created file already exists, delete it.
-    if (new File(destPath).exists()) {
+    if (Files.exists(Path.of(destPath))) {
       Files.delete(Path.of(destPath));
     }
 

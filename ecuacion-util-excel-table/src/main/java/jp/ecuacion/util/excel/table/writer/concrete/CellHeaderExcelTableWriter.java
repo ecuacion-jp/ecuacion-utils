@@ -31,62 +31,63 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Writes tables with known number of columns and one or more header rows.
+ * Writes tables with one or multiple header rows, using {@code Cell} data.
  *
- * <p>The header is validated against the expected labels before writing data.</p>
+ * <p>For the common case of a single header row use
+ *     {@link CellOneLineHeaderExcelTableWriter} with a {@code String[]} argument.
+ *     For tables with two or more header rows use this class
+ *     with a {@code String[][]} argument.</p>
+ *
+ * <p>The header in the template file is validated against {@code headerLabels} before writing.</p>
  */
 public class CellHeaderExcelTableWriter extends ExcelTableWriter<Cell>
     implements IfDataTypeCellExcelTableWriter, IfFormatHeaderExcelTable<Cell> {
 
   private boolean copiesDataFormatOnly;
 
-  private String[] headerLabels;
+  /** All header rows' labels: {@code headerLabels2d[row][col]}. */
+  private String[][] headerLabels2d;
 
   /**
-   * Constructs a new instance with the sheet name and header labels.
+   * Constructs a new instance with the sheet name and multiple header rows.
    *
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
    *     {@code tableStartColumnNumber = 1}.</p>
    *
    * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels
+   * @param headerLabels expected labels for each header row: {@code headerLabels[row][col]},
+   *     top row first. All rows must have the same length.
    */
-  public CellHeaderExcelTableWriter(String sheetName, String[] headerLabels) {
+  public CellHeaderExcelTableWriter(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
-  }
-
-  /**
-   * Constructs a new instance.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     The row number must specify the header row of the table
-   *     Since the writer does not overwrite the header, but the writer does read and validate it.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public CellHeaderExcelTableWriter(String sheetName,
-      String[] headerLabels, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber) {
-
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
-
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
+    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
   }
 
   @Override
   public String[] getHeaderLabels() {
-    return headerLabels;
+    return headerLabels2d[headerLabels2d.length - 1];
+  }
+
+  @Override
+  public String[][] getHeaderLabelData() {
+    return headerLabels2d;
+  }
+
+  @Override
+  public int getNumberOfHeaderLines() {
+    return headerLabels2d.length;
+  }
+
+  @Override
+  public String getFarLeftAndTopHeaderLabel() {
+    ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
+    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
   }
 
   @Override
   protected void headerCheck(Workbook workbook)
       throws EncryptedDocumentException, IOException {
-
-    new StringHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0])
+    new StringHeaderExcelTableReader(getSheetName(), headerLabels2d)
         .tableStartRowNumber(tableStartRowNumber)
         .tableStartColumnNumber(tableStartColumnNumber)
         .tableRowSize(1)
@@ -99,13 +100,6 @@ public class CellHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   @Override
   public Map<Integer, CellStyle> getColumnStyleMap() {
     return columnStyleMap;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public CellHeaderExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    return withCopiesDataFormatOnly(copiesDataFormatOnly);
   }
 
   @Override
@@ -131,8 +125,7 @@ public class CellHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
   @Override
   public CellHeaderExcelTableWriter withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
-    return (CellHeaderExcelTableWriter)
-        super.withIgnoresAdditionalColumnsOfHeaderData(value);
+    return (CellHeaderExcelTableWriter) super.withIgnoresAdditionalColumnsOfHeaderData(value);
   }
 
   @Override

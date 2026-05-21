@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.util.Matrix;
@@ -93,7 +94,7 @@ class CellRenderer {
    */
   void renderForeground(PDPageContentStream cs, @Nullable Cell cell, float x, float y,
       float width, float height, float scaleFactor, @Nullable TableCellStyle tableStyle,
-      float overflowWidth) throws IOException {
+      float overflowWidth) throws IOException, PdfGenerateException {
 
     if (cell != null) {
       String value = formatter.getCellDisplayValue(cell);
@@ -139,7 +140,7 @@ class CellRenderer {
   /** Backward-compatible single-call version (no overflow). */
   void renderCell(PDPageContentStream cs, @Nullable Cell cell, float x, float y,
       float width, float height, float scaleFactor, @Nullable TableCellStyle tableStyle)
-      throws IOException {
+      throws IOException, PdfGenerateException {
     renderBackground(cs, cell, x, y, width, height, tableStyle);
     renderForeground(cs, cell, x, y, width, height, scaleFactor, tableStyle, width);
   }
@@ -150,7 +151,7 @@ class CellRenderer {
 
   private void renderText(PDPageContentStream cs, Cell cell, String value, float x, float y,
       float width, float height, float scaleFactor, @Nullable Color tableFontColor,
-      boolean tableFontBold) throws IOException {
+      boolean tableFontBold) throws IOException, PdfGenerateException {
 
     CellStyle style = cell.getCellStyle();
     Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());
@@ -164,10 +165,8 @@ class CellRenderer {
         || poiFont.getUnderline() == Font.U_DOUBLE_ACCOUNTING;
     final boolean accountingUnderline = poiFont.getUnderline() == Font.U_SINGLE_ACCOUNTING
         || poiFont.getUnderline() == Font.U_DOUBLE_ACCOUNTING;
-    short typeOffset = poiFont.getTypeOffset();
-    // Excel renders fonts at their original sizes during Fit-to-page export;
-    // only the geometric layout (row heights, column widths) is scaled, not the font.
-    float fontSize = poiFont.getFontHeightInPoints();
+    final short typeOffset = poiFont.getTypeOffset();
+    float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
     PDType0Font font = fontManager.getFont(bold);
 
     Color textColor = Color.BLACK;
@@ -175,7 +174,9 @@ class CellRenderer {
       XSSFColor color = xssfFont.getXSSFColor();
       if (color != null) {
         Color c = toAwtColor(color);
-        if (c != null) textColor = c;
+        if (c != null) {
+          textColor = c;
+        }
       }
     }
     if (tableFontColor != null) {
@@ -247,28 +248,31 @@ class CellRenderer {
         lineY -= fontSize * 0.15f;
       }
 
-      float textWidth;
-      try {
-        textWidth = font.getStringWidth(line) / 1000f * effectiveFontSize;
-      } catch (Exception e) {
-        textWidth = width;
-      }
+      // Compute text width using per-character font selection (handles fallback fonts).
+      float textWidth = fontManager.getStringWidthWithFallback(line, bold, effectiveFontSize);
       final float textX =
           calculateTextX(getHorizontalAlignment(cell, style), cell, x, width, textWidth,
               style.getIndention());
 
       cs.beginText();
-      cs.setFont(font, effectiveFontSize);
       cs.setNonStrokingColor(textColor);
       if (italic) {
+        // Italic uses a text matrix shear; font switching within the matrix is unsupported,
+        // so render the whole line with the primary font (best effort for italic+fallback).
+        cs.setFont(font, effectiveFontSize);
         cs.setTextMatrix(new Matrix(1, 0, 0.21f, 1, textX, lineY));
+        try {
+          cs.showText(line);
+        } catch (Exception ignored) { // NOPMD
+          // Skip lines whose characters are not all in the primary font in italic mode.
+        }
       } else {
         cs.newLineAtOffset(textX, lineY);
-      }
-      try {
-        cs.showText(line);
-      } catch (Exception e) {
-        // Skip text that cannot be rendered with the current font.
+        // Render each font-segment so that characters not in the primary font use the fallback.
+        for (FontManager.TextRun run : fontManager.segmentText(line, bold)) {
+          cs.setFont(run.font(), effectiveFontSize);
+          cs.showText(run.text());
+        }
       }
       cs.endText();
 
@@ -302,22 +306,22 @@ class CellRenderer {
   }
 
   private void renderVerticalText(PDPageContentStream cs, Cell cell, String value, float x, float y,
-      float width, float height, float scaleFactor) throws IOException {
+      float width, float height, float scaleFactor) throws IOException, PdfGenerateException {
 
     CellStyle style = cell.getCellStyle();
     Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());
 
     boolean bold = poiFont.getBold();
-    // Excel renders fonts at their original sizes during Fit-to-page export.
-    float fontSize = poiFont.getFontHeightInPoints();
-    PDType0Font font = fontManager.getFont(bold);
+    float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
 
     Color textColor = Color.BLACK;
     if (poiFont instanceof XSSFFont xssfFont) {
       XSSFColor color = xssfFont.getXSSFColor();
       if (color != null) {
         Color c = toAwtColor(color);
-        if (c != null) textColor = c;
+        if (c != null) {
+          textColor = c;
+        }
       }
     }
 
@@ -327,28 +331,27 @@ class CellRenderer {
     float centerX = x + width / 2f;
     float currentY = y + height - CELL_PADDING - ascent;
 
-    for (int i = 0; i < value.length(); i++) {
+    for (int i = 0; i < value.length(); ) {
       if (currentY + descent < y) {
         break;
       }
-      String ch = String.valueOf(value.charAt(i));
+      int cp = value.codePointAt(i);
+      String ch = new String(Character.toChars(cp));
+      PDType0Font charFont = fontManager.selectFont(cp, bold);
       float charWidth;
       try {
-        charWidth = font.getStringWidth(ch) / 1000f * fontSize;
-      } catch (Exception e) {
+        charWidth = charFont.getStringWidth(ch) / 1000f * fontSize;
+      } catch (Exception ignored) { // NOPMD
         charWidth = fontSize;
       }
       cs.beginText();
-      cs.setFont(font, fontSize);
+      cs.setFont(charFont, fontSize);
       cs.setNonStrokingColor(textColor);
       cs.newLineAtOffset(centerX - charWidth / 2f, currentY);
-      try {
-        cs.showText(ch);
-      } catch (Exception e) {
-        // Skip characters that cannot be rendered.
-      }
+      cs.showText(ch);
       cs.endText();
       currentY -= lineHeight;
+      i += Character.charCount(cp);
     }
   }
 
@@ -435,10 +438,18 @@ class CellRenderer {
       var rawAlign = ctXf.getAlignment();
       if (rawAlign != null && rawAlign.isSetVertical()) {
         var sv = rawAlign.getVertical();
-        if (sv == STVerticalAlignment.TOP) return VerticalAlignment.TOP;
-        if (sv == STVerticalAlignment.CENTER) return VerticalAlignment.CENTER;
-        if (sv == STVerticalAlignment.JUSTIFY) return VerticalAlignment.JUSTIFY;
-        if (sv == STVerticalAlignment.DISTRIBUTED) return VerticalAlignment.DISTRIBUTED;
+        if (sv == STVerticalAlignment.TOP) {
+          return VerticalAlignment.TOP;
+        }
+        if (sv == STVerticalAlignment.CENTER) {
+          return VerticalAlignment.CENTER;
+        }
+        if (sv == STVerticalAlignment.JUSTIFY) {
+          return VerticalAlignment.JUSTIFY;
+        }
+        if (sv == STVerticalAlignment.DISTRIBUTED) {
+          return VerticalAlignment.DISTRIBUTED;
+        }
       }
     }
     return vertAlign;
@@ -452,9 +463,9 @@ class CellRenderer {
    * {@code horizontal} attribute.</p>
    */
   HorizontalAlignment getHorizontalAlignment(Cell cell, CellStyle style) {
-    HorizontalAlignment hAlign = style.getAlignment();
-    if (hAlign != HorizontalAlignment.GENERAL) {
-      return hAlign;
+    HorizontalAlignment halign = style.getAlignment();
+    if (halign != HorizontalAlignment.GENERAL) {
+      return halign;
     }
     if (style instanceof XSSFCellStyle xssfStyle
         && cell.getSheet().getWorkbook() instanceof XSSFWorkbook xssfWb) {
@@ -463,16 +474,30 @@ class CellRenderer {
       var rawAlign = ctXf.getAlignment();
       if (rawAlign != null && rawAlign.isSetHorizontal()) {
         var sh = rawAlign.getHorizontal();
-        if (sh == STHorizontalAlignment.LEFT) return HorizontalAlignment.LEFT;
-        if (sh == STHorizontalAlignment.RIGHT) return HorizontalAlignment.RIGHT;
-        if (sh == STHorizontalAlignment.CENTER) return HorizontalAlignment.CENTER;
-        if (sh == STHorizontalAlignment.FILL) return HorizontalAlignment.FILL;
-        if (sh == STHorizontalAlignment.JUSTIFY) return HorizontalAlignment.JUSTIFY;
-        if (sh == STHorizontalAlignment.CENTER_CONTINUOUS) return HorizontalAlignment.CENTER_SELECTION;
-        if (sh == STHorizontalAlignment.DISTRIBUTED) return HorizontalAlignment.DISTRIBUTED;
+        if (sh == STHorizontalAlignment.LEFT) {
+          return HorizontalAlignment.LEFT;
+        }
+        if (sh == STHorizontalAlignment.RIGHT) {
+          return HorizontalAlignment.RIGHT;
+        }
+        if (sh == STHorizontalAlignment.CENTER) {
+          return HorizontalAlignment.CENTER;
+        }
+        if (sh == STHorizontalAlignment.FILL) {
+          return HorizontalAlignment.FILL;
+        }
+        if (sh == STHorizontalAlignment.JUSTIFY) {
+          return HorizontalAlignment.JUSTIFY;
+        }
+        if (sh == STHorizontalAlignment.CENTER_CONTINUOUS) {
+          return HorizontalAlignment.CENTER_SELECTION;
+        }
+        if (sh == STHorizontalAlignment.DISTRIBUTED) {
+          return HorizontalAlignment.DISTRIBUTED;
+        }
       }
     }
-    return hAlign;
+    return halign;
   }
 
   // -------------------------------------------------------------------------
@@ -542,7 +567,9 @@ class CellRenderer {
 
   private void renderTableBorderLine(PDPageContentStream cs, @Nullable BorderStyle borderStyle,
       @Nullable Color color, float x1, float y1, float x2, float y2) throws IOException {
-    if (borderStyle == null || borderStyle == BorderStyle.NONE) return;
+    if (borderStyle == null || borderStyle == BorderStyle.NONE) {
+      return;
+    }
     renderBorderLine(cs, borderStyle, color != null ? color : Color.BLACK, x1, y1, x2, y2);
   }
 
@@ -596,7 +623,9 @@ class CellRenderer {
    * the normal {@link XSSFColor#getRGBWithTint()} cannot resolve the colour on its own.
    */
   @Nullable Color poiColorToAwt(org.apache.poi.ss.usermodel.Color color) {
-    if (!(color instanceof XSSFColor xssfColor)) return null;
+    if (!(color instanceof XSSFColor xssfColor)) {
+      return null;
+    }
     byte[] rgb = xssfColor.getRGBWithTint();
     if (rgb == null && currentWorkbook != null && xssfColor.getCTColor().isSetTheme()) {
       var theme = currentWorkbook.getStylesSource().getTheme();
@@ -605,7 +634,9 @@ class CellRenderer {
         rgb = xssfColor.getRGBWithTint();
       }
     }
-    if (rgb == null) return null;
+    if (rgb == null) {
+      return null;
+    }
     return new Color(rgb[0] & 0xFF, rgb[1] & 0xFF, rgb[2] & 0xFF);
   }
 
@@ -621,27 +652,41 @@ class CellRenderer {
   // -------------------------------------------------------------------------
 
   List<TableRenderInfo> collectTableRenderInfos(Sheet sheet, Workbook workbook) {
-    if (!(sheet instanceof XSSFSheet xssfSheet)) return List.of();
-    if (!(workbook instanceof XSSFWorkbook xssfWb)) return List.of();
+    if (!(sheet instanceof XSSFSheet xssfSheet)) {
+      return List.of();
+    }
+    if (!(workbook instanceof XSSFWorkbook xssfWb)) {
+      return List.of();
+    }
 
     List<XSSFTable> tables = xssfSheet.getTables();
-    if (tables.isEmpty()) return List.of();
+    if (tables.isEmpty()) {
+      return List.of();
+    }
 
     var stylesSource = xssfWb.getStylesSource();
     List<TableRenderInfo> result = new ArrayList<>();
 
     for (XSSFTable table : tables) {
       var rawInfo = table.getStyle();
-      if (rawInfo == null) continue;
+      if (rawInfo == null) {
+        continue;
+      }
 
       String name = rawInfo.getName();
-      if (name == null || name.isBlank()) continue;
+      if (name == null || name.isBlank()) {
+        continue;
+      }
 
       TableStyle tableStyle = stylesSource.getTableStyle(name);
-      if (tableStyle == null) continue;
+      if (tableStyle == null) {
+        continue;
+      }
 
       var areaRef = table.getArea();
-      if (areaRef == null) continue;
+      if (areaRef == null) {
+        continue;
+      }
       var firstCell = areaRef.getFirstCell();
       var lastCell = areaRef.getLastCell();
       CellRangeAddress area = new CellRangeAddress(
@@ -674,16 +719,20 @@ class CellRenderer {
 
   @Nullable TableCellStyle getTableCellStyle(List<TableRenderInfo> tables, int row, int col) {
     for (TableRenderInfo info : tables) {
-      if (!info.area().isInRange(row, col)) continue;
+      if (!info.area().isInRange(row, col)) {
+        continue;
+      }
 
-      boolean isHeader = row >= info.headerFirstRow() && row <= info.headerLastRow();
-      boolean isLastRow = row == info.area().getLastRow();
-      boolean isFirstCol = col == info.area().getFirstColumn();
-      boolean isLastCol = col == info.area().getLastColumn();
-      boolean isFirstDataRow = row == info.headerLastRow() + 1;
+      final boolean isHeader = row >= info.headerFirstRow() && row <= info.headerLastRow();
+      final boolean isLastRow = row == info.area().getLastRow();
+      final boolean isFirstCol = col == info.area().getFirstColumn();
+      final boolean isLastCol = col == info.area().getLastColumn();
+      final boolean isFirstDataRow = row == info.headerLastRow() + 1;
 
       List<DifferentialStyleProvider> providers = new ArrayList<>();
-      if (info.wholeTable() != null) providers.add(info.wholeTable());
+      if (info.wholeTable() != null) {
+        providers.add(info.wholeTable());
+      }
 
       if (!isHeader && info.showRowStripes() && info.firstRowStripe() != null) {
         int dataRow = row - info.headerLastRow() - 1;
@@ -696,33 +745,46 @@ class CellRenderer {
         }
       }
 
-      if (info.showFirstColumn() && isFirstCol && info.firstColumn() != null)
+      if (info.showFirstColumn() && isFirstCol && info.firstColumn() != null) {
         providers.add(info.firstColumn());
-      if (info.showLastColumn() && isLastCol && info.lastColumn() != null)
+      }
+      if (info.showLastColumn() && isLastCol && info.lastColumn() != null) {
         providers.add(info.lastColumn());
-      if (isHeader && info.headerRow() != null)
+      }
+      if (isHeader && info.headerRow() != null) {
         providers.add(info.headerRow());
+      }
 
       Color fill = null;
       Color fontColor = null;
       boolean fontBold = false;
-      BorderStyle topStyle = null; Color topColor = null;
-      BorderStyle bottomStyle = null; Color bottomColor = null;
-      BorderStyle leftStyle = null; Color leftColor = null;
-      BorderStyle rightStyle = null; Color rightColor = null;
+      BorderStyle topStyle = null;
+      Color topColor = null;
+      BorderStyle bottomStyle = null;
+      Color bottomColor = null;
+      BorderStyle leftStyle = null;
+      Color leftColor = null;
+      BorderStyle rightStyle = null;
+      Color rightColor = null;
 
       for (var p : providers) {
         var pf = p.getPatternFormatting();
         if (pf != null) {
           Color c = poiColorToAwt(pf.getFillForegroundColorColor());
-          if (c != null) fill = c;
+          if (c != null) {
+            fill = c;
+          }
         }
 
         var ff = p.getFontFormatting();
         if (ff != null) {
           Color fc = poiColorToAwt(ff.getFontColor());
-          if (fc != null) fontColor = fc;
-          if (ff.isBold()) fontBold = true;
+          if (fc != null) {
+            fontColor = fc;
+          }
+          if (ff.isBold()) {
+            fontBold = true;
+          }
         }
 
         var bf = p.getBorderFormatting();
@@ -736,22 +798,34 @@ class CellRenderer {
           if (isHeader || isFirstDataRow) {
             BorderStyle ts = bf.getBorderTop();
             Color tc = poiColorToAwt(bf.getTopBorderColorColor());
-            if (ts != null && ts != BorderStyle.NONE) { topStyle = ts; topColor = tc; }
+            if (ts != null && ts != BorderStyle.NONE) {
+              topStyle = ts;
+              topColor = tc;
+            }
           }
           if (isLastRow) {
             BorderStyle bs = bf.getBorderBottom();
             Color bc = poiColorToAwt(bf.getBottomBorderColorColor());
-            if (bs != null && bs != BorderStyle.NONE) { bottomStyle = bs; bottomColor = bc; }
+            if (bs != null && bs != BorderStyle.NONE) {
+              bottomStyle = bs;
+              bottomColor = bc;
+            }
           }
           if (isFirstCol) {
             BorderStyle ls = bf.getBorderLeft();
             Color lc = poiColorToAwt(bf.getLeftBorderColorColor());
-            if (ls != null && ls != BorderStyle.NONE) { leftStyle = ls; leftColor = lc; }
+            if (ls != null && ls != BorderStyle.NONE) {
+              leftStyle = ls;
+              leftColor = lc;
+            }
           }
           if (isLastCol) {
             BorderStyle rs = bf.getBorderRight();
             Color rc = poiColorToAwt(bf.getRightBorderColorColor());
-            if (rs != null && rs != BorderStyle.NONE) { rightStyle = rs; rightColor = rc; }
+            if (rs != null && rs != BorderStyle.NONE) {
+              rightStyle = rs;
+              rightColor = rc;
+            }
           }
         }
       }

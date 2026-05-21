@@ -17,7 +17,7 @@ package jp.ecuacion.util.excel.table.reader;
 
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 
@@ -31,7 +31,7 @@ public interface IfFormatHeaderExcelTableReader<T>
 
   @Override
   public default List<List<String>> updateAndGetHeaderData(List<List<T>> excelData)
-      throws ExcelAppException {
+      throws ExcelTableException {
     List<List<String>> list = new ArrayList<>();
     
     if (excelData.size() == 0) {

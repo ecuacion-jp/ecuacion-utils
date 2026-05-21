@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfFormatFreeExcelTable;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
@@ -54,24 +54,8 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
     super(sheetName);
   }
 
-  /**
-   * Constructs a new instance.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public CellFreeExcelTableWriter(String sheetName, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber) {
-
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
-  }
-
   @Override
-  public @Nullable String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
+  public @Nullable String getStringValue(@Nullable Cell cellData) throws ExcelTableException {
     return ExcelReadUtil.getStringFromCell(cellData, null);
   }
 
@@ -86,13 +70,6 @@ public class CellFreeExcelTableWriter extends ExcelTableWriter<Cell>
   @Override
   public Map<Integer, CellStyle> getColumnStyleMap() {
     return columnStyleMap;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public CellFreeExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    return withCopiesDataFormatOnly(copiesDataFormatOnly);
   }
 
   @Override

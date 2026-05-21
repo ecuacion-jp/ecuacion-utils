@@ -17,7 +17,6 @@ package jp.ecuacion.util.pdf.excel.report.options;
 
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -53,6 +52,9 @@ public class PdfGenerateOptions {
   @Nullable
   private final String pdfPassword;
 
+  @Nullable
+  private final String pdfOwnerPassword;
+
   /**
    * The locale used to resolve locale-sensitive built-in date formats (e.g., format ID 14).
    * When {@code null}, {@link Locale#getDefault()} is used at render time.
@@ -66,6 +68,7 @@ public class PdfGenerateOptions {
     this.boldFontPath = builder.boldFontPath;
     this.excelPassword = builder.excelPassword;
     this.pdfPassword = builder.pdfPassword;
+    this.pdfOwnerPassword = builder.pdfOwnerPassword;
     this.dateLocale = builder.dateLocale;
   }
 
@@ -121,6 +124,18 @@ public class PdfGenerateOptions {
   }
 
   /**
+   * Returns the owner password for the output PDF, or {@code null} if none was explicitly set.
+   *
+   * <p>When {@code null}, the value of {@link #getPdfPassword()} is used as the owner password.</p>
+   *
+   * @return PDF owner password, or {@code null}
+   */
+  @Nullable
+  public String getPdfOwnerPassword() {
+    return pdfOwnerPassword;
+  }
+
+  /**
    * Returns the locale used to resolve locale-sensitive built-in date formats,
    * or {@code null} if the JVM default locale ({@link Locale#getDefault()}) should be used.
    *
@@ -158,6 +173,9 @@ public class PdfGenerateOptions {
 
     @Nullable
     private String pdfPassword;
+
+    @Nullable
+    private String pdfOwnerPassword;
 
     @Nullable
     private Locale dateLocale;
@@ -232,6 +250,26 @@ public class PdfGenerateOptions {
      */
     public Builder pdfPassword(@Nullable String pdfPassword) {
       this.pdfPassword = pdfPassword;
+      return this;
+    }
+
+    /**
+     * Sets the owner password for the output PDF.
+     *
+     * <p>The owner password controls who can modify the PDF's security settings
+     * (e.g. add print or copy restrictions using an external tool after generation).
+     * When not set, {@code pdfPassword} is used as the owner password as well.</p>
+     *
+     * <p>Set this when the person who generates the PDF and the person who later
+     * configures print/copy restrictions are different — for example, a system that
+     * generates the PDF with {@code pdfPassword} for end-user access, while an
+     * administrator applies restrictions using a separately managed {@code pdfOwnerPassword}.</p>
+     *
+     * @param pdfOwnerPassword PDF owner password
+     * @return this builder
+     */
+    public Builder pdfOwnerPassword(@Nullable String pdfOwnerPassword) {
+      this.pdfOwnerPassword = pdfOwnerPassword;
       return this;
     }
 

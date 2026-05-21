@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.enums.NoDataString;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -62,20 +62,6 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
   protected int poiBasisHeaderStartRow;
 
   /**
-   * Constructs a new instance with the sheet name and a single header row.
-   *
-   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
-   *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null},
-   *     {@code noDataString = NoDataString.NULL}.</p>
-   *
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels for the single header row
-   */
-  public StringHeaderExcelTableReader(String sheetName, String[] headerLabels) {
-    this(sheetName, headerLabels, null, 1, null);
-  }
-
-  /**
    * Constructs a new instance with the sheet name and multiple header rows.
    *
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
@@ -87,100 +73,9 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    *     top row first
    */
   public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels) {
-    this(sheetName, headerLabels, null, 1, null);
-  }
-
-  /**
-   * Constructs a new instance with a single header row.
-   * The obtained value from an empty cell is {@code null}.
-   *
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels for the single header row
-   * @param tableStartRowNumber 1-based row number of the header row, or {@code null} for
-   *     auto-detection by the far-left header label
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableReader(String sheetName, String[] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize) {
-    this(sheetName, new String[][] {headerLabels}, tableStartRowNumber, tableStartColumnNumber,
-        tableRowSize, NoDataString.NULL);
-  }
-
-  /**
-   * Constructs a new instance with a single header row and a specified empty-cell value.
-   *
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels for the single header row
-   * @param tableStartRowNumber 1-based row number of the header row, or {@code null} for
-   *     auto-detection by the far-left header label
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
-   * @param noDataString the value to return for an empty cell
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableReader(String sheetName, String[] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, NoDataString noDataString) {
-    this(sheetName, new String[][] {headerLabels}, tableStartRowNumber, tableStartColumnNumber,
-        tableRowSize, noDataString);
-  }
-
-  /**
-   * Constructs a new instance with multiple header rows.
-   * The obtained value from an empty cell is {@code null}.
-   *
-   * <p>All rows in {@code headerLabels} must have the same length,
-   *     which becomes the column count of the table.
-   *     Consecutive identical values in the same row are treated as a horizontally merged cell
-   *     when writing; vertically merged cells (same value in all rows of a column)
-   *     can be annotated with a single-element
-   *     {@link jp.ecuacion.util.excel.table.bean.ExcelColumn}.</p>
-   *
-   * @param sheetName sheet name
-   * @param headerLabels expected labels for each header row (expanded form):
-   *     {@code headerLabels[row][col]}, top row first
-   * @param tableStartRowNumber 1-based row number of the first header row,
-   *     or {@code null} for auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize) {
-    this(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
-        NoDataString.NULL);
-  }
-
-  /**
-   * Constructs a new instance with multiple header rows and a specified empty-cell value.
-   *
-   * @param sheetName sheet name
-   * @param headerLabels expected labels for each header row (expanded form)
-   * @param tableStartRowNumber 1-based row number of the first header row,
-   *     or {@code null} for auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum number of data rows, or {@code null} for auto-detection
-   * @param noDataString the value to return for an empty cell
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, NoDataString noDataString) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, null);
-
+    super(sheetName);
     this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
-    this.noDataString = noDataString;
-
+    this.noDataString = NoDataString.NULL;
     setTableColumnSize(getHeaderLabels().length);
   }
 
@@ -253,11 +148,11 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    *     because it represents an unexpected gap in the header.</p>
    *
    * @param headerData raw header data (modified in place to expand merged cells)
-   * @throws ExcelAppException when a header cell is empty without being merged,
+   * @throws ExcelTableException when a header cell is empty without being merged,
    *     or when labels do not match
    */
   @Override
-  public void validateHeaderData(List<List<String>> headerData) throws ExcelAppException {
+  public void validateHeaderData(List<List<String>> headerData) throws ExcelTableException {
     if (currentSheet != null && headerLabels2d.length > 1) {
       expandMergedCells(headerData);
       checkNoBlankHeaderCells(headerData);
@@ -270,11 +165,11 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    *
    * @param excelData all rows including header rows; header rows are removed in place
    * @return the removed header rows
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   @Override
   public @Nullable List<List<String>> updateAndGetHeaderData(List<List<String>> excelData)
-      throws ExcelAppException {
+      throws ExcelTableException {
     List<List<String>> headerRows = new ArrayList<>();
     int numHeaderRows = getNumberOfHeaderLines();
     for (int i = 0; i < numHeaderRows && !excelData.isEmpty(); i++) {
@@ -347,9 +242,9 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    * Checks that no header cell is null or empty after merged-cell expansion.
    *
    * @param headerData expanded header data
-   * @throws ExcelAppException when a blank non-merged cell is found
+   * @throws ExcelTableException when a blank non-merged cell is found
    */
-  private void checkNoBlankHeaderCells(List<List<String>> headerData) throws ExcelAppException {
+  private void checkNoBlankHeaderCells(List<List<String>> headerData) throws ExcelTableException {
     for (int rowIdx = 0; rowIdx < headerData.size(); rowIdx++) {
       List<String> row = headerData.get(rowIdx);
       for (int colIdx = 0; colIdx < row.size(); colIdx++) {
@@ -357,7 +252,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
         if (val == null || val.isEmpty()) {
           int excelRow = poiBasisHeaderStartRow + rowIdx + 1;
           int excelCol = tableStartColumnNumber + colIdx;
-          throw new ExcelAppException(
+          throw new ExcelTableException(
               "jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message",
               getSheetName(), Integer.toString(excelRow), Integer.toString(excelCol));
         }
@@ -378,12 +273,12 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    * @param poiBasisDeterminedTableStartColumnNumber the 0-based start column
    * @param ignoresColumnSizeSetInReader ignoresColumnSizeSetInReader
    * @return column count
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   @Override
   public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
       int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader)
-      throws ExcelAppException {
+      throws ExcelTableException {
     if (getNumberOfHeaderLines() > 1) {
       // Merged cells (horizontal and vertical) make slave cells appear empty,
       // so auto-detecting column count from raw cells is unreliable for multi-row headers.
@@ -416,24 +311,10 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
     return (StringHeaderExcelTableReader) super.columnDateTimeFormat(columnNumber, dateTimeFormat);
   }
 
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public StringHeaderExcelTableReader ignoresAdditionalColumnsOfHeaderData(boolean value) {
-    return withIgnoresAdditionalColumnsOfHeaderData(value);
-  }
-
   @Override
   public StringHeaderExcelTableReader withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public StringHeaderExcelTableReader isVerticalAndHorizontalOpposite(boolean value) {
-    return withVerticalAndHorizontalOpposite(value);
   }
 
   @Override

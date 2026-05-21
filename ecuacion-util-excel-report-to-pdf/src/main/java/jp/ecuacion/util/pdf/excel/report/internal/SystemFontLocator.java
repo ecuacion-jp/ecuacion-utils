@@ -142,7 +142,7 @@ public class SystemFontLocator {
       // be used to distinguish weights.  Instead, check nameId=4 (Full Name) which
       // carries the explicit weight descriptor (e.g. "Yu Gothic Medium"), then fall
       // back to nameId=1 (Family Name, e.g. "Yu Gothic Light") if nameId=4 is absent.
-      for (int targetId : new int[] {4, 1}) {
+      for (int targetId : new int[] {4, 2, 1}) {
         for (var record : naming.getNameRecords()) {
           if (record.getNameId() == targetId) {
             String value = record.getString();
@@ -150,6 +150,13 @@ public class SystemFontLocator {
               continue;
             }
             String lower = value.toLowerCase(Locale.ENGLISH);
+            // Strongly penalise italic and bold — this function is for regular (upright) weight.
+            if (lower.contains("italic")) {
+              return 20;
+            }
+            if (lower.contains("bold")) {
+              return 10;
+            }
             if (lower.contains("medium")) {
               return 0;
             }
@@ -176,14 +183,15 @@ public class SystemFontLocator {
     try {
       String lower = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
       if (lower.endsWith(".ttc")) {
-        TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile());
-        var found = new boolean[] {false};
-        ttc.processAllFonts(ttf -> {
-          if (!found[0] && matchesFontNameExact(ttf, targetName)) {
-            found[0] = true;
-          }
-        });
-        return found[0];
+        try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
+          var found = new boolean[] {false};
+          ttc.processAllFonts(ttf -> {
+            if (!found[0] && matchesFontNameExact(ttf, targetName)) {
+              found[0] = true;
+            }
+          });
+          return found[0];
+        }
       } else {
         TrueTypeFont ttf =
             new TTFParser().parse(new RandomAccessReadBufferedFile(fontFile.toFile()));
@@ -254,6 +262,48 @@ public class SystemFontLocator {
   }
 
   /**
+   * Computes MDW using {@code Math.ceil} to match Excel's pixel-measurement behaviour.
+   *
+   * <p>Excel measures the maximum digit width (MDW) by rendering digits and counting screen
+   * pixels.  Fractional advance widths are always rounded up to the next pixel, so a glyph
+   * whose theoretical advance is 7.2 px occupies 8 px of rendered space.  Use this method
+   * when computing MDW from a workbook's theme Latin font (e.g. Calibri) so that
+   * naturalColTotal and fit-to-page scale factor match Excel's own computation.</p>
+   *
+   * <p>Regular rendering fonts (e.g. NotoSansJP used as fallback) should still use
+   * {@link #computeMdw(Path, String, float)} which uses {@code Math.round}.</p>
+   */
+  public static int computeExcelMdw(Path fontFile, String fontName, float fontSizePt) {
+    return computeExcelMdw(fontFile, fontName, fontSizePt, 96);
+  }
+
+  /** Ceil-based MDW at an explicit PPI — see {@link #computeExcelMdw(Path, String, float)}. */
+  public static int computeExcelMdw(Path fontFile, String fontName, float fontSizePt, int ppi) {
+    try {
+      TrueTypeFont ttf = loadTrueTypeFont(fontFile, fontName);
+      if (ttf == null) {
+        return FALLBACK_MDW;
+      }
+      try {
+        int unitsPerEm = ttf.getUnitsPerEm();
+        if (unitsPerEm <= 0) {
+          return FALLBACK_MDW;
+        }
+        var cmapLookup = ttf.getUnicodeCmapLookup();
+        int gid = (cmapLookup != null) ? cmapLookup.getGlyphId(0x0030) : 0;
+        int advanceWidth = ttf.getHorizontalMetrics().getAdvanceWidth(gid);
+        double advancePts = (double) advanceWidth / unitsPerEm * fontSizePt;
+        double advancePxAtPpi = advancePts * ppi / 72.0;
+        return Math.max(1, (int) Math.ceil(advancePxAtPpi));
+      } finally {
+        ttf.close();
+      }
+    } catch (IOException e) {
+      return FALLBACK_MDW;
+    }
+  }
+
+  /**
    * Returns the logical screen resolution in pixels per inch.
    *
    * <p>Excel on macOS computes MDW using the screen's logical DPI rather than the
@@ -300,19 +350,21 @@ public class SystemFontLocator {
    *
    * @return the font, or {@code null} if the font could not be loaded
    */
+  @SuppressWarnings("resource")
   @Nullable
   public static TrueTypeFont loadTrueTypeFont(Path fontFile, String fontName) throws IOException {
     String lower = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
     if (lower.endsWith(".ttc")) {
-      TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile());
-      // 1. Try PostScript name match (getFontByName uses nameId=6)
-      try {
-        TrueTypeFont found = ttc.getFontByName(fontName);
-        if (found != null) {
-          return found;
+      try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
+        // 1. Try PostScript name match (getFontByName uses nameId=6)
+        try {
+          TrueTypeFont found = ttc.getFontByName(fontName);
+          if (found != null) {
+            return found;
+          }
+        } catch (IOException ignored) {
+          // getFontByName throws if the named font is not in the collection
         }
-      } catch (IOException ignored) {
-        // getFontByName throws if the named font is not in the collection
       }
       // 2a. Exact family/full name match (nameId=1, 4, 16 must equal target exactly).
       //     Must come before prefix matching: "Meiryo" is a prefix of "Meiryo UI",
@@ -412,14 +464,15 @@ public class SystemFontLocator {
     try {
       String lower = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
       if (lower.endsWith(".ttc")) {
-        TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile());
-        var found = new boolean[] {false};
-        ttc.processAllFonts(ttf -> {
-          if (!found[0] && matchesFontName(ttf, targetName)) {
-            found[0] = true;
-          }
-        });
-        return found[0];
+        try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
+          var found = new boolean[] {false};
+          ttc.processAllFonts(ttf -> {
+            if (!found[0] && matchesFontName(ttf, targetName)) {
+              found[0] = true;
+            }
+          });
+          return found[0];
+        }
       } else {
         TrueTypeFont ttf =
             new TTFParser().parse(new RandomAccessReadBufferedFile(fontFile.toFile()));

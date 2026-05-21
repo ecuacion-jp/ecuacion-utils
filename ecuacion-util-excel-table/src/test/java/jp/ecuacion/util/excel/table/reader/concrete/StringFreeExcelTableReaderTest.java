@@ -18,10 +18,12 @@ package jp.ecuacion.util.excel.table.reader.concrete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import jp.ecuacion.util.excel.enums.NoDataString;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -282,30 +284,79 @@ public class StringFreeExcelTableReaderTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("存在しないシート名 → ExcelAppException（SheetNotExist）")
+    @DisplayName("存在しないシート名 → ExcelTableException（SheetNotExist）")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
       }
     }
 
     @Test
-    @DisplayName("テーブル開始位置にデータがない → ExcelAppException（ColumnSizeIsZero）")
+    @DisplayName("テーブル開始位置にデータがない → ExcelTableException（ColumnSizeIsZero）")
     void columnSizeIsZero() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1"); // empty sheet
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message");
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("getIterable")
+  class IterableReaderTests {
+
+    @Test
+    @DisplayName("getIterable(Workbook) → for-each で全行を順番に取得できる")
+    void iterateAllRows() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet sheet = wb.createSheet("Sheet1");
+        setCell(sheet, 0, 0, "a");
+        setCell(sheet, 0, 1, "b");
+        setCell(sheet, 1, 0, "c");
+        setCell(sheet, 1, 1, "d");
+
+        StringFreeExcelTableReader reader =
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableColumnSize(2);
+        List<List<String>> collected = new ArrayList<>();
+        try (var iterable = reader.getIterable(wb)) {
+          for (List<String> row : iterable) {
+            collected.add(row);
+          }
+        }
+
+        assertThat(collected).hasSize(2);
+        assertThat(collected.get(0)).containsExactly("a", "b");
+        assertThat(collected.get(1)).containsExactly("c", "d");
+      }
+    }
+
+    @Test
+    @DisplayName("全行消費後は hasNext() が false になり next() を呼ぶと NoSuchElementException")
+    void exhaustedIterator() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet sheet = wb.createSheet("Sheet1");
+        setCell(sheet, 0, 0, "a");
+
+        StringFreeExcelTableReader reader =
+            new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1).tableColumnSize(1);
+        try (var iterable = reader.getIterable(wb)) {
+          var iterator = iterable.iterator();
+          iterator.next(); // consume the only row → sets hasNext=false
+
+          assertThat(iterator.hasNext()).isFalse();
+          assertThatThrownBy(iterator::next).isInstanceOf(NoSuchElementException.class);
+        }
       }
     }
   }

@@ -15,7 +15,6 @@
  */
 package jp.ecuacion.util.excel.sample.copytable;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -46,7 +45,7 @@ public class CopyFreeFormatExcelTableSample {
 
     logger.info("A new excel file created and table data copied to: " + destPath.toString());
 
-    logger.info("Procedure finshed.");
+    logger.info("Procedure finished.");
   }
 
   private static List<List<Cell>> read() throws Exception {
@@ -60,13 +59,13 @@ public class CopyFreeFormatExcelTableSample {
 
   private static void write(List<List<Cell>> dataList) throws Exception {
 
-    new File("target/test-result").mkdirs();
+    Files.createDirectories(Path.of("target/test-result"));
 
     String templatePath = Path.of("test-data/template.xlsx").toAbsolutePath().toString();
     destPath = Path.of("target/test-result/result.xlsx").toAbsolutePath();
 
     // If the created file already exists, delete it.
-    if (new File(destPath.toString()).exists()) {
+    if (Files.exists(destPath)) {
       Files.delete(destPath);
     }
 

@@ -119,7 +119,7 @@ public class SheetRenderer {
     Sheet sheet = workbook.getSheetAt(sheetIndex);
     cellRenderer.currentWorkbook = (workbook instanceof XSSFWorkbook xssfWb) ? xssfWb : null;
 
-    List<TableRenderInfo> tableInfos = cellRenderer.collectTableRenderInfos(sheet, workbook);
+    final List<TableRenderInfo> tableInfos = cellRenderer.collectTableRenderInfos(sheet, workbook);
 
     int[] bounds = getPrintAreaBounds(workbook, sheet, sheetIndex);
     int firstRow = bounds[0];
@@ -184,7 +184,7 @@ public class SheetRenderer {
     float centeringOffset =
         (horizontalCentered && totalColWidth < printableWidth)
             ? (printableWidth - totalColWidth) / 2f : 0f;
-    float contentLeftMargin = leftMargin + centeringOffset;
+    final float contentLeftMargin = leftMargin + centeringOffset;
 
     float[] rowHeights = new float[naturalRowHeights.length];
     for (int i = 0; i < naturalRowHeights.length; i++) {
@@ -257,23 +257,43 @@ public class SheetRenderer {
     int contentFirstCol = (repeatFirstCol >= 0) ? repeatLastCol + 1 : firstCol;
     float contentPageWidth = printableWidth - repeatingColsWidth;
 
+    // Determine whether fitToPage=true is active and fitToWidth constrains to 1 page wide.
+    // When fitToPage=true and fitToWidth=1 (the most common case), Excel forces all columns
+    // onto a single horizontal page — the fit scale ensures they fit. We must not create
+    // automatic column-page breaks in this mode; only explicit manual column breaks apply.
+    boolean fitToOnePage = false;
+    if (sheet instanceof XSSFSheet xssfSheetFtp) {
+      if (xssfSheetFtp.getFitToPage()) {
+        long fitToWidth = 1; // OOXML default when fitToPage is active
+        if (xssfSheetFtp.getCTWorksheet().isSetPageSetup()) {
+          var ctPs = xssfSheetFtp.getCTWorksheet().getPageSetup();
+          if (ctPs.isSetFitToWidth()) {
+            fitToWidth = ctPs.getFitToWidth();
+          }
+        }
+        fitToOnePage = (fitToWidth == 1);
+      }
+    }
+
     // When no manual column breaks are defined and the natural (unscaled) column total
     // fits within the printable width, treat the sheet as single-column-page.
     List<int[]> colPages;
     if (repeatFirstCol >= 0 && contentFirstCol <= lastCol && contentPageWidth > 0) {
       float naturalContentColTotal = naturalColTotal - repeatingColsWidth / scaleFactor;
       float colPageWidth =
-          (sheet.getColumnBreaks().length == 0 && naturalContentColTotal <= contentPageWidth)
+          (sheet.getColumnBreaks().length == 0
+              && (fitToOnePage || naturalContentColTotal <= contentPageWidth))
               ? Float.MAX_VALUE
               : contentPageWidth;
       float[] contentColWidths =
           Arrays.copyOfRange(colWidths, contentFirstCol - firstCol, colWidths.length);
-      colPages = buildPageRanges(contentFirstCol, lastCol, sheet.getColumnBreaks(), contentColWidths,
-          colPageWidth, colPageWidth);
+      colPages = buildPageRanges(contentFirstCol, lastCol, sheet.getColumnBreaks(),
+          contentColWidths, colPageWidth, colPageWidth);
     } else {
       repeatFirstCol = -1;
       float colPageWidth =
-          (sheet.getColumnBreaks().length == 0 && naturalColTotal <= printableWidth)
+          (sheet.getColumnBreaks().length == 0
+              && (fitToOnePage || naturalColTotal <= printableWidth))
               ? Float.MAX_VALUE
               : printableWidth;
       colPages = buildPageRanges(firstCol, lastCol, sheet.getColumnBreaks(), colWidths,
@@ -307,7 +327,7 @@ public class SheetRenderer {
       String ref =
           printArea.contains("!") ? printArea.substring(printArea.indexOf('!') + 1) : printArea;
       ref = ref.replace("$", "");
-      String[] parts = ref.split(":");
+      String[] parts = ref.split(":", -1);
       if (parts.length == 2) {
         int firstRow = cellRefToRow(parts[0]);
         int firstCol = cellRefToCol(parts[0]);
@@ -322,8 +342,12 @@ public class SheetRenderer {
     int firstCol = Integer.MAX_VALUE;
     int lastCol = 0;
     for (Row row : sheet) {
-      if (row.getFirstCellNum() >= 0) firstCol = Math.min(firstCol, row.getFirstCellNum());
-      if (row.getLastCellNum() > 0) lastCol = Math.max(lastCol, row.getLastCellNum() - 1);
+      if (row.getFirstCellNum() >= 0) {
+        firstCol = Math.min(firstCol, row.getFirstCellNum());
+      }
+      if (row.getLastCellNum() > 0) {
+        lastCol = Math.max(lastCol, row.getLastCellNum() - 1);
+      }
     }
     if (firstCol == Integer.MAX_VALUE) {
       throw new PdfGenerateException(
@@ -395,32 +419,50 @@ public class SheetRenderer {
 
     float fitScale;
     if (fitToPage && naturalColTotal > 0) {
-      // "Fit to page" mode. Read fitToWidth / fitToHeight from pageSetup:
-      //   0 = unlimited (don't constrain that dimension)
-      //   N = fit to N pages (default 1 when not set)
-      long fitToWidth = 1, fitToHeight = 1;
-      if (sheet instanceof XSSFSheet xssfSheet1 && xssfSheet1.getCTWorksheet().isSetPageSetup()) {
-        var ctPs = xssfSheet1.getCTWorksheet().getPageSetup();
-        if (ctPs.isSetFitToWidth()) fitToWidth = ctPs.getFitToWidth();
-        if (ctPs.isSetFitToHeight()) fitToHeight = ctPs.getFitToHeight();
+      // "Fit to page" mode.
+      long fitToWidth = 1;
+      long fitToHeight = 1;
+      if (sheet instanceof XSSFSheet xssfSheet2 && xssfSheet2.getCTWorksheet().isSetPageSetup()) {
+        var ctPs2 = xssfSheet2.getCTWorksheet().getPageSetup();
+        if (ctPs2.isSetFitToWidth()) {
+          fitToWidth = ctPs2.getFitToWidth();
+        }
+        if (ctPs2.isSetFitToHeight()) {
+          fitToHeight = ctPs2.getFitToHeight();
+        }
       }
+      // Use Excel's stored fit scale when available and it does not overflow the
+      // printable width.  Excel saves the scale it computed (using its own MDW) to
+      // pageSetup/@scale; if our MDW matches Excel's the cached scale is exactly
+      // right.  Only recompute dynamically when the cached scale would make our
+      // columns overflow the page (MDW mismatch) or when no scale is cached.
+      if (sheet instanceof XSSFSheet xssfSheet1 && xssfSheet1.getCTWorksheet().isSetPageSetup()) {
+        var ctPs1 = xssfSheet1.getCTWorksheet().getPageSetup();
+        if (ctPs1.isSetScale()) {
+          long s = ctPs1.getScale();
+          if (s > 0 && s <= 400) {
+            float cached = s / 100f;
+            boolean horizontalOverflow = fitToWidth > 0
+                && naturalColTotal * cached > printableWidth * 1.02f;
+            if (!horizontalOverflow) {
+              return cached;
+            }
+          }
+        }
+      }
+      // No usable stored scale (or overflow): compute dynamically.
       fitScale = 1.0f;
       if (fitToWidth != 0 && naturalColTotal > 0) {
         fitScale = Math.min(1.0f, printableWidth / naturalColTotal);
       }
-      // Only apply height constraint when fitToHeight is non-zero (unlimited height when 0).
       if (fitToHeight != 0 && naturalRowTotal > 0 && naturalRowTotal * fitScale > printableHeight) {
         fitScale = Math.min(fitScale, printableHeight / naturalRowTotal);
       }
     } else {
-      // No explicit settings: only scale down when content is too wide or too tall.
+      // No fitToPage, no explicit scale → match Excel's default: render at 100% scale.
+      // Excel does NOT auto-scale content to fit the printable area when no page-scaling
+      // setting is configured; content may overflow to the right or span multiple pages.
       fitScale = 1.0f;
-      if (naturalColTotal > printableWidth) {
-        fitScale = printableWidth / naturalColTotal;
-      }
-      if (naturalRowTotal > 0 && naturalRowTotal * fitScale > printableHeight) {
-        fitScale = Math.min(fitScale, printableHeight / naturalRowTotal);
-      }
     }
     return fitScale;
   }
@@ -442,9 +484,12 @@ public class SheetRenderer {
           if (ctCol.isSetCustomWidth() && ctCol.getCustomWidth() && ctCol.getMin() <= col + 1
               && col + 1 <= ctCol.getMax()) {
             if (mdw > 0) {
-              // OOXML spec: pixel_width = Truncate(chars × MDW + 5)
-              // The Truncate (integer cast) matches Excel's internal calculation.
-              int px = (int) (sheet.getColumnWidth(col) / 256.0 * mdw + 5);
+              // OOXML spec §18.3.1.13:
+              //   pixel = Truncate(((256 × width + Truncate(128/MDW)) / 256) × MDW)
+              // getColumnWidth() returns width in 256ths of a character.
+              // roundingCorrection = Truncate(128/MDW) via integer division — intentional.
+              int roundingCorrection = 128 / mdw;
+              int px = (int) (((sheet.getColumnWidth(col) + roundingCorrection) / 256.0) * mdw);
               return px * PX_TO_PT;
             }
             return sheet.getColumnWidthInPixels(col) * PX_TO_PT;
@@ -455,7 +500,9 @@ public class SheetRenderer {
         double dcw = ws.getSheetFormatPr().getDefaultColWidth();
         if (dcw > 0) {
           if (mdw > 0) {
-            int px = (int) (dcw * mdw + 5);
+            // Same spec formula; dcw is in char units so multiply by 256 first.
+            int roundingCorrection = 128 / mdw;
+            int px = (int) (((dcw * 256 + roundingCorrection) / 256.0) * mdw);
             return px * PX_TO_PT;
           }
           // 7px is the standard MDW for Calibri 11pt at 96 DPI
@@ -542,7 +589,8 @@ public class SheetRenderer {
       int printFirstCol, float[] rowHeights, float[] colWidths, float scaleFactor,
       Map<String, CellRangeAddress> mergedRegionMap, int repeatFirst, int repeatLast,
       int repeatFirstCol, int repeatLastCol, float repeatingColsWidth, int preambleLastRow,
-      int pageNumber, int totalPages, List<TableRenderInfo> tableInfos) throws IOException {
+      int pageNumber, int totalPages, List<TableRenderInfo> tableInfos)
+      throws IOException, PdfGenerateException {
 
     PDPage page = new PDPage(pageSize);
     document.addPage(page);
@@ -622,7 +670,7 @@ public class SheetRenderer {
       int lastPageCol, int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
       float scaleFactor, Map<String, CellRangeAddress> mergedRegionMap, float currentY,
       float leftMargin, int pageFirstRow, int pageLastRow, List<TableRenderInfo> tableInfos)
-      throws IOException {
+      throws IOException, PdfGenerateException {
     float rowHeight = rowHeights[r - printFirstRow];
     Row row = sheet.getRow(r);
 

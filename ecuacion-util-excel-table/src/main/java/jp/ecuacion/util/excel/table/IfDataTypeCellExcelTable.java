@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.excel.table;
 
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.jspecify.annotations.Nullable;
@@ -27,7 +27,7 @@ public interface IfDataTypeCellExcelTable extends IfExcelTable<Cell> {
 
   @Override
   @Nullable
-  public default String getStringValue(@Nullable Cell cellData) throws ExcelAppException {
+  public default String getStringValue(@Nullable Cell cellData) throws ExcelTableException {
     return cellData == null ? null : ExcelReadUtil.getStringFromCell(cellData, null);
   }
 }

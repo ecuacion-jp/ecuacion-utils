@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.excel.table.reader;
 
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfDataTypeCellExcelTable;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -34,7 +34,7 @@ public interface IfDataTypeCellExcelTableReader
   }
 
   @Override
-  public default boolean isCellDataEmpty(@Nullable Cell cellData) throws ExcelAppException {
+  public default boolean isCellDataEmpty(@Nullable Cell cellData) throws ExcelTableException {
     if (cellData == null) {
       return true;
     }

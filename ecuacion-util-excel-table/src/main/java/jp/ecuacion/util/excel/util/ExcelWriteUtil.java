@@ -28,7 +28,7 @@ import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.lib.core.violation.Violations;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
 import org.apache.poi.EncryptedDocumentException;
@@ -72,7 +72,10 @@ public class ExcelWriteUtil {
 
   /**
    * Opens the excel file and returns {@code Workbook} object.
-   * 
+   *
+   * <p><strong>Security note:</strong> {@code filePath} is used as-is without validation.
+   * Only pass paths from trusted sources; never pass user-supplied input directly.</p>
+   *
    * @param filePath filePath
    * @return workbook
    * @throws EncryptedDocumentException EncryptedDocumentException
@@ -122,7 +125,7 @@ public class ExcelWriteUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new ExcelAppException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
+      throw new ExcelTableException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
@@ -257,7 +260,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
-   *     is called and changes it to a {@code ExcelAppException} with an appropriate message.
+   *     is called and changes it to a {@code ExcelTableException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -265,7 +268,7 @@ public class ExcelWriteUtil {
    * 
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException ExcelTableException
    */
   public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError) {
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
@@ -278,7 +281,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
-   *     is called and changes it to a {@code ExcelAppException} with an appropriate message.
+   *     is called and changes it to a {@code ExcelTableException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -287,7 +290,7 @@ public class ExcelWriteUtil {
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException ExcelTableException
    */
   public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError,
       String... sheetNames) {
@@ -311,7 +314,7 @@ public class ExcelWriteUtil {
         try {
           evaluateFormula(cell, fileInfo);
 
-        } catch (ExcelAppException ex) {
+        } catch (ExcelTableException ex) {
           if (breaksOnError) {
             throw ex;
 
@@ -328,7 +331,7 @@ public class ExcelWriteUtil {
   /**
    * Catches {@code Exception}s which are thrown 
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateAll()} is called
-   *     and changes it to a {@code ExcelAppException} with an appropriate message.
+   *     and changes it to a {@code ExcelTableException} with an appropriate message.
    * 
    * <p>When an excel file is created and uploaded by users, 
    *     {@code Exception}s according to the content of the file 
@@ -336,7 +339,7 @@ public class ExcelWriteUtil {
    * 
    * @param cell target cell you want to evaluate
    * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException ExcelTableException
    */
   public static void evaluateFormula(Cell cell, String fileInfo) {
     Object fileInfoArg = getFileInfoString(fileInfo);
@@ -361,7 +364,7 @@ public class ExcelWriteUtil {
       }
 
       Object[] args = new Object[] {sheetName, cellAddress, reason, fileInfoArg};
-      throw new ExcelAppException(MSG_PREFIX + "NotImplementedException.message", args).cell(cell)
+      throw new ExcelTableException(MSG_PREFIX + "NotImplementedException.message", args).cell(cell)
           .cause(ex);
 
     } catch (IllegalStateException ex) {
@@ -369,7 +372,7 @@ public class ExcelWriteUtil {
           && Objects.requireNonNull(ex.getCause())
               .getCause() instanceof WorkbookNotFoundException) {
         Object[] args = new Object[] {sheetName, cellAddress, cell.getCellFormula(), fileInfoArg};
-        throw new ExcelAppException(MSG_PREFIX + "WorkbookNotFoundException.message", args)
+        throw new ExcelTableException(MSG_PREFIX + "WorkbookNotFoundException.message", args)
             .cell(cell).cause(ex);
 
       } else {
@@ -382,7 +385,7 @@ public class ExcelWriteUtil {
   }
 
   private static void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
-      throws ExcelAppException {
+      throws ExcelTableException {
     StringBuilder sb = new StringBuilder();
     ExceptionUtil.getMessageList(ex).stream().forEach(msg -> sb.append(msg + "\n"));
     // delete last "\n"
@@ -391,7 +394,7 @@ public class ExcelWriteUtil {
     Object[] args = new Object[] {fileInfoArg, cell.getSheet().getSheetName(),
         cell.getAddress().formatAsString(), sb.toString()};
 
-    throw new ExcelAppException(MSG_PREFIX + "DetailUnknown.message", args).cell(cell).cause(ex);
+    throw new ExcelTableException(MSG_PREFIX + "DetailUnknown.message", args).cell(cell).cause(ex);
   }
 
   private static Object getFileInfoString(String fileInfo) {

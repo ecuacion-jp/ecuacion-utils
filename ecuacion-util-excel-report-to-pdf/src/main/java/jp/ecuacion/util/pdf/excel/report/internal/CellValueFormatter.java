@@ -309,9 +309,15 @@ class CellValueFormatter {
       if (end > start + 3) {
         try {
           int lcid = Integer.parseInt(formatString.substring(start + 3, end), 16) & 0xFFFF;
-          if (lcid == 0x0411) return Locale.JAPANESE;
-          if (lcid == 0x0407) return Locale.GERMAN;
-          if (lcid == 0x040C) return Locale.FRENCH;
+          if (lcid == 0x0411) {
+            return Locale.JAPANESE;
+          }
+          if (lcid == 0x0407) {
+            return Locale.GERMAN;
+          }
+          if (lcid == 0x040C) {
+            return Locale.FRENCH;
+          }
           return Locale.ENGLISH;
         } catch (NumberFormatException ignored) {
           // fall through

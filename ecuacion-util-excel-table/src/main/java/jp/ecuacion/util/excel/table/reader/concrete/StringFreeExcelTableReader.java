@@ -17,7 +17,6 @@ package jp.ecuacion.util.excel.table.reader.concrete;
 
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.util.excel.enums.NoDataString;
-import jp.ecuacion.util.excel.table.reader.ExcelTableReader;
 import jp.ecuacion.util.excel.table.reader.IfFormatFreeExcelTableReader;
 import org.jspecify.annotations.Nullable;
 
@@ -47,41 +46,6 @@ public class StringFreeExcelTableReader extends StringExcelTableReader
    */
   public StringFreeExcelTableReader(String sheetName) {
     super(sheetName);
-  }
-
-  /**
-   * Constructs a new instance.
-   *
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
-   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
-   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber, @Nullable Integer tableRowSize,
-      @Nullable Integer tableColumnSize) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
-  }
-
-  /**
-   * Constructs a new instance.
-   * 
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber}, 
-   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
-   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
-   *     
-   * @param noDataString noDataString
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringFreeExcelTableReader(String sheetName, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber, @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize,
-      NoDataString noDataString) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
-
-    this.noDataString = noDataString;
   }
 
   @Override

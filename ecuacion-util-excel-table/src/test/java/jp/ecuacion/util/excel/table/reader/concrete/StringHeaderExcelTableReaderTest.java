@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import java.util.stream.Stream;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -34,9 +34,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-// 基底クラス（ExcelTableReader）共通の振る舞い（tableRowSize, 開始位置, isVerticalAndHorizontalOpposite,
-// SheetNotExist 等）は StringFreeExcelTableReaderTest でカバー済み。固有の振る舞いのみを扱う。
-@DisplayName("StringHeaderExcelTableReader"
+// Common ExcelTableReader base-class behaviors (tableRowSize, start position,
+// withVerticalAndHorizontalOpposite, SheetNotExist, etc.) are covered by StringFreeExcelTableReaderTest.
+// This test class covers only behaviors specific to this reader.
+@DisplayName("StringOneLineHeaderExcelTableReader / StringHeaderExcelTableReader"
     + " ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照")
 public class StringHeaderExcelTableReaderTest {
 
@@ -71,7 +72,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 2, 1, "data2-2");
         setCell(sheet, 2, 2, "data2-3");
 
-        List<List<String>> result = new StringHeaderExcelTableReader(
+        List<List<String>> result = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"header1", "header2", "header3"})
             .tableStartRowNumber(1).read(wb);
 
@@ -94,7 +95,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 3, 0, "data1");
         setCell(sheet, 3, 1, "data2");
 
-        List<List<String>> result = new StringHeaderExcelTableReader(
+        List<List<String>> result = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"header1", "header2"}).read(wb);
 
         assertThat(result).hasSize(1);
@@ -108,7 +109,7 @@ public class StringHeaderExcelTableReaderTest {
   class HeaderValidation {
 
     @Test
-    @DisplayName("Excel の列数 > 期待列数、ignores=false → ExcelAppException")
+    @DisplayName("Excel の列数 > 期待列数、ignores=false → ExcelTableException")
     void tooManyColumnsIgnoresFalse() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -117,12 +118,12 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 0, 2, "h3");
         setCell(sheet, 0, 3, "extra"); // 4 columns, expected 3
 
-        StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
+        StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
       }
     }
@@ -141,7 +142,7 @@ public class StringHeaderExcelTableReaderTest {
         setCell(sheet, 1, 2, "d3");
         setCell(sheet, 1, 3, "d4");
 
-        List<List<String>> result = new StringHeaderExcelTableReader(
+        List<List<String>> result = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1)
             .withIgnoresAdditionalColumnsOfHeaderData(true).read(wb);
 
@@ -150,22 +151,22 @@ public class StringHeaderExcelTableReaderTest {
       }
     }
 
-    @ParameterizedTest(name = "[{index}] ignores={0} → ExcelAppException")
+    @ParameterizedTest(name = "[{index}] ignores={0} → ExcelTableException")
     @MethodSource
-    @DisplayName("Excel の列数 < 期待列数 → ignores 設定に関係なく ExcelAppException")
+    @DisplayName("Excel の列数 < 期待列数 → ignores 設定に関係なく ExcelTableException")
     void tooFewColumns(boolean ignores) throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "h1");
         setCell(sheet, 0, 1, "h2"); // 2 columns, expected 3
 
-        var reader = new StringHeaderExcelTableReader(
+        var reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1)
             .withIgnoresAdditionalColumnsOfHeaderData(ignores);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
       }
     }
@@ -177,19 +178,19 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("ヘッダーラベルのテキスト不一致 → ExcelAppException（TableHeaderTitleWrong）")
+    @DisplayName("ヘッダーラベルのテキスト不一致 → ExcelTableException（TableHeaderTitleWrong）")
     void labelMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "h1");
         setCell(sheet, 0, 1, "WRONG"); // expected "h2"
 
-        StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
+        StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
       }
     }
@@ -200,18 +201,18 @@ public class StringHeaderExcelTableReaderTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("tableStartRowNumber=null、ヘッダーラベルが見つからない → ExcelAppException")
+    @DisplayName("tableStartRowNumber=null、ヘッダーラベルが見つからない → ExcelTableException")
     void headerLabelNotFound() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "unrelated");
 
-        StringHeaderExcelTableReader reader = new StringHeaderExcelTableReader(
+        StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"header1", "header2"});
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo(
                 "jp.ecuacion.util.excel.reader.FarLeftHeaderLabelNotFound.message");
       }
@@ -250,7 +251,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("全ヘッダー行が検証される（1行目不一致 → ExcelAppException）")
+    @DisplayName("全ヘッダー行が検証される（1行目不一致 → ExcelTableException）")
     void firstRowMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -265,9 +266,9 @@ public class StringHeaderExcelTableReaderTest {
             new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
       }
     }
@@ -325,7 +326,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("結合なし空欄ヘッダーセル → ExcelAppException")
+    @DisplayName("結合なし空欄ヘッダーセル → ExcelTableException")
     void blankNonMergedHeaderCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -343,9 +344,9 @@ public class StringHeaderExcelTableReaderTest {
             new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message");
       }
     }

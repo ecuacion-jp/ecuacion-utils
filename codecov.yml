@@ -14,6 +14,12 @@
 # limitations under the License.
 #
 
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+
 comment:
   layout: "reach, diff, flags, files"
   behavior: default

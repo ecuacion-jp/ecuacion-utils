@@ -94,6 +94,12 @@ that case.
 When a font family ships multiple weight variants (e.g. 游ゴシック Light / Medium / Regular),
 the library prefers the **Medium** weight over Light for the regular (non-bold) font, matching
 Excel on macOS which uses Medium as the default display weight for CJK fonts.
+The font selection also correctly excludes **italic** and **bold** variants when a regular (upright)
+font is requested, so fonts such as Calibri are reliably resolved to their Regular face.
+
+When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any CJK characters
+in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
+on a character-by-character basis.
 
 > **Font licensing notice:** the located system font is embedded in the output PDF.
 > Confirm that the font's licence permits embedding and distribution before enabling this option.
@@ -117,11 +123,12 @@ The following features have been verified through automated tests.
   - Manual row breaks split content across multiple pages at the specified row
   - Manual column breaks split content across multiple pages at the specified column
 - **Scale (explicit percentage)**
-  - Explicit scale percentage (e.g., 50%, 100%, 200%) is accurately applied to cell sizes in the PDF
+  - Explicit scale percentage (e.g., 50%, 100%, 200%) is accurately applied to cell geometry (row heights, column widths) and font sizes in the PDF
 - **Fit to page (no explicit scale)**
   - Content wider or taller than the printable area is automatically scaled down to fit one page
   - Content that fits naturally is rendered at its natural size without scaling
   - Both column-width constraint and row-height constraint are applied: the tighter of the two determines the final scale factor, ensuring all content fits on one page in both dimensions
+  - The scale factor is applied uniformly to row heights, column widths, **and font sizes**, matching Excel's cm-matrix scaling behaviour
 - **Header and footer**
   - Header and footer text is rendered within the header/footer margin area configured in Excel
   - Supported format codes: `&L`/`&C`/`&R` (section alignment), `&P`/`&P+n`/`&P-n` (page

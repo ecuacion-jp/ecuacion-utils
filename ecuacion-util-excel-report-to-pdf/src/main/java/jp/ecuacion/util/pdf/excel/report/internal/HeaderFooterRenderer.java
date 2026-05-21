@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +110,9 @@ class HeaderFooterRenderer {
       float baseline) throws IOException {
     float currentX = startX;
     for (HfRun run : runs) {
-      if (run.text().isEmpty()) continue;
+      if (run.text().isEmpty()) {
+        continue;
+      }
       float fs = (run.superscript() || run.subscript()) ? run.fontSize() * 0.7f : run.fontSize();
       float bl = baseline;
       if (run.superscript()) {
@@ -243,7 +246,8 @@ class HeaderFooterRenderer {
         case 'D' -> {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
-          buf.append(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/M/d")));
+          buf.append(LocalDate.now(ZoneId.systemDefault())
+              .format(DateTimeFormatter.ofPattern("yyyy/M/d")));
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           i += 2;
@@ -251,7 +255,8 @@ class HeaderFooterRenderer {
         case 'T' -> {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
-          buf.append(LocalTime.now().format(DateTimeFormatter.ofPattern("H:mm")));
+          buf.append(LocalTime.now(ZoneId.systemDefault())
+              .format(DateTimeFormatter.ofPattern("H:mm")));
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           i += 2;
@@ -291,14 +296,18 @@ class HeaderFooterRenderer {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           underline = !underline;
-          if (underline) doubleUnderline = false;
+          if (underline) {
+            doubleUnderline = false;
+          }
           i += 2;
         }
         case 'E' -> {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           doubleUnderline = !doubleUnderline;
-          if (doubleUnderline) underline = false;
+          if (doubleUnderline) {
+            underline = false;
+          }
           i += 2;
         }
         case 'S' -> {
@@ -311,14 +320,18 @@ class HeaderFooterRenderer {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           superscript = !superscript;
-          if (superscript) subscript = false;
+          if (superscript) {
+            subscript = false;
+          }
           i += 2;
         }
         case 'Y' -> {
           flushHfRun(runs, buf, bold, fontSize, color, underline, doubleUnderline, strikethrough,
               superscript, subscript);
           subscript = !subscript;
-          if (subscript) superscript = false;
+          if (subscript) {
+            superscript = false;
+          }
           i += 2;
         }
         case '"' -> {
@@ -386,7 +399,9 @@ class HeaderFooterRenderer {
   private void flushHfRun(List<HfRun> runs, StringBuilder buf, boolean bold, float fontSize,
       Color color, boolean underline, boolean doubleUnderline, boolean strikethrough,
       boolean superscript, boolean subscript) {
-    if (buf.isEmpty()) return;
+    if (buf.isEmpty()) {
+      return;
+    }
     runs.add(new HfRun(buf.toString(), bold, fontSize, color, underline, doubleUnderline,
         strikethrough, superscript, subscript));
     buf.setLength(0);

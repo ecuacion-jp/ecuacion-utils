@@ -29,7 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 class SystemFontLocatorTest {
 
   // NotoSansJP-Regular: '0' glyph advance=555, unitsPerEm=1000, at 11pt@96dpi → 8.14px
-  // round(8.14)=8 (correct), ceil(8.14)=9 (wrong)
+  // round(8.14)=8 (correct), ceil(8.14)=9 (wrong for NotoSansJP)
   private static final float FONT_SIZE_PT = 11.0f;
 
   private static Path notoSansJpRegularPath() throws URISyntaxException {
@@ -68,6 +68,32 @@ class SystemFontLocatorTest {
       Path nonExistent = tempDir.resolve("no_such_font.ttf");
 
       int mdw = SystemFontLocator.computeMdw(nonExistent, "FakeFont", FONT_SIZE_PT);
+
+      assertThat(mdw).isGreaterThan(0);
+    }
+  }
+
+  @Nested
+  @DisplayName("computeExcelMdw")
+  class ComputeExcelMdw {
+
+    @Test
+    @DisplayName("uses Math.ceil(), not Math.round() — NotoSansJP '0' advance=8.14px → MDW=9")
+    void usesCeilNotRound() throws URISyntaxException {
+      Path fontPath = notoSansJpRegularPath();
+
+      int mdw = SystemFontLocator.computeExcelMdw(fontPath, "Noto Sans JP", FONT_SIZE_PT);
+
+      // ceil(8.14) = 9; round(8.14) = 8 — verify ceil() is used (matches Excel pixel measurement)
+      assertThat(mdw).isEqualTo(9);
+    }
+
+    @Test
+    @DisplayName("returns a positive value for a valid font file")
+    void returnsPositive() throws URISyntaxException {
+      Path fontPath = notoSansJpRegularPath();
+
+      int mdw = SystemFontLocator.computeExcelMdw(fontPath, "Noto Sans JP", FONT_SIZE_PT);
 
       assertThat(mdw).isGreaterThan(0);
     }

@@ -48,19 +48,6 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
   private String[][] headerLabels2d;
 
   /**
-   * Constructs a new instance with the sheet name and a single header row.
-   *
-   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
-   *     {@code tableStartColumnNumber = 1}.</p>
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels for the single header row
-   */
-  public StringHeaderExcelTableWriter(String sheetName, String[] headerLabels) {
-    this(sheetName, new String[][] {headerLabels});
-  }
-
-  /**
    * Constructs a new instance with the sheet name and multiple header rows.
    *
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
@@ -72,42 +59,6 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
    */
   public StringHeaderExcelTableWriter(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
-  }
-
-  /**
-   * Constructs a new instance with a single header row.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels for the single header row
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     Must point to the header row of the table.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableWriter(String sheetName, String[] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber) {
-    this(sheetName, new String[][] {headerLabels}, tableStartRowNumber, tableStartColumnNumber);
-  }
-
-  /**
-   * Constructs a new instance with multiple header rows.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels: {@code headerLabels[row][col]}, top row first.
-   *     All rows must have the same length.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     Must point to the first (top) header row of the table.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableWriter(String sheetName, String[][] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
     this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
   }
 

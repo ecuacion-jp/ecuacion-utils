@@ -15,12 +15,11 @@
  */
 package jp.ecuacion.util.excel.sample.copytable;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import jp.ecuacion.util.excel.table.reader.concrete.CellHeaderExcelTableReader;
-import jp.ecuacion.util.excel.table.writer.concrete.CellHeaderExcelTableWriter;
+import jp.ecuacion.util.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
+import jp.ecuacion.util.excel.table.writer.concrete.CellOneLineHeaderExcelTableWriter;
 import org.apache.poi.ss.usermodel.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +48,13 @@ public class CopyHeaderFormatExcelTableSample {
 
     logger.info("A new excel file created and table data copied to: " + destPath.toString());
 
-    logger.info("Procedure finshed.");
+    logger.info("Procedure finished.");
   }
 
   private static List<List<Cell>> read() throws Exception {
 
     // Get the table data.
-    return new CellHeaderExcelTableReader("Member", headerLabels)
+    return new CellOneLineHeaderExcelTableReader("Member", headerLabels)
         .tableStartRowNumber(HEADER_START_ROW)
         .tableStartColumnNumber(START_COL)
         .tableRowSize(3)
@@ -64,18 +63,18 @@ public class CopyHeaderFormatExcelTableSample {
 
   private static void write(List<List<Cell>> dataList) throws Exception {
 
-    new File("target/test-result").mkdirs();
+    Files.createDirectories(Path.of("target/test-result"));
 
     String templatePath = Path.of("test-data/template.xlsx").toAbsolutePath().toString();
     destPath = Path.of("target/test-result/result.xlsx").toAbsolutePath();
 
     // If the created file already exists, delete it.
-    if (new File(destPath.toString()).exists()) {
+    if (Files.exists(destPath)) {
       Files.delete(destPath);
     }
 
     // Write the table data.
-    new CellHeaderExcelTableWriter("Sheet1", headerLabels)
+    new CellOneLineHeaderExcelTableWriter("Sheet1", headerLabels)
         .tableStartRowNumber(HEADER_START_ROW)
         .tableStartColumnNumber(START_COL)
         .write(templatePath, destPath.toString(), dataList);

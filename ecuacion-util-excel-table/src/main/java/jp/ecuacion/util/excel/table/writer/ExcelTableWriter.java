@@ -230,24 +230,10 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public ExcelTableWriter<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
-    return withIgnoresAdditionalColumnsOfHeaderData(value);
-  }
-
   @Override
   public ExcelTableWriter<T> withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public ExcelTableWriter<T> isVerticalAndHorizontalOpposite(boolean value) {
-    return withVerticalAndHorizontalOpposite(value);
   }
 
   @Override

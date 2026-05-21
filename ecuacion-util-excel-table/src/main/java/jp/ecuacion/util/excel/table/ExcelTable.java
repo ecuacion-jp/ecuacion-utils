@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -125,10 +125,10 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    * @param sheet excel sheet
    * @param excelBasisTableStartColumnNumber the column number the table starts, starting from 1
    * @return the row number the table starts, in poi basis (starting from 0).
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public int getPoiBasisDeterminedTableStartRowNumber(Sheet sheet,
-      int excelBasisTableStartColumnNumber) throws ExcelAppException {
+      int excelBasisTableStartColumnNumber) throws ExcelTableException {
     ObjectsUtil.requireNonNull(sheet);
     int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
 
@@ -168,7 +168,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       }
     }
 
-    throw new ExcelAppException(
+    throw new ExcelTableException(
         "jp.ecuacion.util.excel.reader.FarLeftHeaderLabelNotFound.message",
         sheet.getSheetName(), Integer.toString(tableStartColumnNumber),
         getFarLeftAndTopHeaderLabel());

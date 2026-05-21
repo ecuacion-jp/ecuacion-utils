@@ -17,7 +17,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
-import jp.ecuacion.util.excel.table.reader.concrete.CellHeaderExcelTableReader;
+import jp.ecuacion.util.excel.table.reader.concrete.CellOneLineHeaderExcelTableReader;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -28,10 +28,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-// 基底クラス共通の振る舞い（書き込み, 開始位置, isVerticalAndHorizontalOpposite, SheetNotExist 等）は
-// StringFreeExcelTableWriterTest でカバー済み。
-// ヘッダー検証の振る舞いは StringHeaderExcelTableWriterTest でカバー済み。
-@DisplayName("CellHeaderExcelTableWriter"
+// Common base-class behaviors (writing, start position, withVerticalAndHorizontalOpposite,
+// SheetNotExist, etc.) are covered by StringFreeExcelTableWriterTest.
+// Header validation behaviors are covered by StringHeaderExcelTableWriterTest.
+@DisplayName("CellOneLineHeaderExcelTableWriter"
     + " ※基底クラス共通の振る舞いは StringFreeExcelTableWriterTest 参照"
     + "、ヘッダー検証は StringHeaderExcelTableWriterTest 参照")
 public class CellHeaderExcelTableWriterTest {
@@ -62,9 +62,9 @@ public class CellHeaderExcelTableWriterTest {
         setCell(dest, 0, 0, "h1");
         setCell(dest, 0, 1, "h2");
 
-        List<List<Cell>> data = new CellHeaderExcelTableReader(
+        List<List<Cell>> data = new CellOneLineHeaderExcelTableReader(
             "source", new String[]{"h1", "h2"}).tableStartRowNumber(1).read(wb);
-        new CellHeaderExcelTableWriter(
+        new CellOneLineHeaderExcelTableWriter(
             "dest", new String[]{"h1", "h2"}).tableStartRowNumber(1).write(wb, data);
 
         assertThat(dest.getRow(0).getCell(0).getStringCellValue()).isEqualTo("h1");
