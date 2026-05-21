@@ -28,7 +28,8 @@ This project follows the spirit of [Semantic Versioning](https://semver.org/). M
 
 ## Documentation
 
-(See `Documentation` part of `README` in each module)
+- [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/en/article?id=home) — Official reference documentation
+- See also the `Documentation` section of the `README` in each module
 
 ## Installation
 
