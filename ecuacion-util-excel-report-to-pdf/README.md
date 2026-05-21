@@ -73,6 +73,37 @@ The description of dependent `ecuacion` modules is as follows.
 
 ## Features
 
+### System font support (`useSystemFonts`)
+
+By default, font files must be specified explicitly via `regularFontPath` in `PdfGenerateOptions`.
+When `useSystemFonts(true)` is set, the library automatically searches the OS font directories
+(including fonts installed by Microsoft Office) for the font that matches the workbook's default
+font. The located font is embedded in the output PDF and is used for accurate column-width
+calculation.
+
+```java
+PdfGenerateOptions options = PdfGenerateOptions.builder()
+    .useSystemFonts(true)   // regularFontPath becomes optional
+    .build();
+```
+
+When `useSystemFonts(true)` is set and no matching system font is found, a
+`PdfGenerateException` is thrown. Specifying `regularFontPath` in addition acts as a fallback for
+that case.
+
+When a font family ships multiple weight variants (e.g. 游ゴシック Light / Medium / Regular),
+the library prefers the **Medium** weight over Light for the regular (non-bold) font, matching
+Excel on macOS which uses Medium as the default display weight for CJK fonts.
+The font selection also correctly excludes **italic** and **bold** variants when a regular (upright)
+font is requested, so fonts such as Calibri are reliably resolved to their Regular face.
+
+When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any CJK characters
+in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
+on a character-by-character basis.
+
+> **Font licensing notice:** the located system font is embedded in the output PDF.
+> Confirm that the font's licence permits embedding and distribution before enabling this option.
+
 ### Create PDF from Excel
 
 #### Confirmed Supported Features
@@ -92,10 +123,12 @@ The following features have been verified through automated tests.
   - Manual row breaks split content across multiple pages at the specified row
   - Manual column breaks split content across multiple pages at the specified column
 - **Scale (explicit percentage)**
-  - Explicit scale percentage (e.g., 50%, 100%, 200%) is accurately applied to cell sizes in the PDF
+  - Explicit scale percentage (e.g., 50%, 100%, 200%) is accurately applied to cell geometry (row heights, column widths) and font sizes in the PDF
 - **Fit to page (no explicit scale)**
   - Content wider or taller than the printable area is automatically scaled down to fit one page
   - Content that fits naturally is rendered at its natural size without scaling
+  - Both column-width constraint and row-height constraint are applied: the tighter of the two determines the final scale factor, ensuring all content fits on one page in both dimensions
+  - The scale factor is applied uniformly to row heights, column widths, **and font sizes**, matching Excel's cm-matrix scaling behaviour
 - **Header and footer**
   - Header and footer text is rendered within the header/footer margin area configured in Excel
   - Supported format codes: `&L`/`&C`/`&R` (section alignment), `&P`/`&P+n`/`&P-n` (page
@@ -128,6 +161,8 @@ The following features have been verified through automated tests.
   - **Horizontal alignment**: LEFT, CENTER, RIGHT are supported; GENERAL alignment
     right-aligns numeric and date values and left-aligns strings, matching Excel's default
     behavior
+  - **Indentation**: cell indent levels are applied; LEFT-aligned text is shifted right,
+    RIGHT-aligned text is shifted left, by approximately one character width per indent level
   - **Vertical alignment**: TOP, CENTER, BOTTOM are supported
   - Formula cells display their cached result value, not the formula string; alignment
     follows the result type (numeric → right, string → left under GENERAL alignment)
@@ -139,6 +174,13 @@ The following features have been verified through automated tests.
     top to bottom and centered horizontally within the cell
   - Text that overflows the cell height is clipped: with TOP alignment lower lines are
     hidden; with BOTTOM or CENTER alignment upper lines are hidden
+  - Text is rendered correctly even when the font line height slightly exceeds the cell
+    height (e.g., large bold font in a tight row after fit-to-page scaling); previously
+    a floating-point guard could silently suppress all text in such cells
+- **Cell number and date formats (additional)**
+  - Accounting-style zero section with quoted literal and `??` alignment (e.g., `"-"??`)
+    renders as the quoted literal `"-"` for zero-valued formula cells; previously the `??`
+    placeholder was incorrectly rendered as the digit `0`, producing `"- 0"`
   - **Underline** (`U_SINGLE`, `U_SINGLE_ACCOUNTING`) and **double underline**
     (`U_DOUBLE`, `U_DOUBLE_ACCOUNTING`) are supported; accounting variants span the
     full cell width while standard variants span only the text width
@@ -152,6 +194,13 @@ The following features have been verified through automated tests.
     `$#,##0.00`), scientific notation (`0.00E+00`), and negative numbers
   - Date formats: `yyyy/mm/dd`, `mm/dd/yyyy`, `dd/mm/yyyy`, `yyyy-mm-dd`,
     `yyyy年m月d日`, and two-digit year (`yy/mm/dd`) are supported
+  - Shapes (images, auto-shapes) anchored outside the print area columns or rows are
+    excluded from the PDF output, matching Excel's print behavior
+  - Locale-sensitive built-in date formats (e.g., Excel format ID 14) are rendered
+    using `DateTimeFormatter.ofLocalizedDate` with the locale from
+    `PdfGenerateOptions.dateLocale()`, falling back to `Locale.getDefault()` when not
+    set; this covers all locales automatically (e.g., Japanese → `2018/02/21`,
+    US → `2/21/18`, Italian → `21/02/18`)
   - Abbreviated and full month names (`mmm`, `mmmm`) are rendered in the locale
     specified by the `[$-xxx]` code in the format string (defaults to English)
   - Japanese weekday names via `aaa`/`aaaa` tokens (e.g., `月`, `月曜日`) and
@@ -192,10 +241,23 @@ The following features have been verified through automated tests.
 - **Print title rows**
   - When "Rows to repeat at top" is configured in Excel's Page Setup, those rows
     are rendered at the top of every page of the PDF
+  - Rows that appear before the print title row (preamble rows) are rendered on
+    the first page only, above the repeated title row, matching Excel's behavior
 - **Print title columns**
   - When "Columns to repeat at left" is configured in Excel's Page Setup, those
     columns are rendered at the left of every page of the PDF
   - Can be combined with print title rows; both are rendered on every page
+- **Excel table styles**
+  - When a cell range is defined as an Excel table (`Insert > Table`) with a table style,
+    the style is applied to the PDF output
+  - Header row fill, alternating row stripes (first/second row stripe), and first/last
+    column highlights are all rendered from the table style
+  - Internal horizontal borders (row separators) and outer table borders defined in the
+    table style's `wholeTable` element are rendered
+  - Font colour overrides for the header row are applied; when the header fill is dark
+    and no explicit font colour is resolvable, white text is used automatically
+  - Both built-in Excel table styles (e.g. `TableStyleMedium6`) and custom table styles
+    defined within the workbook are supported
 - **Multiple sheets**
   - Multiple sheets can be specified for a single PDF export; each sheet's pages
     are appended in order to produce a single PDF document

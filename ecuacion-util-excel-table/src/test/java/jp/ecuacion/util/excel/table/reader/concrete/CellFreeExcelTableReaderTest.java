@@ -28,9 +28,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-// tableRowSize, 開始位置, isVerticalAndHorizontalOpposite, tableColumnSize, SheetNotExist,
-// ColumnSizeIsZero 等の基底クラス共通の振る舞いは StringFreeExcelTableReaderTest でカバー済み。
-@DisplayName("CellFreeExcelTableReader ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照")
+// Common base-class behaviors (tableRowSize, start position, isVerticalAndHorizontalOpposite,
+// tableColumnSize, SheetNotExist, ColumnSizeIsZero, etc.) are covered by StringFreeExcelTableReaderTest.
+@DisplayName("CellFreeExcelTableReader (base-class behaviors: see StringFreeExcelTableReaderTest)")
 public class CellFreeExcelTableReaderTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, @Nullable String value) {

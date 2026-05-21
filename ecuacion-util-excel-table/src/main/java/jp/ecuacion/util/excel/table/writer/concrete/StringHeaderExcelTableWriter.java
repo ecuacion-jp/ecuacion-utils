@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
-import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
+import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableReader;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
 import jp.ecuacion.util.excel.table.writer.IfDataTypeStringExcelTableWriter;
@@ -43,22 +43,9 @@ import org.jspecify.annotations.Nullable;
  * <p>The header in the template file is validated against {@code headerLabels} before writing.</p>
  */
 public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
-    implements IfDataTypeStringExcelTableWriter, IfFormatOneLineHeaderExcelTable<String> {
+    implements IfDataTypeStringExcelTableWriter, IfFormatHeaderExcelTable<String> {
 
   private String[][] headerLabels2d;
-
-  /**
-   * Constructs a new instance with the sheet name and a single header row.
-   *
-   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
-   *     {@code tableStartColumnNumber = 1}.</p>
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels for the single header row
-   */
-  public StringHeaderExcelTableWriter(String sheetName, String[] headerLabels) {
-    this(sheetName, new String[][] {headerLabels});
-  }
 
   /**
    * Constructs a new instance with the sheet name and multiple header rows.
@@ -72,42 +59,6 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
    */
   public StringHeaderExcelTableWriter(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
-  }
-
-  /**
-   * Constructs a new instance with a single header row.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels for the single header row
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     Must point to the header row of the table.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableWriter(String sheetName, String[] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber) {
-    this(sheetName, new String[][] {headerLabels}, tableStartRowNumber, tableStartColumnNumber);
-  }
-
-  /**
-   * Constructs a new instance with multiple header rows.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param headerLabels expected header labels: {@code headerLabels[row][col]}, top row first.
-   *     All rows must have the same length.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     Must point to the first (top) header row of the table.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableWriter(String sheetName, String[][] headerLabels,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
     this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
   }
 

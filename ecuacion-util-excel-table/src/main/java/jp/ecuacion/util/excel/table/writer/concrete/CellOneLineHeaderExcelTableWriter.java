@@ -15,32 +15,15 @@
  */
 package jp.ecuacion.util.excel.table.writer.concrete;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.excel.table.ExcelTable;
-import jp.ecuacion.util.excel.table.IfFormatOneLineHeaderExcelTable;
-import jp.ecuacion.util.excel.table.reader.concrete.StringHeaderExcelTableReader;
-import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
-import jp.ecuacion.util.excel.table.writer.IfDataTypeCellExcelTableWriter;
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Writes tables with known number of columns and one header line.
+ * Writes tables with a single header row, using {@code Cell} data.
  *
- * <p>The header is validated against the expected labels before writing data.</p>
+ * <p>This is the recommended class for the common case of a one-line header.
+ *     Use this class when you need to preserve cell styles or numeric types.</p>
  */
-public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
-    implements IfDataTypeCellExcelTableWriter, IfFormatOneLineHeaderExcelTable<Cell> {
-
-  private boolean copiesDataFormatOnly;
-
-  private String[] headerLabels;
+public class CellOneLineHeaderExcelTableWriter extends CellHeaderExcelTableWriter {
 
   /**
    * Constructs a new instance with the sheet name and header labels.
@@ -48,75 +31,11 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
    *     {@code tableStartColumnNumber = 1}.</p>
    *
-   * @param sheetName See {@link ExcelTable#sheetName}.
+   * @param sheetName sheet name
    * @param headerLabels expected header labels
    */
   public CellOneLineHeaderExcelTableWriter(String sheetName, String[] headerLabels) {
-    super(sheetName);
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
-  }
-
-  /**
-   * Constructs a new instance.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   *     The row number must specify the header row of the table
-   *     Since the writer does not overwrite the header, but the writer does read and validate it.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public CellOneLineHeaderExcelTableWriter(String sheetName,
-      String[] headerLabels, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber) {
-
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
-
-    this.headerLabels = ObjectsUtil.requireNonNull(headerLabels);
-  }
-
-  @Override
-  public String[] getHeaderLabels() {
-    return headerLabels;
-  }
-
-  @Override
-  protected void headerCheck(Workbook workbook)
-      throws EncryptedDocumentException, IOException {
-
-    new StringHeaderExcelTableReader(getSheetName(), getHeaderLabelData()[0])
-        .tableStartRowNumber(tableStartRowNumber)
-        .tableStartColumnNumber(tableStartColumnNumber)
-        .tableRowSize(1)
-        .withIgnoresAdditionalColumnsOfHeaderData(ignoresAdditionalColumnsOfHeaderData())
-        .withVerticalAndHorizontalOpposite(isVerticalAndHorizontalOpposite()).read(workbook);
-  }
-
-  private Map<Integer, CellStyle> columnStyleMap = new HashMap<>();
-
-  @Override
-  public Map<Integer, CellStyle> getColumnStyleMap() {
-    return columnStyleMap;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public CellOneLineHeaderExcelTableWriter copiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    return withCopiesDataFormatOnly(copiesDataFormatOnly);
-  }
-
-  @Override
-  public boolean copiesDataFormatOnly() {
-    return copiesDataFormatOnly;
-  }
-
-  @Override
-  public CellOneLineHeaderExcelTableWriter withCopiesDataFormatOnly(boolean copiesDataFormatOnly) {
-    this.copiesDataFormatOnly = copiesDataFormatOnly;
-    return this;
+    super(sheetName, new String[][] {headerLabels});
   }
 
   @Override
@@ -131,12 +50,17 @@ public class CellOneLineHeaderExcelTableWriter extends ExcelTableWriter<Cell>
 
   @Override
   public CellOneLineHeaderExcelTableWriter withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
-    return (CellOneLineHeaderExcelTableWriter)
-        super.withIgnoresAdditionalColumnsOfHeaderData(value);
+    return (CellOneLineHeaderExcelTableWriter) super.withIgnoresAdditionalColumnsOfHeaderData(
+        value);
   }
 
   @Override
   public CellOneLineHeaderExcelTableWriter withVerticalAndHorizontalOpposite(boolean value) {
     return (CellOneLineHeaderExcelTableWriter) super.withVerticalAndHorizontalOpposite(value);
+  }
+
+  @Override
+  public CellOneLineHeaderExcelTableWriter withCopiesDataFormatOnly(boolean copiesDataFormatOnly) {
+    return (CellOneLineHeaderExcelTableWriter) super.withCopiesDataFormatOnly(copiesDataFormatOnly);
   }
 }

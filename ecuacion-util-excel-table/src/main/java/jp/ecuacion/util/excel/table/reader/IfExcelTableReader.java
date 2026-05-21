@@ -17,7 +17,7 @@ package jp.ecuacion.util.excel.table.reader;
 
 import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
 import org.jspecify.annotations.Nullable;
@@ -37,9 +37,9 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    *     because the header with multiple lines may exist.<br>
    *     Pass a list with `size() == 0` 
    *     when it's a table with no header or nothing to validate.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
-  public default void validateHeaderData(List<List<T>> headerData) throws ExcelAppException {
+  public default void validateHeaderData(List<List<T>> headerData) throws ExcelTableException {
 
     for (int i = 0; i < ObjectsUtil.requireNonNull(headerData).size(); i++) {
       List<T> headerList = headerData.get(i);
@@ -49,7 +49,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
 
       if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
           || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
-        throw new ExcelAppException("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
+        throw new ExcelTableException("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
             getSheetName(), Integer.toString(headerList.size()),
             Integer.toString(headerLabels.length));
       }
@@ -57,7 +57,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
       for (int j = 0; j < headerLabels.length; j++) {
         if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
           int positionFromUser = j + 1;
-          throw new ExcelAppException("jp.ecuacion.util.excel.TableHeaderTitleWrong.message",
+          throw new ExcelTableException("jp.ecuacion.util.excel.TableHeaderTitleWrong.message",
               getSheetName(), Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
               headerLabels[j]);
         }
@@ -73,10 +73,10 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * 
    * @param tableData table data
    * @return header data
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public @Nullable List<List<String>> updateAndGetHeaderData(List<List<T>> tableData)
-      throws ExcelAppException;
+      throws ExcelTableException;
 
   /**
    * Returns the obtained value from the cell.
@@ -90,9 +90,9 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    *     When the far left column of a table is 2 and you want to speciries the far left column,
    *     the columnNumber is 2.
    * @return the obtained value from the cell
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
-  public @Nullable T getCellData(Cell cell, int columnNumber) throws ExcelAppException;
+  public @Nullable T getCellData(Cell cell, int columnNumber) throws ExcelTableException;
 
   /**
    * Returns whether the value of the cell is empty.
@@ -100,5 +100,5 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    * @param cellData cellData
    * @return whether the valule of the cell is empty.
    */
-  public boolean isCellDataEmpty(@Nullable T cellData) throws ExcelAppException;
+  public boolean isCellDataEmpty(@Nullable T cellData) throws ExcelTableException;
 }

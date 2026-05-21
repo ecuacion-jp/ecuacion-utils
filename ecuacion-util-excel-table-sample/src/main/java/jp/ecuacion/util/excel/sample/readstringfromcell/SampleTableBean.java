@@ -57,7 +57,6 @@ public class SampleTableBean extends StringExcelTableBean {
 
   @Override
   public String toString() {
-    return id + ", " + name + ", " + dateOfBirth.replaceAll("\\\\", "") + ", " + age + ", "
-        + nationality;
+    return id + ", " + name + ", " + dateOfBirth + ", " + age + ", " + nationality;
   }
 }

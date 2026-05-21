@@ -42,7 +42,7 @@ public abstract class StringExcelTableBean {
    * 
    * <p>This is assumed to use to deserialize (structure) the line of data into objects, 
    *     and validate the inter-fields data.<br>
-   *     Validations for each field are supposed to be done by bean vaildation.
+   *     Validations for each field are supposed to be done by bean validation.
    *     This method covers selective-requirement, or other inter-fields validations.</p>
    */
   public void afterReading() {
