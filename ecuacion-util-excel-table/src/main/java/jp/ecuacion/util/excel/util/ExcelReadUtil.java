@@ -21,7 +21,7 @@ import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
@@ -72,9 +72,9 @@ public class ExcelReadUtil {
    *
    * @param cell the cell of the excel file
    * @return the string which expresses the value of the cell.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelAppException {
+  public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelTableException {
     return getStringFromCell(cell, null, defaultDateTimeFormat);
   }
 
@@ -86,10 +86,10 @@ public class ExcelReadUtil {
    *     may be {@code null} in which case the error message shows no filename.
    * @param cell the cell of the excel file
    * @return the string which expresses the value of the cell.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename)
-      throws ExcelAppException {
+      throws ExcelTableException {
     return getStringFromCell(cell, filename, defaultDateTimeFormat);
   }
 
@@ -105,10 +105,10 @@ public class ExcelReadUtil {
    * @param dateTimeFormat dateTimeFormat, may be {@code null} 
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
-      @Nullable DateTimeFormatter dateTimeFormat) throws ExcelAppException {
+      @Nullable DateTimeFormatter dateTimeFormat) throws ExcelTableException {
     return getStringFromCell(cell, filename, dateTimeFormat, null);
   }
 
@@ -123,11 +123,11 @@ public class ExcelReadUtil {
    *     in which case {@code defaultDateTimeFormat} is used.
    * @param noDataString return value when row is null or cell is null, etc...
    * @return the string which expresses the value of the cell.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
       @Nullable DateTimeFormatter dateTimeFormat, @Nullable String noDataString)
-      throws ExcelAppException {
+      throws ExcelTableException {
     if (dateTimeFormat == null) {
       dateTimeFormat = defaultDateTimeFormat;
     }
@@ -158,12 +158,12 @@ public class ExcelReadUtil {
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
       @Nullable String filename, @Nullable DateTimeFormatter dateTimeFormat,
       @Nullable String noDataString)
-      throws ExcelAppException {
+      throws ExcelTableException {
 
     if (cell == null) {
       return noDataString;
@@ -198,13 +198,13 @@ public class ExcelReadUtil {
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
    * @return String value of the cell, may be null when the value in the cell is empty.
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   @SuppressWarnings("null")
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
       Cell cell, @Nullable String filename, @Nullable CellType cellType,
       @Nullable String noDataString, @Nullable DateTimeFormatter dateTimeFormat)
-      throws ExcelAppException {
+      throws ExcelTableException {
 
     // POI always uses BLANK cellType for empty cells regardless of the cell format.
     if (cellType == CellType.BLANK) {
@@ -251,7 +251,7 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
-      throw new ExcelAppException("jp.ecuacion.util.excel.CellContainsError.message",
+      throw new ExcelTableException("jp.ecuacion.util.excel.CellContainsError.message",
           ArrayUtils.addAll(
               new Object[] {cell.getRow().getSheet().getSheetName(),
                   cell.getAddress().formatAsString()},
@@ -270,7 +270,10 @@ public class ExcelReadUtil {
 
   /**
    * Opens the excel file and returns {@code Workbook} object.
-   * 
+   *
+   * <p><strong>Security note:</strong> {@code filePath} is used as-is without validation.
+   * Only pass paths from trusted sources; never pass user-supplied input directly.</p>
+   *
    * @param filePath filePath
    * @return workbook
    * @throws EncryptedDocumentException EncryptedDocumentException

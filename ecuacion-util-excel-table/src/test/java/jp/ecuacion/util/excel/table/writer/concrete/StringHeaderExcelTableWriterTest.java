@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,9 +28,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.jspecify.annotations.Nullable;
 
-// 基底クラス共通の振る舞い（書き込み, 開始位置, isVerticalAndHorizontalOpposite, SheetNotExist 等）は
-// StringFreeExcelTableWriterTest でカバー済み。
-@DisplayName("StringHeaderExcelTableWriter ※基底クラス共通の振る舞いは StringFreeExcelTableWriterTest 参照")
+// Common base-class behaviors (writing, start position, withVerticalAndHorizontalOpposite,
+// SheetNotExist, etc.) are covered by StringFreeExcelTableWriterTest.
+@DisplayName("StringOneLineHeaderExcelTableWriter / StringHeaderExcelTableWriter (base-class behaviors: see StringFreeExcelTableWriterTest)")
 public class StringHeaderExcelTableWriterTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, @Nullable String value) {
@@ -66,7 +66,7 @@ public class StringHeaderExcelTableWriterTest {
         setCell(sheet, 0, 0, "h1");
         setCell(sheet, 0, 1, "h2");
 
-        new StringHeaderExcelTableWriter(
+        new StringOneLineHeaderExcelTableWriter(
             "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1)
             .write(wb, List.of(List.of("d1", "d2")));
 
@@ -78,17 +78,17 @@ public class StringHeaderExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("ヘッダー不一致 → ExcelAppException（書き込みは行われない）")
+    @DisplayName("ヘッダー不一致 → ExcelTableException（書き込みは行われない）")
     void headerMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "WRONG");
         setCell(sheet, 0, 1, "h2");
 
-        StringHeaderExcelTableWriter writer = new StringHeaderExcelTableWriter(
+        StringOneLineHeaderExcelTableWriter writer = new StringOneLineHeaderExcelTableWriter(
             "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("d1", "d2"))))
-            .isInstanceOf(ExcelAppException.class);
+            .isInstanceOf(ExcelTableException.class);
         assertThat(sheet.getRow(1)).isNull(); // data was not written
       }
     }

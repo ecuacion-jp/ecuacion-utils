@@ -21,7 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -102,7 +102,7 @@ public class ExcelReadUtilTest {
       @MethodSource
       @DisplayName("noDataString を返す")
       void returnsNoDataString(@Nullable String noDataString, @Nullable String expected)
-          throws ExcelAppException {
+          throws ExcelTableException {
         assertThat(ExcelReadUtil.getStringFromCell(null, null, null, noDataString))
             .isEqualTo(expected);
       }
@@ -259,13 +259,13 @@ public class ExcelReadUtilTest {
     class WhenCellTypeIsError {
 
       @Test
-      @DisplayName("ExcelAppException がスローされる")
-      void throwsExcelAppException() throws Exception {
+      @DisplayName("ExcelTableException がスローされる")
+      void throwsExcelTableException() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet("Sheet1").createRow(0).createCell(0);
           cell.setCellErrorValue(FormulaError.NUM.getCode());
           assertThatThrownBy(() -> ExcelReadUtil.getStringFromCell(cell))
-              .isInstanceOf(ExcelAppException.class);
+              .isInstanceOf(ExcelTableException.class);
         }
       }
     }
@@ -318,14 +318,14 @@ public class ExcelReadUtilTest {
       }
 
       @Test
-      @DisplayName("数式がエラー（#DIV/0! など）のとき ExcelAppException がスローされる")
+      @DisplayName("数式がエラー（#DIV/0! など）のとき ExcelTableException がスローされる")
       void whenFormulaReturnsError() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
           cell.setCellFormula("1/0");
           wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
           assertThatThrownBy(() -> ExcelReadUtil.getStringFromCell(cell))
-              .isInstanceOf(ExcelAppException.class);
+              .isInstanceOf(ExcelTableException.class);
         }
       }
     }

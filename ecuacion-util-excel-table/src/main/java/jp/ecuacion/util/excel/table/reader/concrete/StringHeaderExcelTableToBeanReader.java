@@ -70,23 +70,6 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
   // ── single-row constructors ────────────────────────────────────────────────
 
   /**
-   * Constructs a new instance with a single header row.
-   *
-   * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
-   *     {@code tableStartColumnNumber = 1}, {@code tableRowSize = null}.</p>
-   *
-   * @param beanClass the class of the bean ({@code T}) — pass explicitly because Java generics
-   *     do not allow {@code T.class}
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels
-   */
-  public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels) {
-    super(sheetName, headerLabels);
-    this.beanClass = beanClass;
-  }
-
-  /**
    * Constructs a new instance with multiple header rows.
    *
    * <p>Defaults: {@code tableStartRowNumber = null} (auto-detect by header label),
@@ -100,96 +83,6 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
   public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
       String[][] headerLabels) {
     super(sheetName, headerLabels);
-    this.beanClass = beanClass;
-  }
-
-  /**
-   * Constructs a new instance with a single header row.
-   * The obtained value from an empty cell is {@code null}.
-   *
-   * @param beanClass the class of the bean ({@code T}) — pass explicitly because Java generics
-   *     do not allow {@code T.class}
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels
-   * @param tableStartRowNumber 1-based row number of the header, or {@code null} for
-   *     auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum data rows, or {@code null} for auto-detection
-   * @param parameterClass dummy varargs used only for type inference; leave empty
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, @SuppressWarnings("unchecked") T... parameterClass) {
-    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
-    this.beanClass = beanClass;
-  }
-
-  /**
-   * Constructs a new instance with a single header row and a specified empty-cell value.
-   *
-   * @param beanClass the class of the bean ({@code T})
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels
-   * @param tableStartRowNumber 1-based row number of the header, or {@code null} for
-   *     auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum data rows, or {@code null} for auto-detection
-   * @param noDataString the value returned for an empty cell
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, NoDataString noDataString) {
-    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
-        noDataString);
-    this.beanClass = beanClass;
-  }
-
-  // ── multi-row constructors ─────────────────────────────────────────────────
-
-  /**
-   * Constructs a new instance with multiple header rows.
-   * The obtained value from an empty cell is {@code null}.
-   *
-   * @param beanClass the class of the bean ({@code T})
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels: {@code headerLabels[row][col]}, top row first
-   * @param tableStartRowNumber 1-based row number of the first header row,
-   *     or {@code null} for auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum data rows, or {@code null} for auto-detection
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[][] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize) {
-    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize);
-    this.beanClass = beanClass;
-  }
-
-  /**
-   * Constructs a new instance with multiple header rows and a specified empty-cell value.
-   *
-   * @param beanClass the class of the bean ({@code T})
-   * @param sheetName sheet name
-   * @param headerLabels expected header labels: {@code headerLabels[row][col]}, top row first
-   * @param tableStartRowNumber 1-based row number of the first header row,
-   *     or {@code null} for auto-detection
-   * @param tableStartColumnNumber 1-based column number where the table starts
-   * @param tableRowSize maximum data rows, or {@code null} for auto-detection
-   * @param noDataString the value returned for an empty cell
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringHeaderExcelTableToBeanReader(Class<?> beanClass, String sheetName,
-      String[][] headerLabels, @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, NoDataString noDataString) {
-    super(sheetName, headerLabels, tableStartRowNumber, tableStartColumnNumber, tableRowSize,
-        noDataString);
     this.beanClass = beanClass;
   }
 
@@ -498,13 +391,6 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
       DateTimeFormatter dateTimeFormat) {
     return (StringHeaderExcelTableToBeanReader<T>) super.columnDateTimeFormat(columnNumber,
         dateTimeFormat);
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public StringHeaderExcelTableToBeanReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
-    return withIgnoresAdditionalColumnsOfHeaderData(value);
   }
 
   @Override

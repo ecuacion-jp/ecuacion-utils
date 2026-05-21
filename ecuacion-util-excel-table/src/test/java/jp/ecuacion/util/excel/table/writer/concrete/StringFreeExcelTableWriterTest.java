@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -111,17 +111,43 @@ public class StringFreeExcelTableWriterTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("存在しないシート名 → ExcelAppException（SheetNotExist）")
+    @DisplayName("存在しないシート名 → ExcelTableException（SheetNotExist）")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableWriter writer =
             new StringFreeExcelTableWriter("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("a"))))
-            .isInstanceOf(ExcelAppException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+            .isInstanceOf(ExcelTableException.class)
+            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
             .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("getIterable")
+  class IterableWriterTests {
+
+    @Test
+    @DisplayName("getIterable(Workbook) → write() で1行ずつ書き込まれる")
+    void writeRowByRow() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        wb.createSheet("Sheet1");
+
+        StringFreeExcelTableWriter writer =
+            new StringFreeExcelTableWriter("Sheet1").tableStartRowNumber(1);
+        try (var iterable = writer.getIterable(wb)) {
+          iterable.write(List.of("a", "b"));
+          iterable.write(List.of("c", "d"));
+        }
+
+        Sheet sheet = wb.getSheet("Sheet1");
+        assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("a");
+        assertThat(sheet.getRow(0).getCell(1).getStringCellValue()).isEqualTo("b");
+        assertThat(sheet.getRow(1).getCell(0).getStringCellValue()).isEqualTo("c");
+        assertThat(sheet.getRow(1).getCell(1).getStringCellValue()).isEqualTo("d");
       }
     }
   }

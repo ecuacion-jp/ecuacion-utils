@@ -17,7 +17,7 @@ package jp.ecuacion.util.excel.table.reader;
 
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.util.excel.enums.NoDataString;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfDataTypeStringExcelTable;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +33,7 @@ public interface IfDataTypeStringExcelTableReader
 
   @Override
   public default @Nullable String getCellData(Cell cell, int columnNumber)
-      throws ExcelAppException {
+      throws ExcelTableException {
     String noDataStr = getNoDataString() == NoDataString.EMPTY_STRING ? "" : null;
     return ExcelReadUtil.getStringFromCell(cell, null, getDateTimeFormat(columnNumber), noDataStr);
   }

@@ -23,7 +23,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 import jp.ecuacion.lib.core.exception.ViolationException;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.apache.poi.ss.formula.FormulaParseException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -270,40 +270,40 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("未実装関数 → ExcelAppException（NotImplementedException が原因）")
+      @DisplayName("未実装関数 → ExcelTableException（NotImplementedException が原因）")
       void unimplementedFunction() throws Exception {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelAppException.class)
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+              .isInstanceOf(ExcelTableException.class)
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
               .isEqualTo(
                   "jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message");
         }
       }
 
       @Test
-      @DisplayName("外部ブック参照 → ExcelAppException（WorkbookNotFoundException が原因）")
+      @DisplayName("外部ブック参照 → ExcelTableException（WorkbookNotFoundException が原因）")
       void externalWorkbookRef() throws Exception {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelAppException.class)
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
-            .extracting(ExcelAppException::getMessageId)
+              .isInstanceOf(ExcelTableException.class)
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
+            .extracting(ExcelTableException::getMessageId)
               .isEqualTo(
                   "jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message");
         }
       }
 
       @Test
-      @DisplayName("#NAME? → ExcelAppException（DetailUnknown、原因は FormulaParseException）")
+      @DisplayName("#NAME? → ExcelTableException（DetailUnknown、原因は FormulaParseException）")
       void namePound() throws Exception {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
               .satisfies(e -> {
                 assertThat(e.getMessageId())
                     .isEqualTo(
@@ -333,12 +333,12 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("その他の例外 → ExcelAppException（DetailUnknown、原因は ClassCastException）")
+      @DisplayName("その他の例外 → ExcelTableException（DetailUnknown、原因は ClassCastException）")
       void otherException() throws Exception {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelAppException.class))
+              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
               .satisfies(e -> {
                 assertThat(e.getMessageId())
                     .isEqualTo(
@@ -355,11 +355,11 @@ public class ExcelWriteUtilTest {
     class WorkbookLevel {
 
       @Test
-      @DisplayName("breaksOnError=true → 最初のエラーで即 ExcelAppException")
+      @DisplayName("breaksOnError=true → 最初のエラーで即 ExcelTableException")
       void breaksOnErrorTrue() throws Exception {
         try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", true))
-              .isInstanceOf(ExcelAppException.class);
+              .isInstanceOf(ExcelTableException.class);
         }
       }
 

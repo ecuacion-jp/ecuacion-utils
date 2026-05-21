@@ -46,23 +46,6 @@ public class CellFreeExcelTableReader extends ExcelTableReader<Cell>
     super(sheetName);
   }
 
-  /**
-   * Constructs a new instance.
-   *
-   * <p>About the params {@code sheetName}, {@code tableStartRowNumber},
-   *     {@code tableStartColumnNumber}, {@code tableRowSize} and {@code tableColumnSize},
-   *     see {@link ExcelTableReader#ExcelTableReader(String, Integer, int, Integer, Integer)}.</p>
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public CellFreeExcelTableReader(String sheetName,
-      @Nullable Integer tableStartRowNumber, int tableStartColumnNumber,
-      @Nullable Integer tableRowSize, @Nullable Integer tableColumnSize) {
-
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber, tableRowSize, tableColumnSize);
-  }
-
   @Override
   public CellFreeExcelTableReader tableStartRowNumber(@Nullable Integer value) {
     return (CellFreeExcelTableReader) super.tableStartRowNumber(value);

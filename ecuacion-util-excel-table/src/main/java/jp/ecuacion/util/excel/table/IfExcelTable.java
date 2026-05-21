@@ -15,7 +15,7 @@
  */
 package jp.ecuacion.util.excel.table;
 
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -68,17 +68,6 @@ public interface IfExcelTable<T> {
   public String[][] getHeaderLabelData();
 
   /**
-   * Stores the boolean value which indicates whether {@code validateHeaderData} ignores
-   *     additional header columns.
-   *
-   * @param value boolean
-   * @return this
-   * @deprecated Use {@link #withIgnoresAdditionalColumnsOfHeaderData(boolean)} instead.
-   */
-  @Deprecated
-  public IfExcelTable<T> ignoresAdditionalColumnsOfHeaderData(boolean value);
-
-  /**
    * Obtains the boolean value which indicates whether {@code validateHeaderData} ignores
    *     additional header columns.
    *
@@ -100,21 +89,10 @@ public interface IfExcelTable<T> {
    * 
    * @param cellData data obtained from the cell
    * @return {@code String} value obtained from the {@code cellData}
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   @Nullable
-  public String getStringValue(@Nullable T cellData) throws ExcelAppException;
-
-  /**
-   * Decides whether header is top (normal table) or left.
-   * {@code true} means headers are at the left.
-   *
-   * @param value boolean
-   * @return {@code IfExcelTable<T>}
-   * @deprecated Use {@link #withVerticalAndHorizontalOpposite(boolean)} instead.
-   */
-  @Deprecated
-  public IfExcelTable<T> isVerticalAndHorizontalOpposite(boolean value);
+  public String getStringValue(@Nullable T cellData) throws ExcelTableException;
 
   /**
    * Obtains whether header is top (normal table) or left.

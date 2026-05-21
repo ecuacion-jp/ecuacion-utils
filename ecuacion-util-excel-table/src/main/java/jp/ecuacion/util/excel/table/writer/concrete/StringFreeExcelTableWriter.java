@@ -46,21 +46,6 @@ public class StringFreeExcelTableWriter extends ExcelTableWriter<String>
     super(sheetName);
   }
 
-  /**
-   * Constructs a new instance.
-   *
-   * @param sheetName See {@link ExcelTable#sheetName}.
-   * @param tableStartRowNumber See {@link ExcelTable#tableStartRowNumber}.
-   * @param tableStartColumnNumber See {@link ExcelTable#tableStartColumnNumber}.
-   *
-   * @deprecated Use the minimal constructor with fluent setters instead.
-   */
-  @Deprecated
-  public StringFreeExcelTableWriter(String sheetName, @Nullable Integer tableStartRowNumber,
-      int tableStartColumnNumber) {
-    super(sheetName, tableStartRowNumber, tableStartColumnNumber);
-  }
-
   @Override
   protected void headerCheck(Workbook workbook) throws EncryptedDocumentException, IOException {
     // No header to check for free-format tables.

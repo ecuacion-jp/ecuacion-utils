@@ -29,7 +29,7 @@ import java.util.Set;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
-import jp.ecuacion.util.excel.exception.ExcelAppException;
+import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.exception.LoopBreakException;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfExcelTable;
@@ -274,7 +274,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param poiBasisDeterminedTableStartRowNumber poiBasisDeterminedTableStartRowNumber
    * @param poiBasisDeterminedTableStartColumnNumber poiBasisDeterminedTableStartColumnNumber
    * @param ignoresColumnSizeSetInReader ignoresColumnSizeSetInReader
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
       int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader) {
@@ -317,7 +317,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
 
     if (size == 0) {
-      throw new ExcelAppException("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
+      throw new ExcelTableException("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
           sheet.getSheetName(), Integer.toString(poiBasisDeterminedTableStartRowNumber + 1),
           Integer.toString(poiBasisDeterminedTableStartColumnNumber + 1)).sheet(sheet);
     }
@@ -349,10 +349,10 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @param reader reader
    * @param context context
    * @param rowNumber rowNumber
-   * @throws ExcelAppException ExcelAppException
+   * @throws ExcelTableException when an Excel parsing error occurs
    */
   static <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
-      int rowNumber) throws ExcelAppException {
+      int rowNumber) throws ExcelTableException {
     detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
     detailLog.debug("row number：" + rowNumber);
 
@@ -429,7 +429,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   public static <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader,
       Workbook workbook, String sheetName, int tableStartColumnNumber,
       @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
-      boolean ignoresColumnSizeSetInReader) throws ExcelAppException {
+      boolean ignoresColumnSizeSetInReader) throws ExcelTableException {
     detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     detailLog.debug("starting to read excel file.");
     detailLog.debug("sheet name :" + sheetName);
@@ -437,7 +437,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new ExcelAppException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
+      throw new ExcelTableException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
     }
 
     Integer tableRowSize =
@@ -542,9 +542,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
         throw new NoSuchElementException();
       }
 
-      List<T> rtn = null;
-
-      rtn = readTableLine(reader, context, rowNumber);
+      List<T> rtn = readTableLine(reader, context, rowNumber);
 
       rowNumber++;
 
@@ -603,24 +601,10 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     return this;
   }
 
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public ExcelTableReader<T> ignoresAdditionalColumnsOfHeaderData(boolean value) {
-    return withIgnoresAdditionalColumnsOfHeaderData(value);
-  }
-
   @Override
   public ExcelTableReader<T> withIgnoresAdditionalColumnsOfHeaderData(boolean value) {
     this.ignoresAdditionalColumnsOfHeaderData = value;
     return this;
-  }
-
-  @SuppressWarnings("InlineMeSuggester")
-  @Override
-  @Deprecated
-  public ExcelTableReader<T> isVerticalAndHorizontalOpposite(boolean value) {
-    return withVerticalAndHorizontalOpposite(value);
   }
 
   @Override

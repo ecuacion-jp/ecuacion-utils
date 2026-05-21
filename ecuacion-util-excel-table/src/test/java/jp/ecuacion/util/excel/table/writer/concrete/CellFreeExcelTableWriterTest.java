@@ -29,9 +29,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-// 基底クラス共通の振る舞い（書き込み, 開始位置, isVerticalAndHorizontalOpposite, SheetNotExist 等）は
-// StringFreeExcelTableWriterTest でカバー済み。
-@DisplayName("CellFreeExcelTableWriter ※基底クラス共通の振る舞いは StringFreeExcelTableWriterTest 参照")
+// Common base-class behaviors (writing, start position, isVerticalAndHorizontalOpposite,
+// SheetNotExist, etc.) are covered by StringFreeExcelTableWriterTest.
+@DisplayName("CellFreeExcelTableWriter (base-class behaviors: see StringFreeExcelTableWriterTest)")
 public class CellFreeExcelTableWriterTest {
 
   @Nested
