@@ -182,6 +182,7 @@
 						<configuration>
 							<publishingServerId>central</publishingServerId>
 							<autoPublish>false</autoPublish>
+							<deploymentName>ecuacion-utils-${project.version}</deploymentName>
 						</configuration>
 					</plugin>
 
