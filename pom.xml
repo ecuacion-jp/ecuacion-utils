@@ -51,6 +51,7 @@
 	<properties>
 		<!-- Overrides the inherited property so that versions:update-properties can update it to the latest release at deploy time. -->
 		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
+		<ecuacion-utils.version>0.0.1-SNAPSHOT</ecuacion-utils.version>
 		<org.apache.poi.version>5.5.1</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.7</org.apache.pdfbox.version>
 	</properties>
@@ -70,12 +71,12 @@
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-table</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
+				<version>${ecuacion-utils.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
+				<version>${ecuacion-utils.version}</version>
 			</dependency>
 			
 		</dependencies>
@@ -182,6 +183,7 @@
 						<configuration>
 							<publishingServerId>central</publishingServerId>
 							<autoPublish>false</autoPublish>
+							<deploymentName>ecuacion-utils-${project.version}</deploymentName>
 						</configuration>
 					</plugin>
 
