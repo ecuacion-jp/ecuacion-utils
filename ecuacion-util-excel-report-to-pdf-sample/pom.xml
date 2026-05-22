@@ -23,7 +23,8 @@
 	<parent>
 		<groupId>jp.ecuacion.util</groupId>
 		<artifactId>ecuacion-util-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<!-- 0.0.2-SNAPSHOT: see the comment in the parent pom.xml for why this is not 0.0.1-SNAPSHOT. -->
+		<version>0.0.2-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -83,22 +84,11 @@
 
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.sonatype.central</groupId>
-				<artifactId>central-publishing-maven-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	<properties>
+		<!-- Using properties instead of <configuration><skip> to avoid IDE false-positive warnings
+		     ("Invalid plugin configuration: skip") caused by schema validation on plugin descriptors. -->
+		<central.publishing.skip>true</central.publishing.skip>
+		<gpg.skip>true</gpg.skip>
+	</properties>
+
 </project>

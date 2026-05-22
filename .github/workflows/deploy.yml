@@ -69,6 +69,7 @@ jobs:
         working-directory: ecuacion-utils
         run: |
           mvn versions:set -DnewVersion=${{ steps.tag.outputs.value }} -DgenerateBackupPoms=false
+          mvn versions:update-parent -DgenerateBackupPoms=false
           mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DgenerateBackupPoms=false
 
       - name: Verify
