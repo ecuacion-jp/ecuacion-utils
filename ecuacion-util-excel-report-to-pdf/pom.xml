@@ -108,6 +108,16 @@
 			<artifactId>jakarta.annotation-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.el</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- ecuacion-lib -->
 		<dependency>
@@ -144,26 +154,6 @@
 
 		<!-- unit test -->
 		<dependency>
-			<groupId>io.qameta.allure</groupId>
-			<artifactId>allure-junit5</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate.validator</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>jakarta.el</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.mail</groupId>
-			<artifactId>jakarta.mail-api</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
 			<scope>test</scope>
@@ -171,6 +161,13 @@
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- tools -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-junit5</artifactId>
 			<scope>test</scope>
 		</dependency>
 
