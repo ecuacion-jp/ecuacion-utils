@@ -25,7 +25,6 @@ module jp.ecuacion.util.pdf.excel.report {
   provides jp.ecuacion.lib.core.spi.MessagesUtilExcelReportToPdfProvider
       with jp.ecuacion.util.pdf.excel.report.spi.impl.internal.MessagesUtilExcelReportToPdfProviderImpl;
 
-  requires jakarta.annotation;
   requires jp.ecuacion.lib.core;
 
   requires transitive org.apache.poi.poi;

@@ -34,7 +34,6 @@ module jp.ecuacion.util.excel {
   provides jp.ecuacion.lib.core.spi.MessagesUtilExcelTableProvider
       with jp.ecuacion.util.excel.spi.impl.internal.MessagesUtilExcelTableProviderImpl;
 
-  requires jakarta.annotation;
   requires jakarta.validation;
   requires transitive jp.ecuacion.lib.core;
 
