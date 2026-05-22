@@ -20,7 +20,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<!-- Using 0.0.2-SNAPSHOT instead of 0.0.1-SNAPSHOT to avoid a DuplicationOfParentVersion IDE warning:
+	     0.0.1-SNAPSHOT matches the version of the parent POM (ecuacion-lib-dependencies:0.0.1-SNAPSHOT). -->
+	<version>0.0.2-SNAPSHOT</version>
 	<name>ecuacion-util-parent</name>
 	<description>OSS Java utility library providing Excel table read/write (Apache POI) and Excel-to-PDF report generation (Apache PDFBox).</description>
 	<url>https://github.com/ecuacion-jp/ecuacion-utils</url>
@@ -105,17 +107,13 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<!--
-				ossrh mode expands name/description/url/scm/developers from the parent POM so that
-				Maven Central validation succeeds even when the parent is a SNAPSHOT.
-			-->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
 				<version>1.7.3</version>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
-					<flattenMode>ossrh</flattenMode>
+					<flattenMode>bom</flattenMode>
 				</configuration>
 				<executions>
 					<execution>

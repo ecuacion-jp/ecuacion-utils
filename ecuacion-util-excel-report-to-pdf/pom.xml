@@ -24,7 +24,8 @@
 	<parent>
 		<groupId>jp.ecuacion.util</groupId>
 		<artifactId>ecuacion-util-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<!-- 0.0.2-SNAPSHOT: see the comment in the parent pom.xml for why this is not 0.0.1-SNAPSHOT. -->
+		<version>0.0.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
