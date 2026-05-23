@@ -33,6 +33,15 @@ jobs:
         working-directory: ecuacion-lib
         run: mvn install -DskipTests
 
+      - name: Validate POM after version update
+        working-directory: ecuacion-utils
+        run: |
+          mvn versions:set -DnewVersion=0.0.0-CI-TEST -DgenerateBackupPoms=false
+          mvn versions:update-parent -DgenerateBackupPoms=false
+          mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DgenerateBackupPoms=false
+          mvn validate
+          git checkout -- .
+
       - name: Verify
         working-directory: ecuacion-utils
         run: mvn verify -Dwagon.skip=true -e
