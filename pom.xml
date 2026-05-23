@@ -93,7 +93,6 @@
 					<plugin>
 						<groupId>org.sonatype.central</groupId>
 						<artifactId>central-publishing-maven-plugin</artifactId>
-						<version>${org.sonatype.central.central-publishing-maven-plugin.version}</version>
 						<configuration>
 							<deploymentName>ecuacion-utils-${project.version}</deploymentName>
 						</configuration>
