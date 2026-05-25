@@ -18,7 +18,6 @@ package jp.ecuacion.util.excel.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -31,6 +30,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -272,7 +272,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("未実装関数 → ExcelTableException（NotImplementedException が原因）")
       void unimplementedFunction() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .isInstanceOf(ExcelTableException.class)
@@ -286,7 +286,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("外部ブック参照 → ExcelTableException（WorkbookNotFoundException が原因）")
       void externalWorkbookRef() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .isInstanceOf(ExcelTableException.class)
@@ -300,7 +300,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("#NAME? → ExcelTableException（DetailUnknown、原因は FormulaParseException）")
       void namePound() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
@@ -318,7 +318,7 @@ public class ExcelWriteUtilTest {
       @MethodSource
       @DisplayName("エラー値（#VALUE! / #DIV/0! / #N/A）→ 例外なし")
       void errorValues(int rowIndex) throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(rowIndex).getCell(1);
           assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .doesNotThrowAnyException();
@@ -335,7 +335,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("その他の例外 → ExcelTableException（DetailUnknown、原因は ClassCastException）")
       void otherException() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
               .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
@@ -357,7 +357,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("breaksOnError=true → 最初のエラーで即 ExcelTableException")
       void breaksOnErrorTrue() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", true))
               .isInstanceOf(ExcelTableException.class);
         }
@@ -366,7 +366,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("breaksOnError=false → 全エラーを収集して ViolationException")
       void breaksOnErrorFalse() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", false))
               .isInstanceOf(ViolationException.class)
               .satisfies(e -> assertThat(
@@ -383,7 +383,7 @@ public class ExcelWriteUtilTest {
       @Test
       @DisplayName("対象外シートのエラー数式は評価されない")
       void ignoresErrorsInNonTargetSheets() throws Exception {
-        try (Workbook wb = ExcelWriteUtil.openForWrite(EXCEL_PATH)) {
+        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatCode(() -> ExcelWriteUtil.evaluateFormula(
               wb, "file", false, "getReadyToEvaluateFormulaTest"))
               .doesNotThrowAnyException();
