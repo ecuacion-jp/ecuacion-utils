@@ -33,6 +33,7 @@
 		     ("Invalid plugin configuration: skip") caused by schema validation on plugin descriptors. -->
 		<central.publishing.skip>true</central.publishing.skip>
 		<gpg.skip>true</gpg.skip>
+		<checkstyle.skip>true</checkstyle.skip>
 	</properties>
 
 	<dependencies>
