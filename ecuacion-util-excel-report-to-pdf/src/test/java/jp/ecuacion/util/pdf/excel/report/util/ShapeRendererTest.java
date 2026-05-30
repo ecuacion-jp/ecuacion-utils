@@ -182,11 +182,11 @@ public class ShapeRendererTest {
   // --- tests ---
 
   @Nested
-  @DisplayName("テキストボックス")
+  @DisplayName("text box")
   class TextBox {
 
     @Test
-    @DisplayName("テキストボックスの文字が PDF テキストとして抽出できる")
+    @DisplayName("text box content is extractable as PDF text")
     void textAppearsInPdf(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setShapeText(shape, "ShapeText");
@@ -202,7 +202,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("bold テキストボックスの文字が PDF テキストとして抽出できる")
+    @DisplayName("bold text box content is extractable as PDF text")
     void boldTextAppearsInPdf(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setShapeText(shape, "BoldText");
@@ -219,11 +219,11 @@ public class ShapeRendererTest {
   }
 
   @Nested
-  @DisplayName("塗り・枠線")
+  @DisplayName("fill and stroke")
   class FillAndLine {
 
     @Test
-    @DisplayName("塗り色のみ → PDF 生成成功・1ページ")
+    @DisplayName("fill only — PDF generated successfully, 1 page")
     void fillOnly(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 255, 0, 0); // red fill
@@ -232,7 +232,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("枠線のみ → PDF 生成成功・1ページ")
+    @DisplayName("stroke only — PDF generated successfully, 1 page")
     void lineOnly(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setLine(shape, 0, 0, 255, 1.5f); // blue line
@@ -241,7 +241,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("塗り色 + 枠線 → PDF 生成成功・1ページ")
+    @DisplayName("fill and stroke — PDF generated successfully, 1 page")
     void fillAndLine(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 0, 255, 0);    // green fill
@@ -252,11 +252,11 @@ public class ShapeRendererTest {
   }
 
   @Nested
-  @DisplayName("図形タイプ")
+  @DisplayName("shape type")
   class ShapeTypeTests {
 
     @Test
-    @DisplayName("ELLIPSE (楕円) → PDF 生成成功")
+    @DisplayName("ELLIPSE — PDF generated successfully")
     void ellipse(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 100, 100, 200);
@@ -266,7 +266,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("ROUND_RECT (角丸矩形) → PDF 生成成功")
+    @DisplayName("ROUND_RECT — PDF generated successfully")
     void roundRect(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 200, 100, 100);
@@ -276,7 +276,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("DIAMOND (菱形) → PDF 生成成功")
+    @DisplayName("DIAMOND — PDF generated successfully")
     void diamond(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 100, 200, 100);
@@ -286,7 +286,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("PARALLELOGRAM (平行四辺形) → PDF 生成成功")
+    @DisplayName("PARALLELOGRAM — PDF generated successfully")
     void parallelogram(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 200, 200, 100);
@@ -296,7 +296,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("デフォルト矩形 (prstGeom なし) → PDF 生成成功")
+    @DisplayName("default rect (no prstGeom) — PDF generated successfully")
     void defaultRect(@TempDir Path tempDir) throws Exception {
       Path excel = buildExcel(tempDir, shape -> {
         setFill(shape, 150, 150, 150);
@@ -307,11 +307,11 @@ public class ShapeRendererTest {
   }
 
   @Nested
-  @DisplayName("画像")
+  @DisplayName("image")
   class ImageShapes {
 
     @Test
-    @DisplayName("PNG 画像 → PDF 生成成功・非白ピクセルあり")
+    @DisplayName("PNG image — PDF generated successfully, non-white pixels present")
     void pngImage(@TempDir Path tempDir) throws Exception {
       BufferedImage img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_RGB);
       Graphics2D g = img.createGraphics();
@@ -334,7 +334,7 @@ public class ShapeRendererTest {
     }
 
     @Test
-    @DisplayName("JPEG 画像 → PDF 生成成功")
+    @DisplayName("JPEG image — PDF generated successfully")
     void jpegImage(@TempDir Path tempDir) throws Exception {
       BufferedImage img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_RGB);
       Graphics2D g = img.createGraphics();

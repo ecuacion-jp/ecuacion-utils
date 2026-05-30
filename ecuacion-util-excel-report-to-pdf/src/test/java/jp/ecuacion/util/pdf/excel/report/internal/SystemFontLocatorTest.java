@@ -157,7 +157,7 @@ class SystemFontLocatorTest {
     }
 
     @Test
-    @DisplayName("游ゴシック検索時にMediumを返す — LightやRegularより優先（Word/Excelインストール環境）")
+    @DisplayName("游ゴシック search returns Medium over Light and Regular (Word/Excel install)")
     void prefersYuGothicMediumOverLight() {
       var result = SystemFontLocator.findFontFile("游ゴシック");
       org.junit.jupiter.api.Assumptions.assumeTrue(result.isPresent(),
