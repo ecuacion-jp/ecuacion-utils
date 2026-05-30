@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import jp.ecuacion.lib.core.util.LocaleUtil;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import jp.ecuacion.util.pdf.excel.report.internal.FontManager;
 import jp.ecuacion.util.pdf.excel.report.internal.SheetRenderer;
@@ -59,8 +60,8 @@ public class ExcelToPdfUtil {
    * @param options parameters including font paths and optional passwords
    * @throws PdfGenerateException if an error occurs during PDF generation
    */
-  public static void generate(Path excelPath, List<String> sheetNames,
-      Path outputPath, PdfGenerateOptions options) throws PdfGenerateException {
+  public static void generate(Path excelPath, List<String> sheetNames, Path outputPath,
+      PdfGenerateOptions options) throws PdfGenerateException {
 
     String excelPassword = options.getExcelPassword();
     String pdfPassword = options.getPdfPassword();
@@ -85,13 +86,12 @@ public class ExcelToPdfUtil {
         if (theme != null) {
           // getCTTheme() is not public in this POI version; read the theme XML directly.
           try (var themeIs = theme.getPackagePart().getInputStream()) {
-            String xml = new String(themeIs.readAllBytes(),
-                java.nio.charset.StandardCharsets.UTF_8);
+            String xml =
+                new String(themeIs.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             // The minorFont's first non-empty typeface is the Latin body font (Calibri etc).
             // Structure: <a:minorFont><a:latin typeface="Calibri" .../><a:ea typeface=""/>...
-            var m = java.util.regex.Pattern.compile(
-                "(?s)<[^>:]+:minorFont[^>]*>.*?typeface=\"([^\"]+)\""
-            ).matcher(xml);
+            var m = java.util.regex.Pattern
+                .compile("(?s)<[^>:]+:minorFont[^>]*>.*?typeface=\"([^\"]+)\"").matcher(xml);
             if (m.find()) {
               String tf = m.group(1);
               if (!tf.isBlank()) {
@@ -126,10 +126,9 @@ public class ExcelToPdfUtil {
               mdw = SystemFontLocator.computeExcelMdw(reg, "", fontSizePt);
             }
           } else {
-            throw new PdfGenerateException(
-                "System font '" + defaultFontName + "' not found. "
-                    + "Install the font or set regularFontPath as a fallback in "
-                    + "PdfGenerateOptions.");
+            throw new PdfGenerateException("System font '" + defaultFontName + "' not found. "
+                + "Install the font or set regularFontPath as a fallback in "
+                + "PdfGenerateOptions.");
           }
         } else {
           Path fontFile = systemFontFile.get();
@@ -147,8 +146,8 @@ public class ExcelToPdfUtil {
               : null;
           // Pass regularFontPath as fallback so that characters not in the system font
           // (e.g. CJK characters in a Calibri workbook) are rendered with the fallback font.
-          fontManager = new FontManager(document, regularTtf, boldTtf,
-              options.getRegularFontPath(), options.getBoldFontPath());
+          fontManager = new FontManager(document, regularTtf, boldTtf, options.getRegularFontPath(),
+              options.getBoldFontPath());
         }
       } else {
         // Explicit font mode: always use the supplied font at 96 DPI for MDW.
@@ -160,10 +159,9 @@ public class ExcelToPdfUtil {
         mdw = SystemFontLocator.computeMdw(reg, "", fontSizePt); // fixed 96 DPI
       }
 
-      Locale dateLocale =
-          options.getDateLocale() != null ? options.getDateLocale() : Locale.getDefault();
-      SheetRenderer renderer =
-          new SheetRenderer(document, fontManager, excelPath, dateLocale, mdw);
+      Locale dateLocale = options.getDateLocale() != null ? options.getDateLocale()
+          : LocaleUtil.getFallbackLocale();
+      SheetRenderer renderer = new SheetRenderer(document, fontManager, excelPath, dateLocale, mdw);
 
       for (String sheetName : sheetNames) {
         int sheetIndex = workbook.getSheetIndex(sheetName);
@@ -175,8 +173,8 @@ public class ExcelToPdfUtil {
 
       if (pdfPassword != null) {
         AccessPermission ap = new AccessPermission();
-        String pdfOwnerPassword = options.getPdfOwnerPassword() != null
-            ? options.getPdfOwnerPassword() : pdfPassword;
+        String pdfOwnerPassword =
+            options.getPdfOwnerPassword() != null ? options.getPdfOwnerPassword() : pdfPassword;
         StandardProtectionPolicy policy =
             new StandardProtectionPolicy(pdfOwnerPassword, pdfPassword, ap);
         document.protect(policy);
