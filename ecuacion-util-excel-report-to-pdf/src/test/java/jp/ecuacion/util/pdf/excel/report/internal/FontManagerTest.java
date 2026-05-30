@@ -42,11 +42,11 @@ class FontManagerTest {
   }
 
   @Nested
-  @DisplayName("コンストラクタ (Path)")
+  @DisplayName("constructor (Path)")
   class PathConstructor {
 
     @Test
-    @DisplayName("boldFontPath=null → bold/regular が同一フォントインスタンス")
+    @DisplayName("boldFontPath=null — bold and regular are the same font instance")
     void noBoldPathFallsBackToRegular() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -55,7 +55,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("boldFontPath 指定 → bold と regular が別フォントインスタンス")
+    @DisplayName("boldFontPath set — bold and regular are different font instances")
     void withBoldPathReturnsDifferentFonts() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), boldFont());
@@ -65,11 +65,11 @@ class FontManagerTest {
   }
 
   @Nested
-  @DisplayName("コンストラクタ (TrueTypeFont)")
+  @DisplayName("constructor (TrueTypeFont)")
   class TtfConstructor {
 
     @Test
-    @DisplayName("TrueTypeFont + boldTtf=null → bold/regular が同一フォント")
+    @DisplayName("TrueTypeFont + boldTtf=null — bold and regular are the same font")
     void fromTtfNoBold() throws Exception {
       var ttf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
@@ -81,7 +81,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("fallbackRegularPath 指定 → 構築成功、フォント非 null")
+    @DisplayName("fallbackRegularPath set — construction succeeds, font non-null")
     void fromTtfWithFallbackPath() throws Exception {
       var ttf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
@@ -92,7 +92,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("bold TrueTypeFont 指定 → bold と regular が別フォント")
+    @DisplayName("bold TrueTypeFont set — bold and regular are different fonts")
     void fromTtfWithBoldTtf() throws Exception {
       var regularTtf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
@@ -110,7 +110,7 @@ class FontManagerTest {
   class TypoMetrics {
 
     @Test
-    @DisplayName("NotoSansJP: ascent > 0、descent < 0")
+    @DisplayName("NotoSansJP: ascent > 0, descent < 0")
     void ascentAndDescent() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -125,7 +125,7 @@ class FontManagerTest {
   class SelectFont {
 
     @Test
-    @DisplayName("NotoSansJP に含まれる文字 → primary font を返す")
+    @DisplayName("encodable char in NotoSansJP — returns primary font")
     void encodableCharReturnsPrimaryFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), boldFont());
@@ -135,7 +135,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("bold=true・NotoSansJP に含まれる文字 → bold font を返す")
+    @DisplayName("bold=true, encodable char in NotoSansJP — returns bold font")
     void encodableCharReturnsBoldFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), boldFont());
@@ -145,11 +145,11 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("fallback なし・エンコード不能文字 → PdfGenerateException")
+    @DisplayName("no fallback, unencodable char — throws PdfGenerateException")
     void noFallbackUnencodableThrows() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
-        // U+E000 は Private Use Area — いかなる標準フォントにも収録されない
+        // U+E000 is Private Use Area — not included in any standard font
         assertThatThrownBy(() -> fm.selectFont(0xE000, false))
             .isInstanceOf(PdfGenerateException.class);
       }
@@ -161,7 +161,7 @@ class FontManagerTest {
   class SegmentText {
 
     @Test
-    @DisplayName("空文字列 → 空リスト")
+    @DisplayName("empty string — returns empty list")
     void emptyStringReturnsEmptyList() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -170,7 +170,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("ASCII テキスト → 結合すると元テキストと一致する TextRun リスト")
+    @DisplayName("ASCII text — concatenated TextRuns match original string")
     void asciiTextReturnsRuns() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -182,7 +182,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("bold=true → 各 TextRun が bold font を使う")
+    @DisplayName("bold=true — each TextRun uses bold font")
     void boldTextRunsUseBoldFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), boldFont());
@@ -198,7 +198,7 @@ class FontManagerTest {
   class GetStringWidthWithFallback {
 
     @Test
-    @DisplayName("通常テキスト → 正の幅")
+    @DisplayName("normal text — returns positive width")
     void normalTextReturnsPositiveWidth() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -208,7 +208,7 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("空文字列 → 0")
+    @DisplayName("empty string — returns 0")
     void emptyStringReturnsZero() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
@@ -217,11 +217,11 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("エンコード不能文字 → fontSize を 1em として幅推定")
+    @DisplayName("unencodable char — width estimated as fontSize (1em)")
     void unencodableCharEstimatedAsFontSize() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, regularFont(), null);
-        // U+E000 はエンコード不能 → 幅推定値 = fontSize (12f)
+        // U+E000 is unencodable — estimated width = fontSize (12f)
         String pua = new String(Character.toChars(0xE000));
         float width = fm.getStringWidthWithFallback(pua, false, 12f);
         assertThat(width).isCloseTo(12f, within(0.01f));
