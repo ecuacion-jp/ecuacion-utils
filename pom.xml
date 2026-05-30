@@ -20,6 +20,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>jp.ecuacion.util</groupId>
 	<artifactId>ecuacion-util-parent</artifactId>
+	<name>${project.artifactId}</name>
 	<!-- Using 0.0.2-SNAPSHOT instead of 0.0.1-SNAPSHOT to avoid a DuplicationOfParentVersion IDE warning:
 	     0.0.1-SNAPSHOT matches the version of the parent POM (ecuacion-lib-dependencies:0.0.1-SNAPSHOT). -->
 	<version>0.0.2-SNAPSHOT</version>
