@@ -354,7 +354,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
   static <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
       int rowNumber) throws ExcelTableException {
     detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
-    detailLog.debug("row number：" + rowNumber);
+    detailLog.debug("row number: " + rowNumber);
 
     if (rowNumber == ContextContainer.max) {
       throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
