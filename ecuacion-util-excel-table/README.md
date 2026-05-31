@@ -4,10 +4,6 @@
 
 `ecuacion-util-excel-table` provides utilities for `apache POI`.  
 
-## System Requirements
-
-- JDK 21 or above.
-
 ## Dependent Ecuacion Libraries
 
 ### Automatically Loaded Libraries
