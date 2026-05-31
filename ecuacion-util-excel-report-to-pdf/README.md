@@ -4,10 +4,6 @@
 
 `ecuacion-util-excel-report-to-pdf` provides utilities for `apache PDFBox`.  
 
-## System Requirements
-
-- JDK 21 or above.
-
 ## Dependent Ecuacion Libraries
 
 ### Automatically Loaded Libraries
