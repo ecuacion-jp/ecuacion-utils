@@ -2,7 +2,21 @@
 
 ## What is it?
 
-`ecuacion-util-excel-table` provides utilities for `apache POI`.  
+`ecuacion-util-excel-table` lets you read and write structured table data in Excel (`.xlsx`) files without writing raw Apache POI boilerplate. Describe the table by its sheet name and header labels — the library locates the data rows, maps each row to a Java bean, and handles all cell-type conversions.
+
+## Usage Example
+
+```java
+List<MemberBean> members = new StringOneLineHeaderExcelTableToBeanReader<>(
+    MemberBean.class,
+    "Member",                                                    // sheet name
+    new String[] {"ID", "name", "date of birth", "age"})        // header labels to match
+        .tableStartRowNumber(3)
+        .tableStartColumnNumber(2)
+        .readToBean("members.xlsx");
+```
+
+That's all. Name the sheet, list the expected headers, and get a typed list back.
 
 ## Dependent Ecuacion Libraries
 
@@ -12,7 +26,7 @@
 
 ### Manual Load Needed Libraries
 
-- `ecuacion-lib-validation`
+- `ecuacion-lib-core`
 
 ## Dependent External Libraries
 
@@ -36,7 +50,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Documentation
 
-- [javadoc](https://docs.ecuacion.jp/javadoc/ecuacion-util-excel-table/jp.ecuacion.util.excel/module-summary.html)
+- [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-table/latest/jp.ecuacion.util.excel/module-summary.html)
 
 ## Sample Code
 
