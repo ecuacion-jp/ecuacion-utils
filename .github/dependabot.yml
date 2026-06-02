@@ -4,6 +4,5 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "4.8"  # 新リリースブランチ作成時に更新する
     ignore:
       - dependency-name: "jp.ecuacion.*:*"
