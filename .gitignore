@@ -145,6 +145,9 @@ products/
 # allure
 .allure
 
+# local development test files
+local-test/
+
 # Claude Code (local-only personal settings)
 .claude/
 

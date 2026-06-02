@@ -21,7 +21,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of unacceptable behavior may be reported by opening a [GitHub Issue](https://github.com/ecuacion-jp/ecuacion-utils/issues) or contacting the maintainers at info@ecuacion.jp. All reports will be reviewed and investigated.
+Instances of unacceptable behavior may be reported by contacting the maintainers at [info@ecuacion.jp](mailto:info@ecuacion.jp). All reports will be reviewed and investigated privately.
 
 ## Attribution
 
