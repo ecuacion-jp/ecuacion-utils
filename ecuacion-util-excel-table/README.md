@@ -91,30 +91,22 @@ We'll use the following table as an example. Let's say this table is in `Sheet1`
 
 The following features read values of cells in the excel file and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
 
-#### read excel table values and put them to the list of strings
-
-`SampleTableReader.java`
+#### Read table values as strings
 
 ```java
-public class SampleTableReader extends PoiStringFixedTableReader {
-
-  public SampleTableReader() {
-    
-  }
-
-  @Override
-  protected String getSheetName() {
-    return "Sheet1";
-  }
-
-  @Override
-  protected String[] getHeaderLabels() {
-    return new String[] {"name", "age", "phone number"};
-  }
-
-  public List<List<String>> read(String excelPath)
-      throws EncryptedDocumentException, IOException, AppException {
-
-     return getTableValues(excelPath);
-  }
+List<List<String>> rows = new StringOneLineHeaderExcelTableReader(
+    "Sheet1", new String[]{"name", "age", "phone number"})
+    .read("sample.xlsx");
 ```
+
+Each inner list contains the values of one data row in the header order.
+
+#### Read table values into Java beans
+
+```java
+List<PersonBean> people = new StringOneLineHeaderExcelTableToBeanReader<>(PersonBean.class,
+    "Sheet1", new String[]{"name", "age", "phone number"})
+    .readToBean("sample.xlsx");
+```
+
+For more examples — free-format tables, cell-level access, writing — see [Sample Code](#sample-code) above.
