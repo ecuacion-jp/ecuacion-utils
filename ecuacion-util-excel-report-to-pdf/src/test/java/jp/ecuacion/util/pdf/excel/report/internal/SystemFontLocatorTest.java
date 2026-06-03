@@ -173,4 +173,30 @@ class SystemFontLocatorTest {
           .isEqualTo(0);
     }
   }
+
+  @Nested
+  @DisplayName("getRegularStyleScore")
+  class GetRegularStyleScore {
+
+    @Test
+    @DisplayName("NotoSansJP Regular → score 1")
+    void regularFontReturnsScore1() throws URISyntaxException {
+      Path fontPath = notoSansJpRegularPath();
+
+      int score = SystemFontLocator.getRegularStyleScore(fontPath, "Noto Sans JP");
+
+      assertThat(score).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("NotoSansJP Bold → score 10 (bold heavily penalised)")
+    void boldFontReturnsScore10() throws URISyntaxException {
+      var url = SystemFontLocatorTest.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
+      Path fontPath = Path.of(url.toURI());
+
+      int score = SystemFontLocator.getRegularStyleScore(fontPath, "Noto Sans JP Bold");
+
+      assertThat(score).isEqualTo(10);
+    }
+  }
 }
