@@ -2,11 +2,24 @@
 
 ## What is it?
 
-`ecuacion-util-excel-report-to-pdf` provides utilities for `apache PDFBox`.  
+`ecuacion-util-excel-report-to-pdf` converts Excel (`.xlsx`) files to PDF — fonts, borders, colors, images, merged cells, headers/footers, and print settings are all faithfully reproduced.
 
-## System Requirements
+## Usage Example
 
-- JDK 21 or above.
+```java
+PdfGenerateOptions options = PdfGenerateOptions.builder()
+    .regularFontPath(Path.of("/path/to/NotoSansJP-Regular.ttf"))
+    .boldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
+    .build();
+
+ExcelToPdfUtil.generate(
+    Path.of("invoice.xlsx"),
+    List.of("invoice"),          // sheet names to include
+    Path.of("invoice.pdf"),
+    options);
+```
+
+That's all. Point it at an Excel file, name the sheets, specify fonts, and get a PDF out.
 
 ## Dependent Ecuacion Libraries
 
@@ -16,17 +29,17 @@
 
 ### Manual Load Needed Libraries
 
-- `ecuacion-lib-validation`
+- `ecuacion-lib-core`
 
 ## Dependent External Libraries
 
-### Automatically Loaded External Libraries
+### Automatically Loaded Libraries
 
 - `org.apache.pdfbox`
 - `org.apache.poi:poi`
 - `org.apache.poi:poi-ooxml`
 
-### Manually Load Needed External Libraries
+### Manual Load Needed Libraries
 
 - `jakarta.validation:jakarta.validation-api`
 - (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
@@ -42,7 +55,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Documentation
 
-- [javadoc](https://docs.ecuacion.jp/javadoc/ecuacion-util-excel-report-to-pdf/)
+- [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-report-to-pdf/latest/jp.ecuacion.util.pdf.excel.report/module-summary.html)
 
 ## Sample Code
 
@@ -71,37 +84,6 @@ The description of dependent `ecuacion` modules is as follows.
 ```
 
 ## Features
-
-### System font support (`useSystemFonts`)
-
-By default, font files must be specified explicitly via `regularFontPath` in `PdfGenerateOptions`.
-When `useSystemFonts(true)` is set, the library automatically searches the OS font directories
-(including fonts installed by Microsoft Office) for the font that matches the workbook's default
-font. The located font is embedded in the output PDF and is used for accurate column-width
-calculation.
-
-```java
-PdfGenerateOptions options = PdfGenerateOptions.builder()
-    .useSystemFonts(true)   // regularFontPath becomes optional
-    .build();
-```
-
-When `useSystemFonts(true)` is set and no matching system font is found, a
-`PdfGenerateException` is thrown. Specifying `regularFontPath` in addition acts as a fallback for
-that case.
-
-When a font family ships multiple weight variants (e.g. 游ゴシック Light / Medium / Regular),
-the library prefers the **Medium** weight over Light for the regular (non-bold) font, matching
-Excel on macOS which uses Medium as the default display weight for CJK fonts.
-The font selection also correctly excludes **italic** and **bold** variants when a regular (upright)
-font is requested, so fonts such as Calibri are reliably resolved to their Regular face.
-
-When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any CJK characters
-in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
-on a character-by-character basis.
-
-> **Font licensing notice:** the located system font is embedded in the output PDF.
-> Confirm that the font's licence permits embedding and distribution before enabling this option.
 
 ### Create PDF from Excel
 
@@ -185,16 +167,16 @@ The following features have been verified through automated tests.
     full cell width while standard variants span only the text width
   - **Angle rotation** (values 1–254) is not supported; only vertical text
     (rotation = 255) is rendered
-  - Text overflow into adjacent empty cells is not reproduced; text that exceeds the
-    cell width may be visible beyond the cell boundary
+  - Numeric values with GENERAL alignment are correctly right-aligned within the cell
+    boundary, regardless of whether adjacent cells are empty
+  - String text that exceeds the cell width is clipped at the cell boundary; Excel's
+    behavior of visually extending long strings into adjacent empty cells is not reproduced
 - **Cell number and date formats**
   - Standard number formats are rendered correctly: integer (`0`), decimal (`0.00`),
     thousands separator (`#,##0`), percentage (`0%`, `0.0%`), currency (`¥#,##0`,
     `$#,##0.00`), scientific notation (`0.00E+00`), and negative numbers
   - Date formats: `yyyy/mm/dd`, `mm/dd/yyyy`, `dd/mm/yyyy`, `yyyy-mm-dd`,
     `yyyy年m月d日`, and two-digit year (`yy/mm/dd`) are supported
-  - Shapes (images, auto-shapes) anchored outside the print area columns or rows are
-    excluded from the PDF output, matching Excel's print behavior
   - Locale-sensitive built-in date formats (e.g., Excel format ID 14) are rendered
     using `DateTimeFormatter.ofLocalizedDate` with the locale from
     `PdfGenerateOptions.dateLocale()`, falling back to `Locale.getDefault()` when not
@@ -231,6 +213,8 @@ The following features have been verified through automated tests.
   - Multiple images on a single sheet are all rendered
   - Images on multiple pages are each rendered on the correct page
   - Image scale is applied correctly
+  - Images and auto-shapes anchored outside the print area columns or rows are
+    excluded from the PDF output, matching Excel's print behavior
 - **Merged cells**
   - Horizontally, vertically, and rectangular merged regions are all supported
   - The border of a merged region uses the style of the outermost cells: right
@@ -261,7 +245,32 @@ The following features have been verified through automated tests.
   - Multiple sheets can be specified for a single PDF export; each sheet's pages
     are appended in order to produce a single PDF document
 
-#### Excel Values used to create PDF files
+### System font support (`useSystemFonts`)
 
-- File > Page Setup > Page tab > orientation
-- File > Page Setup > Page tab > margins
+By default, font files must be specified explicitly via `regularFontPath` in `PdfGenerateOptions`.
+When `useSystemFonts(true)` is set, the library automatically searches the OS font directories
+for the font that matches the workbook's default font. The located font is embedded in the output
+PDF and is used for accurate column-width calculation.
+
+```java
+PdfGenerateOptions options = PdfGenerateOptions.builder()
+    .useSystemFonts(true)   // regularFontPath becomes optional
+    .build();
+```
+
+When `useSystemFonts(true)` is set and no matching system font is found, a
+`PdfGenerateException` is thrown. Specifying `regularFontPath` in addition acts as a fallback for
+that case.
+
+When a font family ships multiple weight variants (e.g. 游ゴシック Light / Medium / Regular),
+the library prefers the **Medium** weight over Light for the regular (non-bold) font, matching
+Excel on macOS which uses Medium as the default display weight for CJK fonts.
+The font selection also correctly excludes **italic** and **bold** variants when a regular (upright)
+font is requested, so fonts such as Calibri are reliably resolved to their Regular face.
+
+When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any CJK characters
+in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
+on a character-by-character basis.
+
+> **Font licensing notice:** the located system font is embedded in the output PDF.
+> Confirm that the font's licence permits embedding and distribution before enabling this option.

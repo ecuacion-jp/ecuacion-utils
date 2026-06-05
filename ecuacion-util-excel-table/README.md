@@ -2,11 +2,21 @@
 
 ## What is it?
 
-`ecuacion-util-excel-table` provides utilities for `apache POI`.  
+`ecuacion-util-excel-table` lets you read and write structured table data in Excel (`.xlsx`) files without writing raw Apache POI boilerplate. Describe the table by its sheet name and header labels — the library locates the data rows, maps each row to a Java bean, and handles all cell-type conversions.
 
-## System Requirements
+## Usage Example
 
-- JDK 21 or above.
+```java
+List<MemberBean> members = new StringOneLineHeaderExcelTableToBeanReader<>(
+    MemberBean.class,
+    "Member",                                                    // sheet name
+    new String[] {"ID", "name", "date of birth", "age"})        // header labels to match
+        .tableStartRowNumber(3)
+        .tableStartColumnNumber(2)
+        .readToBean("members.xlsx");
+```
+
+That's all. Name the sheet, list the expected headers, and get a typed list back.
 
 ## Dependent Ecuacion Libraries
 
@@ -16,7 +26,7 @@
 
 ### Manual Load Needed Libraries
 
-- `ecuacion-lib-validation`
+- `ecuacion-lib-core`
 
 ## Dependent External Libraries
 
@@ -40,7 +50,7 @@ Since the dependency libraries are a little complicated, we recommend to refer `
 
 ## Documentation
 
-- [javadoc](https://docs.ecuacion.jp/javadoc/ecuacion-util-excel-table/jp.ecuacion.util.excel/module-summary.html)
+- [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-table/latest/jp.ecuacion.util.excel/module-summary.html)
 
 ## Sample Code
 
@@ -81,30 +91,22 @@ We'll use the following table as an example. Let's say this table is in `Sheet1`
 
 The following features read values of cells in the excel file and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
 
-#### read excel table values and put them to the list of strings
-
-`SampleTableReader.java`
+#### Read table values as strings
 
 ```java
-public class SampleTableReader extends PoiStringFixedTableReader {
-
-  public SampleTableReader() {
-    
-  }
-
-  @Override
-  protected String getSheetName() {
-    return "Sheet1";
-  }
-
-  @Override
-  protected String[] getHeaderLabels() {
-    return new String[] {"name", "age", "phone number"};
-  }
-
-  public List<List<String>> read(String excelPath)
-      throws EncryptedDocumentException, IOException, AppException {
-
-     return getTableValues(excelPath);
-  }
+List<List<String>> rows = new StringOneLineHeaderExcelTableReader(
+    "Sheet1", new String[]{"name", "age", "phone number"})
+    .read("sample.xlsx");
 ```
+
+Each inner list contains the values of one data row in the header order.
+
+#### Read table values into Java beans
+
+```java
+List<PersonBean> people = new StringOneLineHeaderExcelTableToBeanReader<>(PersonBean.class,
+    "Sheet1", new String[]{"name", "age", "phone number"})
+    .readToBean("sample.xlsx");
+```
+
+For more examples — free-format tables, cell-level access, writing — see [Sample Code](#sample-code) above.
