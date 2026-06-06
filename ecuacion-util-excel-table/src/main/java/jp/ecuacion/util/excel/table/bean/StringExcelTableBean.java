@@ -80,7 +80,7 @@ public abstract class StringExcelTableBean {
    * @throws RuntimeException if no {@link ExcelColumn} annotations are found and this method
    *     is not overridden
    */
-  protected String[] getFieldNameArray() {
+  protected @Nullable String[] getFieldNameArray() {
     List<String> fieldNames = new ArrayList<>();
     List<Class<?>> hierarchy = new ArrayList<>();
     Class<?> clazz = this.getClass();
