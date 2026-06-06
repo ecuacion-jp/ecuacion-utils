@@ -35,6 +35,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -107,7 +108,7 @@ public class ExcelWriteUtilTest {
         }
       }
 
-      static Stream<Arguments> convertsToNumeric() {
+      static @Nullable Stream<@Nullable Arguments> convertsToNumeric() {
         return Stream.of(
             Arguments.of("1", 1.0),
             Arguments.of("1,234", 1234.0),
@@ -159,7 +160,7 @@ public class ExcelWriteUtilTest {
         }
       }
 
-      static Stream<Arguments> convertsToDateSerial() {
+      static @Nullable Stream<@Nullable Arguments> convertsToDateSerial() {
         return Stream.of(
             Arguments.of("2025/01/01", new String[]{"yyyy/MM/dd"}),
             Arguments.of("2025/01/01", new String[]{"yyyy-MM-dd", "yyyy/MM/dd"}));
@@ -199,7 +200,7 @@ public class ExcelWriteUtilTest {
         }
       }
 
-      static Stream<Arguments> behavior() {
+      static @Nullable Stream<@Nullable Arguments> behavior() {
         return Stream.of(
             Arguments.of(false, CellType.STRING),
             Arguments.of(true, CellType.NUMERIC));
@@ -325,7 +326,7 @@ public class ExcelWriteUtilTest {
         }
       }
 
-      static Stream<Arguments> errorValues() {
+      static @Nullable Stream<@Nullable Arguments> errorValues() {
         return Stream.of(
             Arguments.of(6),
             Arguments.of(7),

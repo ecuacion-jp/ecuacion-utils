@@ -54,7 +54,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"name", "age"};
     }
   }
@@ -92,7 +92,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"date"};
     }
   }
@@ -106,7 +106,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"dateTime", "time"};
     }
   }
