@@ -38,20 +38,15 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 - `org.apache.pdfbox`
 - `org.apache.poi:poi`
 - `org.apache.poi:poi-ooxml`
+- `jakarta.validation:jakarta.validation-api`
+- `jakarta.mail:jakarta.mail-api`
+- `org.slf4j:slf4j-api`
+- `org.apache.commons:commons-lang3`
 
 ### Manual Load Needed Libraries
 
-- `jakarta.validation:jakarta.validation-api`
-- (any `jakarta.validation:jakarta.validation-api` compatible Bean Validation libraries. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
-- `org.slf4j:slf4j-api`
-- (if you use log4j2, add `org.apache.logging.log4j:log4j-slf4j-impl` and `org.apache.logging.log4j:log4j-core`,
-   or else `org.apache.logging.log4j.log4j-to-slf4j` (To use any slf4j-compatible logging modules) and any `org.slf4j:slf4j-api` compatible logging libraries. `ch.qos.logback:logback-classic` is recommended.)
-
-(modules depending on `ecuacion-lib-core`)
-
-- `jakarta.mail:jakarta.mail-api` (If you want to use the mail related utility: `jp.ecuacion.lib.core.util.MailUtil`)
-
-Since the dependency libraries are a little complicated, we recommend to refer `pom.xml` in `ecuacion-util-excel-report-to-pdf-sample`.
+- (any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
+- (any `org.slf4j:slf4j-api` compatible logging implementation. `ch.qos.logback:logback-classic` is recommended.)
 
 ## Documentation
 
