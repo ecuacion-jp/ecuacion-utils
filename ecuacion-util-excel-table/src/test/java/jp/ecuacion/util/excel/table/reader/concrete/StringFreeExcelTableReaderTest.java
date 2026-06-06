@@ -17,7 +17,6 @@ package jp.ecuacion.util.excel.table.reader.concrete;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -28,6 +27,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -98,7 +98,7 @@ public class StringFreeExcelTableReaderTest {
       }
     }
 
-    static Stream<Arguments> noDataString() {
+    static @Nullable Stream<@Nullable Arguments> noDataString() {
       return Stream.of(
           Arguments.of(NoDataString.NULL, null),
           Arguments.of(NoDataString.EMPTY_STRING, ""));
