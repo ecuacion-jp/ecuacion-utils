@@ -55,7 +55,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"shortField", "floatField", "doubleField", "bigDecimalField",
           "bigIntegerField", "booleanField", "localDateField", "localDateTimeField",
           "localTimeField"};
@@ -70,7 +70,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -83,7 +83,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -96,7 +96,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -109,7 +109,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -122,7 +122,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -135,7 +135,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -148,7 +148,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -161,7 +161,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -174,7 +174,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
   }
@@ -187,7 +187,7 @@ public class StringExcelTableBeanTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"value"};
     }
 

@@ -60,7 +60,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
     }
 
     @Override
-    protected String[] getFieldNameArray() {
+    protected @Nullable String[] getFieldNameArray() {
       return new String[] {"name", "age"};
     }
   }

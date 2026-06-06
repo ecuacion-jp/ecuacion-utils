@@ -56,7 +56,7 @@ public class ExcelReadUtilTest {
             .isEqualTo(expected);
       }
 
-      static Stream<Arguments> returnsNoDataString() {
+      static @Nullable Stream<@Nullable Arguments> returnsNoDataString() {
         return Stream.of(
             Arguments.of(null, null, null),
             Arguments.of(null, "", ""),
@@ -80,7 +80,7 @@ public class ExcelReadUtilTest {
             .isEqualTo(expected);
       }
 
-      static Stream<Arguments> returnsValue() {
+      static @Nullable Stream<@Nullable Arguments> returnsValue() {
         return Stream.of(
             Arguments.of("abc", null, "abc"),
             Arguments.of("abc", "N/A", "abc"),
@@ -107,7 +107,7 @@ public class ExcelReadUtilTest {
             .isEqualTo(expected);
       }
 
-      static Stream<Arguments> returnsNoDataString() {
+      static @Nullable Stream<@Nullable Arguments> returnsNoDataString() {
         return Stream.of(
             Arguments.of(null, null),
             Arguments.of("N/A", "N/A"));
@@ -130,7 +130,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsNoDataString() {
+      static @Nullable Stream<@Nullable Arguments> returnsNoDataString() {
         return Stream.of(
             Arguments.of(null, null),
             Arguments.of("N/A", "N/A"));
@@ -154,7 +154,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsExpected() {
+      static @Nullable Stream<@Nullable Arguments> returnsExpected() {
         return Stream.of(
             Arguments.of("hello", null, "hello"),
             Arguments.of("", null, null),
@@ -178,7 +178,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsExpected() {
+      static @Nullable Stream<@Nullable Arguments> returnsExpected() {
         return Stream.of(
             Arguments.of(123.0, "123"),
             Arguments.of(123.45, "123.45"),
@@ -204,7 +204,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsExpected() {
+      static @Nullable Stream<@Nullable Arguments> returnsExpected() {
         return Stream.of(
             Arguments.of(1234.5, "0.00", "1234.50"),
             Arguments.of(1234567.0, "#,##0", "1,234,567"),
@@ -232,7 +232,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> dateOnly() {
+      static @Nullable Stream<@Nullable Arguments> dateOnly() {
         return Stream.of(
             Arguments.of(null, "2000-01-23"),
             Arguments.of(DateTimeFormatter.ofPattern("yyyy/M/d"), "2000/1/23"));
@@ -285,7 +285,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsExpected() {
+      static @Nullable Stream<@Nullable Arguments> returnsExpected() {
         return Stream.of(
             Arguments.of(true, "TRUE"),
             Arguments.of(false, "FALSE"));
@@ -310,7 +310,7 @@ public class ExcelReadUtilTest {
         }
       }
 
-      static Stream<Arguments> returnsExpected() {
+      static @Nullable Stream<@Nullable Arguments> returnsExpected() {
         return Stream.of(
             Arguments.of("\"hello\"", null, "hello"),
             Arguments.of("1+1", null, "2"),

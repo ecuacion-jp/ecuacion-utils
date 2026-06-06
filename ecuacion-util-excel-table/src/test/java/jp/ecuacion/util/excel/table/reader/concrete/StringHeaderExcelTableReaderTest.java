@@ -171,7 +171,7 @@ public class StringHeaderExcelTableReaderTest {
       }
     }
 
-    static Stream<Arguments> tooFewColumns() {
+    static @Nullable Stream<@Nullable Arguments> tooFewColumns() {
       return Stream.of(
           Arguments.of(false),
           Arguments.of(true));

@@ -34,7 +34,6 @@ public class ExcelTableExceptionTest {
 
     @Test
     @DisplayName("cell() sets cell, sheet, and workbook from the given Cell object")
-    @SuppressWarnings("resource")
     void cellSetsCellSheetAndWorkbook() {
       Workbook wb = new XSSFWorkbook();
       Sheet sheet = wb.createSheet("Sheet1");
