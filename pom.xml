@@ -68,8 +68,6 @@
 	<modules>
 		<module>ecuacion-util-excel-table</module>
 		<module>ecuacion-util-excel-report-to-pdf</module>
-		<module>ecuacion-util-excel-table-sample</module>
-		<module>ecuacion-util-excel-report-to-pdf-sample</module>
 	</modules>
 
 	<profiles>
