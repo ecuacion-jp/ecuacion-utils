@@ -23,12 +23,10 @@ import java.lang.annotation.Target;
 /**
  * Marks a field as mapped to an Excel column by header label.
  *
- * <p>When a {@link StringExcelTableBean} subclass annotates its fields with this annotation,
- *     overriding {@link StringExcelTableBean#getFieldNameArray()} is not required.<br>
- *     The {@link jp.ecuacion.util.excel.table.reader.concrete
- *     .StringOneLineHeaderExcelTableToBeanReader} matches each annotated field to the column
- *     whose header label equals {@link #value()}, regardless of column order in the Excel
- *     file.</p>
+ * <p>When a {@link StringExcelTableBean} or {@link TypedExcelTableBean} subclass annotates its
+ *     fields with this annotation, overriding {@code getFieldNameArray()} is not required.<br>
+ *     The reader matches each annotated field to the column whose header label equals
+ *     {@link #value()}, regardless of column order in the Excel file.</p>
  *
  * <p>For single-row headers, pass one string:</p>
  * <pre>{@code
