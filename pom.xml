@@ -35,6 +35,7 @@
 	<parent>
 		<groupId>jp.ecuacion.lib</groupId>
 		<artifactId>ecuacion-lib-dependencies</artifactId>
+		<!-- The version number is updated to the latest release in the build script. -->
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../ecuacion-lib/ecuacion-lib-dependencies/pom.xml</relativePath>
 	</parent>
