@@ -145,7 +145,9 @@ public class ExcelReadUtil {
 
     String value = internalGetStringFromCell(cell, filename, dateTimeFormat, noDataString);
 
-    detailLog.debug("value: " + (value == null ? "(null)" : value));
+    // Escape line breaks so a crafted cell value cannot forge extra log lines.
+    detailLog.debug("value: "
+        + (value == null ? "(null)" : value.replace("\r", "\\r").replace("\n", "\\n")));
 
     return value;
   }

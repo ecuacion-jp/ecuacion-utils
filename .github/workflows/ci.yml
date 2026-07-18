@@ -48,7 +48,8 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main')
-        uses: codecov/codecov-action@v5
+        # Third-party action pinned to a commit SHA (tags are mutable): v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: >-

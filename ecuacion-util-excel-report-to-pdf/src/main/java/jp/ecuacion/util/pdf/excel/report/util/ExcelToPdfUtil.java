@@ -54,6 +54,9 @@ public class ExcelToPdfUtil {
    * <p>Sheets are rendered in the order given by {@code sheetNames}.
    * Each sheet's print area (and page breaks) determines how many PDF pages are produced.</p>
    *
+   * <p>When {@link PdfGenerateOptions#getPdfPassword()} is set, the output PDF is encrypted
+   * with 256-bit AES.</p>
+   *
    * @param excelPath path to the source Excel file
    * @param sheetNames list of sheet names to include in the PDF, in order
    * @param outputPath path to the output PDF file
@@ -177,6 +180,9 @@ public class ExcelToPdfUtil {
             options.getPdfOwnerPassword() != null ? options.getPdfOwnerPassword() : pdfPassword;
         StandardProtectionPolicy policy =
             new StandardProtectionPolicy(pdfOwnerPassword, pdfPassword, ap);
+        // PDFBox defaults to 40-bit RC4, which is trivially breakable.
+        policy.setEncryptionKeyLength(256);
+        policy.setPreferAES(true);
         document.protect(policy);
       }
 

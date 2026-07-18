@@ -28,11 +28,15 @@ jobs:
 
       - name: Resolve tag
         id: tag
+        env:
+          # Pass via env to avoid shell injection from user-supplied input / ref names.
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "value=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "value=$INPUT_TAG" >> $GITHUB_OUTPUT
           else
-            echo "value=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "value=$REF_NAME" >> $GITHUB_OUTPUT
           fi
 
       - uses: actions/setup-java@v5
@@ -41,7 +45,8 @@ jobs:
           distribution: 'temurin'
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        # Third-party action pinned to a commit SHA (tags are mutable): v6.3.0
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
