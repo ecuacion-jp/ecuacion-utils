@@ -65,4 +65,41 @@
 		</dependency>
 
 	</dependencies>
+
+	<build>
+		<resources>
+			<!-- version_ecuacion-utils.properties: @project.version@ is replaced with the build version. -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>version_ecuacion-utils.properties</include>
+				</includes>
+			</resource>
+			<!-- All other resources (messages_xxx.properties etc. use ${...} for EL expressions,
+				so they must not go through filtering). -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>version_ecuacion-utils.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<!-- Use @xxx@ instead of the default ${xxx} to avoid conflicting with
+						the ${...} EL expression syntax used in ecuacion-lib properties files. -->
+					<useDefaultDelimiters>false</useDefaultDelimiters>
+					<delimiters>
+						<delimiter>@</delimiter>
+					</delimiters>
+					<propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
