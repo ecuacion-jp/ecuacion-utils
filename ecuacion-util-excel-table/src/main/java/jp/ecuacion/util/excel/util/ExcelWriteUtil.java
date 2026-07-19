@@ -262,10 +262,15 @@ public class ExcelWriteUtil {
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
    *     is called and changes it to a {@code ExcelTableException} with an appropriate message.
    * 
-   * <p>When an excel file is created and uploaded by users, 
-   *     {@code Exception}s according to the content of the file 
+   * <p>When an excel file is created and uploaded by users,
+   *     {@code Exception}s according to the content of the file
    *     should be understandable to the users.</p>
-   * 
+   *
+   * <p><strong>Security note:</strong> evaluating formulas of an untrusted file can consume
+   *     large amounts of CPU and memory (e.g. deeply nested formulas or huge range references).
+   *     When processing user-uploaded files, run the evaluation with an execution timeout
+   *     and appropriate JVM memory limits.</p>
+   *
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelTableException ExcelTableException
@@ -283,10 +288,15 @@ public class ExcelWriteUtil {
    *     when {@code workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell()}
    *     is called and changes it to a {@code ExcelTableException} with an appropriate message.
    * 
-   * <p>When an excel file is created and uploaded by users, 
-   *     {@code Exception}s according to the content of the file 
+   * <p>When an excel file is created and uploaded by users,
+   *     {@code Exception}s according to the content of the file
    *     should be understandable to the users.</p>
-   * 
+   *
+   * <p><strong>Security note:</strong> evaluating formulas of an untrusted file can consume
+   *     large amounts of CPU and memory (e.g. deeply nested formulas or huge range references).
+   *     When processing user-uploaded files, run the evaluation with an execution timeout
+   *     and appropriate JVM memory limits.</p>
+   *
    * @param workbook workbook
    * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate

@@ -269,3 +269,23 @@ on a character-by-character basis.
 
 > **Font licensing notice:** the located system font is embedded in the output PDF.
 > Confirm that the font's licence permits embedding and distribution before enabling this option.
+
+### PDF password protection
+
+Setting `pdfPassword` in `PdfGenerateOptions` encrypts the output PDF with **256-bit AES**.
+The PDF can only be opened with the specified password.
+
+```java
+PdfGenerateOptions options = PdfGenerateOptions.builder()
+    .regularFontPath(Path.of("/path/to/NotoSansJP-Regular.ttf"))
+    .pdfPassword("user-password")           // required to open the PDF
+    .pdfOwnerPassword("owner-password")     // optional; controls security settings
+    .build();
+```
+
+- `pdfPassword` — the user password required to open the PDF.
+- `pdfOwnerPassword` — the owner password that controls the PDF's security settings
+  (e.g. adding print/copy restrictions with an external tool afterwards).
+  When not set, `pdfPassword` is used as the owner password as well.
+- `excelPassword` — separately, a password-protected **source** Excel file can be opened
+  by setting this option.

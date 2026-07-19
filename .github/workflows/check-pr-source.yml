@@ -9,12 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify source is a release branch
+        env:
+          # Pass via env to avoid shell injection: head_ref is attacker-controlled
+          # and ${{ }} is expanded before the shell parses the script.
+          HEAD_REF: ${{ github.head_ref }}
+          ACTOR: ${{ github.actor }}
         run: |
-          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+          if [[ "$ACTOR" == "dependabot[bot]" ]]; then
             exit 0
           fi
-          if [[ "${{ github.head_ref }}" != "develop" ]]; then
+          if [[ "$HEAD_REF" != "develop" ]]; then
             echo "Error: PRs to main must come from the develop branch."
-            echo "Source branch was: ${{ github.head_ref }}"
+            echo "Source branch was: $HEAD_REF"
             exit 1
           fi

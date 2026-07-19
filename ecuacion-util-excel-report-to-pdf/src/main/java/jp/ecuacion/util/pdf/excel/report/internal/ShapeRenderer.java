@@ -53,6 +53,12 @@ class ShapeRenderer {
   private static final float PX_TO_PT = 72f / 96f;
   private static final float CELL_PADDING = 2f;
 
+  /**
+   * Upper bound of embedded-image pixel area (width × height) rendered into the PDF.
+   * 50M pixels ≈ an A4 page at 600 DPI; anything larger is treated as a decompression bomb.
+   */
+  private static final long MAX_IMAGE_PIXELS = 50_000_000L;
+
   private final PDDocument document;
   private final FontManager fontManager;
 
@@ -174,6 +180,9 @@ class ShapeRenderer {
       float width, float height) throws IOException {
     XSSFPictureData picData = picture.getPictureData();
     byte[] imageBytes = picData.getData();
+    if (exceedsPixelLimit(imageBytes)) {
+      return;
+    }
     String mime = picData.getMimeType();
     PDImageXObject pdImage;
     if ("image/jpeg".equalsIgnoreCase(mime) || "image/jpg".equalsIgnoreCase(mime)) {
@@ -186,6 +195,33 @@ class ShapeRenderer {
       pdImage = LosslessFactory.createFromImage(document, bi);
     }
     cs.drawImage(pdImage, x, y, width, height);
+  }
+
+  /**
+   * Returns {@code true} when the image's declared dimensions exceed {@link #MAX_IMAGE_PIXELS}.
+   *
+   * <p>A decompression bomb (a small file declaring a huge pixel area) would otherwise make
+   * {@code ImageIO.read} allocate gigabytes of heap. The dimensions are read from the image
+   * header only, without decoding pixel data.</p>
+   */
+  private static boolean exceedsPixelLimit(byte[] imageBytes) {
+    try (var iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+      var readers = ImageIO.getImageReaders(iis);
+      if (!readers.hasNext()) {
+        return false;
+      }
+      var reader = readers.next();
+      try {
+        reader.setInput(iis, true, true);
+        long pixels = (long) reader.getWidth(0) * reader.getHeight(0);
+        return pixels > MAX_IMAGE_PIXELS;
+      } finally {
+        reader.dispose();
+      }
+    } catch (IOException e) {
+      // Let the subsequent decode report the failure in its usual way.
+      return false;
+    }
   }
 
   private void renderShape(PDPageContentStream cs, XSSFSimpleShape shape, float x, float y,
