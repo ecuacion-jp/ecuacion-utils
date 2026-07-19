@@ -13,6 +13,9 @@ on:
 env:
   MAVEN_OPTS: -Xmx2g
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -72,8 +75,10 @@ jobs:
 
       - name: Update versions
         working-directory: ecuacion-utils
+        env:
+          NEW_VERSION: ${{ steps.tag.outputs.value }}
         run: |
-          mvn versions:set -DnewVersion=${{ steps.tag.outputs.value }} -DgenerateBackupPoms=false
+          mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
           mvn versions:update-parent -DgenerateBackupPoms=false
           mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DgenerateBackupPoms=false
 
