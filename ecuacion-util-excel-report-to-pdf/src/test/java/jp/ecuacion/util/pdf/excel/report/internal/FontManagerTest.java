@@ -251,6 +251,83 @@ class FontManagerTest {
   }
 
   @Nested
+  @DisplayName("multiple fallback fonts")
+  class MultipleFallbackFonts {
+
+    @Test
+    @DisplayName("Path constructor with multiple fallback entries — construction succeeds")
+    void multipleFallbacksConstructSuccessfully() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fallbacks = List.of(
+            new FontManager.FallbackFontPaths(regularFont(), boldFont()),
+            new FontManager.FallbackFontPaths(regularFont(), null));
+        var fm = new FontManager(doc, regularFont(), boldFont(), fallbacks);
+        assertThat(fm.getFont(false)).isNotNull();
+      }
+    }
+
+    @Test
+    @DisplayName("TrueTypeFont constructor with multiple fallback entries — construction succeeds")
+    void multipleFallbacksFromTtfConstructor() throws Exception {
+      var ttf = Objects.requireNonNull(
+          SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
+      try (PDDocument doc = new PDDocument()) {
+        var fallbacks = List.of(
+            new FontManager.FallbackFontPaths(regularFont(), boldFont()),
+            new FontManager.FallbackFontPaths(regularFont(), null));
+        var fm = new FontManager(doc, ttf, null, fallbacks);
+        assertThat(fm.getFont(false)).isNotNull();
+      }
+    }
+
+    @Test
+    @DisplayName("encodable char — resolved by primary font, fallbacks not needed")
+    void encodableCharUsesPrimary() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fallbacks = List.of(new FontManager.FallbackFontPaths(regularFont(), boldFont()));
+        var fm = new FontManager(doc, regularFont(), boldFont(), fallbacks);
+        assertThat(fm.selectFont('A', false)).isSameAs(fm.getFont(false));
+      }
+    }
+
+    @Test
+    @DisplayName("all fallbacks fail — throws with all fallback descriptions listed")
+    void allFallbacksFailThrowsWithDescriptions() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fallbacks = List.of(
+            new FontManager.FallbackFontPaths(regularFont(), boldFont()),
+            new FontManager.FallbackFontPaths(regularFont(), null));
+        var fm = new FontManager(doc, regularFont(), boldFont(), fallbacks);
+        // U+E000 is Private Use Area — not included in any standard font, including
+        // NotoSansJP, so neither the primary nor any of the two fallbacks can encode it.
+        assertThatThrownBy(() -> fm.selectFont(0xE000, false))
+            .isInstanceOf(PdfGenerateException.class)
+            .hasMessageContaining("Fallback fonts tried:");
+      }
+    }
+
+    @Test
+    @DisplayName("legacy single-fallback Path constructor still works after delegation")
+    void legacyPathConstructorStillWorks() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, regularFont(), boldFont());
+        assertThat(fm.selectFont('A', false)).isSameAs(fm.getFont(false));
+      }
+    }
+
+    @Test
+    @DisplayName("legacy single-fallback TrueTypeFont constructor still works after delegation")
+    void legacyTtfConstructorStillWorks() throws Exception {
+      var ttf = Objects.requireNonNull(
+          SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, ttf, null, regularFont(), null);
+        assertThat(fm.selectFont('A', false)).isSameAs(fm.getFont(false));
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("getStringWidthWithFallback")
   class GetStringWidthWithFallback {
 

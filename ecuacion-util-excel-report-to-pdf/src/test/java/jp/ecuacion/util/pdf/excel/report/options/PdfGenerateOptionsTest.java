@@ -16,7 +16,6 @@
 package jp.ecuacion.util.pdf.excel.report.options;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
@@ -38,8 +37,7 @@ public class PdfGenerateOptionsTest {
     @Test
     @DisplayName("excelPassword() is stored and returned by getExcelPassword()")
     void excelPassword() throws Exception {
-      PdfGenerateOptions opts = PdfGenerateOptions.builder()
-          .regularFontPath(regularFontPath())
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
           .excelPassword("excel-pass")
           .build();
 
@@ -49,8 +47,7 @@ public class PdfGenerateOptionsTest {
     @Test
     @DisplayName("pdfPassword() is stored and returned by getPdfPassword()")
     void pdfPassword() throws Exception {
-      PdfGenerateOptions opts = PdfGenerateOptions.builder()
-          .regularFontPath(regularFontPath())
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
           .pdfPassword("pdf-pass")
           .build();
 
@@ -60,8 +57,7 @@ public class PdfGenerateOptionsTest {
     @Test
     @DisplayName("pdfOwnerPassword() is stored and returned by getPdfOwnerPassword()")
     void pdfOwnerPassword() throws Exception {
-      PdfGenerateOptions opts = PdfGenerateOptions.builder()
-          .regularFontPath(regularFontPath())
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
           .pdfOwnerPassword("owner-pass")
           .build();
 
@@ -71,8 +67,7 @@ public class PdfGenerateOptionsTest {
     @Test
     @DisplayName("password not set → getter returns null")
     void passwordNotSet() throws Exception {
-      PdfGenerateOptions opts = PdfGenerateOptions.builder()
-          .regularFontPath(regularFontPath())
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
           .build();
 
       assertThat(opts.getExcelPassword()).isNull();
@@ -82,23 +77,44 @@ public class PdfGenerateOptionsTest {
   }
 
   @Nested
-  @DisplayName("Builder.build() validation")
-  class BuildValidation {
+  @DisplayName("Builder: addFallbackFont")
+  class AdditionalFallbackFonts {
 
     @Test
-    @DisplayName("build() without regularFontPath when useSystemFonts=false → IllegalStateException")
-    void buildWithoutRegularFontPathThrows() {
-      assertThatThrownBy(() -> PdfGenerateOptions.builder().build())
-          .isInstanceOf(IllegalStateException.class)
-          .hasMessageContaining("regularFontPath");
+    @DisplayName("not called — getAdditionalFallbackFonts() returns an empty list")
+    void notCalledReturnsEmptyList() throws Exception {
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
+          .build();
+
+      assertThat(opts.getAdditionalFallbackFonts()).isEmpty();
     }
 
     @Test
-    @DisplayName("build() with useSystemFonts=true and no regularFontPath → succeeds")
-    void buildWithUseSystemFontsNoFontPath() {
-      PdfGenerateOptions opts = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
+    @DisplayName("called twice — returns both entries in registration order")
+    void calledTwiceReturnsEntriesInOrder() throws Exception {
+      Path first = regularFontPath();
+      Path second = regularFontPath();
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
+          .addFallbackFont(first, null)
+          .addFallbackFont(second, first)
           .build();
+
+      assertThat(opts.getAdditionalFallbackFonts()).hasSize(2);
+      assertThat(opts.getAdditionalFallbackFonts().get(0).regularFontPath()).isEqualTo(first);
+      assertThat(opts.getAdditionalFallbackFonts().get(0).boldFontPath()).isNull();
+      assertThat(opts.getAdditionalFallbackFonts().get(1).regularFontPath()).isEqualTo(second);
+      assertThat(opts.getAdditionalFallbackFonts().get(1).boldFontPath()).isEqualTo(first);
+    }
+  }
+
+  @Nested
+  @DisplayName("Builder.build()")
+  class BuildValidation {
+
+    @Test
+    @DisplayName("builderForSystemFonts().build() with no regularFontPath → succeeds")
+    void buildWithUseSystemFontsNoFontPath() {
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForSystemFonts().build();
 
       assertThat(opts.isUseSystemFonts()).isTrue();
       assertThat(opts.getRegularFontPath()).isNull();

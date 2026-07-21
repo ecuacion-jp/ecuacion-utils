@@ -84,8 +84,7 @@ public class ExcelToPdfUtilTest {
           .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
-      TEST_OPTIONS = PdfGenerateOptions.builder()
-          .regularFontPath(Path.of(reg.toURI()))
+      TEST_OPTIONS = PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
           .boldFontPath(Path.of(bold.toURI()))
           .build();
     } catch (Exception e) {
@@ -99,8 +98,7 @@ public class ExcelToPdfUtilTest {
           .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
-      return PdfGenerateOptions.builder()
-          .regularFontPath(Path.of(reg.toURI()))
+      return PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
           .boldFontPath(Path.of(bold.toURI()))
           .dateLocale(locale)
           .build();
@@ -3235,8 +3233,7 @@ public class ExcelToPdfUtilTest {
       // getRegularFontPath() is @Nullable but TEST_OPTIONS always has it set
       Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
       Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
-      PdfGenerateOptions options = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
           .regularFontPath(regularPath)
           .boldFontPath(boldPath)
           .build();
@@ -3285,8 +3282,7 @@ public class ExcelToPdfUtilTest {
         }
         Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
         Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
-        PdfGenerateOptions options = PdfGenerateOptions.builder()
-            .useSystemFonts(true)
+        PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
             .regularFontPath(regularPath)
             .boldFontPath(boldPath)
             .build();
@@ -3311,12 +3307,32 @@ public class ExcelToPdfUtilTest {
         throw new RuntimeException(e);
       }
       Path pdf = tempDir.resolve("out.pdf");
-      PdfGenerateOptions options = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
           .build();
 
       assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options))
           .isInstanceOf(PdfGenerateException.class);
+    }
+
+    @Test
+    @DisplayName("addFallbackFont() registers an additional fallback used alongside regularFontPath")
+    void additionalFallbackFontIsWiredIn(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createWorkbookWithUnknownFont(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+          .regularFontPath(regularPath)
+          .boldFontPath(boldPath)
+          .addFallbackFont(regularPath, boldPath)
+          .build();
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+      }
     }
 
     @Test
@@ -3328,8 +3344,7 @@ public class ExcelToPdfUtilTest {
       Path pdf = tempDir.resolve("out.pdf");
       Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
       Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
-      PdfGenerateOptions options = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
           .regularFontPath(regularPath)
           .boldFontPath(boldPath)
           .build();
