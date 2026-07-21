@@ -267,6 +267,18 @@ When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any
 in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
 on a character-by-character basis.
 
+#### Per-cell font resolution
+
+When a cell's font differs from the workbook's default font (e.g. most of the report uses
+Calibri, but a few cells are explicitly set to a Japanese font for localized content), that
+cell's own font is resolved from the OS font directories and used for the cell, instead of
+always using the workbook's default font. This applies to each distinct font name found in the
+workbook, following the same weight-variant and TTC lookup rules described above.
+
+If a cell's font cannot be found on the system, the cell falls back to the workbook's default
+font (a warning is logged) rather than failing PDF generation — generation only fails when the
+workbook's default font itself cannot be resolved and no `regularFontPath` fallback is set.
+
 > **Font licensing notice:** the located system font is embedded in the output PDF.
 > Confirm that the font's licence permits embedding and distribution before enabling this option.
 

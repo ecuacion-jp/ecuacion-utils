@@ -167,7 +167,8 @@ class CellRenderer {
         || poiFont.getUnderline() == Font.U_DOUBLE_ACCOUNTING;
     final short typeOffset = poiFont.getTypeOffset();
     float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
-    PDType0Font font = fontManager.getFont(bold);
+    String fontName = poiFont.getFontName();
+    PDType0Font font = fontManager.getFont(fontName, bold);
 
     Color textColor = Color.BLACK;
     if (poiFont instanceof XSSFFont xssfFont) {
@@ -201,8 +202,8 @@ class CellRenderer {
 
     // Use sTypo metrics (from TTF OS/2 table) for text positioning to match Excel's rendering.
     // PDFBox's font descriptor uses usWinAscent which is inflated for CJK fonts (> 1em for Meiryo).
-    float ascent = fontManager.getTypoAscent() / 1000f * effectiveFontSize;
-    float descent = fontManager.getTypoDescent() / 1000f * effectiveFontSize;
+    float ascent = fontManager.getTypoAscent(fontName) / 1000f * effectiveFontSize;
+    float descent = fontManager.getTypoDescent(fontName) / 1000f * effectiveFontSize;
     float lineHeight = ascent - descent;
 
     List<String> lines;
@@ -249,7 +250,8 @@ class CellRenderer {
       }
 
       // Compute text width using per-character font selection (handles fallback fonts).
-      float textWidth = fontManager.getStringWidthWithFallback(line, bold, effectiveFontSize);
+      float textWidth =
+          fontManager.getStringWidthWithFallback(fontName, line, bold, effectiveFontSize);
       final float textX =
           calculateTextX(getHorizontalAlignment(cell, style), cell, x, width, textWidth,
               style.getIndention());
@@ -269,7 +271,7 @@ class CellRenderer {
       } else {
         cs.newLineAtOffset(textX, lineY);
         // Render each font-segment so that characters not in the primary font use the fallback.
-        for (FontManager.TextRun run : fontManager.segmentText(line, bold)) {
+        for (FontManager.TextRun run : fontManager.segmentText(fontName, line, bold)) {
           cs.setFont(run.font(), effectiveFontSize);
           cs.showText(run.text());
         }
@@ -313,6 +315,7 @@ class CellRenderer {
 
     boolean bold = poiFont.getBold();
     float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
+    String fontName = poiFont.getFontName();
 
     Color textColor = Color.BLACK;
     if (poiFont instanceof XSSFFont xssfFont) {
@@ -325,8 +328,8 @@ class CellRenderer {
       }
     }
 
-    float ascent = fontManager.getTypoAscent() / 1000f * fontSize;
-    float descent = fontManager.getTypoDescent() / 1000f * fontSize;
+    float ascent = fontManager.getTypoAscent(fontName) / 1000f * fontSize;
+    float descent = fontManager.getTypoDescent(fontName) / 1000f * fontSize;
     float lineHeight = ascent - descent;
     float centerX = x + width / 2f;
     float currentY = y + height - CELL_PADDING - ascent;
@@ -337,7 +340,7 @@ class CellRenderer {
       }
       int cp = value.codePointAt(i);
       String ch = new String(Character.toChars(cp));
-      PDType0Font charFont = fontManager.selectFont(cp, bold);
+      PDType0Font charFont = fontManager.selectFont(fontName, cp, bold);
       float charWidth;
       try {
         charWidth = charFont.getStringWidth(ch) / 1000f * fontSize;
