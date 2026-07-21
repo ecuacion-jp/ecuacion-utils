@@ -54,6 +54,10 @@ class CellValueFormatter {
    * may return {@code false} for Japanese date formats.</p>
    */
   String getCellDisplayValue(Cell cell) {
+    return sanitizeControlCharacters(computeCellDisplayValue(cell));
+  }
+
+  private String computeCellDisplayValue(Cell cell) {
     CellType effectiveType =
         (cell.getCellType() == CellType.FORMULA) ? cell.getCachedFormulaResultType()
             : cell.getCellType();
@@ -94,6 +98,31 @@ class CellValueFormatter {
     }
 
     return dataFormatter.formatCellValue(cell);
+  }
+
+  /**
+   * Strips ASCII control characters (e.g. a stray tab pasted into a cell) that no configured
+   * font can render, while normalizing {@code \r\n} / {@code \r} to {@code \n} since {@code \n}
+   * is used elsewhere to detect explicit line breaks within a cell.
+   */
+  private static String sanitizeControlCharacters(String value) {
+    if (value == null || value.isEmpty()) {
+      return value;
+    }
+    String normalized = value.replace("\r\n", "\n").replace('\r', '\n');
+    StringBuilder result = null;
+    for (int i = 0; i < normalized.length(); i++) {
+      char c = normalized.charAt(i);
+      boolean isStrippableControl = (c < 0x20 && c != '\n') || c == 0x7F;
+      if (isStrippableControl) {
+        if (result == null) {
+          result = new StringBuilder(normalized.substring(0, i));
+        }
+      } else if (result != null) {
+        result.append(c);
+      }
+    }
+    return result == null ? normalized : result.toString();
   }
 
   /**
