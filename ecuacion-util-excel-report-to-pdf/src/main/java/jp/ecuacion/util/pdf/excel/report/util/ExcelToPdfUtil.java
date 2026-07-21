@@ -161,6 +161,10 @@ public class ExcelToPdfUtil {
         fontManager = new FontManager(document, reg, bold);
         mdw = SystemFontLocator.computeMdw(reg, "", fontSizePt); // fixed 96 DPI
       }
+      // Enables per-cell font resolution: cells whose font differs from the workbook's
+      // default (e.g. a CJK font used only for some cells) are resolved individually,
+      // falling back to the default font above when a cell's font isn't found on the system.
+      fontManager.enableSystemFontResolution(options.isUseSystemFonts());
 
       Locale dateLocale = options.getDateLocale() != null ? options.getDateLocale()
           : LocaleUtil.getFallbackLocale();

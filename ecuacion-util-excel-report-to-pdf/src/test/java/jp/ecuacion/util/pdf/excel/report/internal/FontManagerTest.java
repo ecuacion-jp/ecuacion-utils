@@ -194,6 +194,63 @@ class FontManagerTest {
   }
 
   @Nested
+  @DisplayName("named font resolution (per-cell fonts)")
+  class NamedFontResolution {
+
+    @Test
+    @DisplayName("resolution disabled (default) — fontName is ignored, same as no-arg overload")
+    void disabledResolutionIgnoresFontName() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, regularFont(), boldFont());
+        assertThat(fm.getFont("Some Other Font", false)).isSameAs(fm.getFont(false));
+        assertThat(fm.getFont("Some Other Font", true)).isSameAs(fm.getFont(true));
+        assertThat(fm.getTypoAscent("Some Other Font")).isEqualTo(fm.getTypoAscent());
+        assertThat(fm.getTypoDescent("Some Other Font")).isEqualTo(fm.getTypoDescent());
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — falls back to default font")
+    void unknownFontNameFallsBackToDefault() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, regularFont(), boldFont());
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.getFont(fictionalName, false)).isSameAs(fm.getFont(false));
+        assertThat(fm.getFont(fictionalName, true)).isSameAs(fm.getFont(true));
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — typo metrics fall back to default")
+    void unknownFontNameTypoMetricsFallBackToDefault() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, regularFont(), boldFont());
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.getTypoAscent(fictionalName)).isEqualTo(fm.getTypoAscent());
+        assertThat(fm.getTypoDescent(fictionalName)).isEqualTo(fm.getTypoDescent());
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — selectFont/segmentText still work")
+    void unknownFontNameSelectAndSegmentFallBack() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, regularFont(), boldFont());
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.selectFont(fictionalName, 'A', false)).isSameAs(fm.getFont(false));
+        List<FontManager.TextRun> runs = fm.segmentText(fictionalName, "Hi", false);
+        assertThat(runs).isNotEmpty();
+        runs.forEach(run -> assertThat(run.font()).isSameAs(fm.getFont(false)));
+        assertThat(fm.getStringWidthWithFallback(fictionalName, "Hi", false, 12f))
+            .isEqualTo(fm.getStringWidthWithFallback("Hi", false, 12f));
+      }
+    }
+  }
+
+  @Nested
   @DisplayName("getStringWidthWithFallback")
   class GetStringWidthWithFallback {
 

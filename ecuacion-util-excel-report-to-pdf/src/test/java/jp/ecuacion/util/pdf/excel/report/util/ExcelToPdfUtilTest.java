@@ -3318,6 +3318,31 @@ public class ExcelToPdfUtilTest {
       assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options))
           .isInstanceOf(PdfGenerateException.class);
     }
+
+    @Test
+    @DisplayName("a cell using a font different from the workbook default still renders "
+        + "(per-cell font not found on system falls back to the default font)")
+    void cellSpecificFontFallsBackToDefaultFont(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createWorkbookWithMixedCellFonts(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      PdfGenerateOptions options = PdfGenerateOptions.builder()
+          .useSystemFonts(true)
+          .regularFontPath(regularPath)
+          .boldFontPath(boldPath)
+          .build();
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+        var stripper = new PDFTextStripper();
+        String text = stripper.getText(doc);
+        assertThat(text).contains("default font cell").contains("other font cell");
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -6173,6 +6198,44 @@ public class ExcelToPdfUtilTest {
       row.setHeightInPoints(15);
       row.createCell(0).setCellValue("test");
       Path path = dir.resolve("test.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Creates a workbook whose default font (index 0) resolves normally (regular NotoSansJP
+   * name, which won't be found on the system either, so it falls back to the fallback font
+   * path), and where one cell explicitly uses a *different*, also-unresolvable font name.
+   * Used to verify that per-cell font resolution falls back gracefully without throwing when
+   * a cell's own font — not just the workbook default — can't be found on the system.
+   */
+  private Path createWorkbookWithMixedCellFonts(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      XSSFFont defaultFont = wb.getFontAt(0);
+      defaultFont.setFontName("__FictionalDefaultFontZZZ001__");
+      defaultFont.setFontHeightInPoints((short) 11);
+
+      XSSFFont otherFont = wb.createFont();
+      otherFont.setFontName("__FictionalOtherFontZZZ002__");
+      otherFont.setFontHeightInPoints((short) 11);
+      XSSFCellStyle otherStyle = wb.createCellStyle();
+      otherStyle.setFont(otherFont);
+
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      var row0 = sheet.createRow(0);
+      row0.setHeightInPoints(15);
+      row0.createCell(0).setCellValue("default font cell");
+      var row1 = sheet.createRow(1);
+      row1.setHeightInPoints(15);
+      var otherCell = row1.createCell(0);
+      otherCell.setCellValue("other font cell");
+      otherCell.setCellStyle(otherStyle);
+
+      Path path = dir.resolve("mixed-fonts.xlsx");
       try (var out = Files.newOutputStream(path)) {
         wb.write(out);
       }

@@ -20,8 +20,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import org.apache.fontbox.ttf.NamingTable;
 import org.apache.fontbox.ttf.TrueTypeFont;
@@ -39,36 +42,39 @@ import org.jspecify.annotations.Nullable;
  * <p>An optional fallback font pair can be configured. When a character cannot be encoded
  * by the primary font, the fallback font is tried. If the character is not available in
  * either font, {@link PdfGenerateException} is thrown.</p>
+ *
+ * <p>When {@link #enableSystemFontResolution(boolean)} is turned on, per-cell font names
+ * (distinct from the workbook's default font) can be resolved on demand via the
+ * {@code fontName}-accepting overloads below, so that cells using a different font than the
+ * workbook default (e.g. a CJK font for cells written in Japanese while the workbook's default
+ * font only covers Latin text) are rendered with their own, more accurate font. Font names that
+ * cannot be resolved from the system fall back to the workbook's default font.</p>
  */
 public class FontManager {
 
-  private final PDType0Font regularFont;
-  private final PDType0Font boldFont;
+  private static final DetailLogger detailLog = new DetailLogger(FontManager.class);
+
+  /** A resolved regular/bold font pair, together with its metrics and diagnostic descriptions. */
+  private record FontFamily(PDType0Font regular, PDType0Font bold, float typoAscent,
+      float typoDescent, String regularDescription, String boldDescription) {
+  }
+
+  private final PDDocument document;
+  private final FontFamily defaultFamily;
+
   @Nullable
   private final PDType0Font fallbackRegularFont;
   @Nullable
   private final PDType0Font fallbackBoldFont;
-
-  /** Human-readable identification of each loaded font, for diagnostics in error messages. */
-  private final String regularFontDescription;
-
-  private final String boldFontDescription;
   @Nullable
   private final String fallbackRegularFontDescription;
   @Nullable
   private final String fallbackBoldFontDescription;
 
-  /**
-   * Typographic ascent in 1/1000 em units (from TTF OS/2 sTypoAscender).
-   *
-   * <p>Excel positions text using sTypo metrics rather than the larger usWinAscent values
-   * stored in PDFBox's font descriptor. Using sTypo metrics produces line spacing that
-   * matches Excel's rendering, especially for CJK fonts whose usWinAscent can be &gt; 1em.</p>
-   */
-  private final float typoAscent;
+  private boolean systemFontResolutionEnabled = false;
 
-  /** Typographic descent in 1/1000 em units (from TTF OS/2 sTypoDescender, typically negative). */
-  private final float typoDescent;
+  /** Lazily-resolved, per-cell font families, keyed by font name. Populated on first use. */
+  private final Map<String, FontFamily> namedFamilyCache = new HashMap<>();
 
   /**
    * Constructs a {@code FontManager} loading fonts from file paths (no fallback font).
@@ -81,18 +87,19 @@ public class FontManager {
    */
   public FontManager(PDDocument document, Path regularFontPath, @Nullable Path boldFontPath)
       throws IOException {
-    regularFont = loadFontFromPath(document, regularFontPath);
-    boldFont = (boldFontPath != null) ? loadFontFromPath(document, boldFontPath) : regularFont;
+    this.document = document;
+    PDType0Font regular = loadFontFromPath(document, regularFontPath);
+    PDType0Font bold = (boldFontPath != null) ? loadFontFromPath(document, boldFontPath) : regular;
+    String regularDescription = describeFontFile(regularFontPath);
+    String boldDescription =
+        (boldFontPath != null) ? describeFontFile(boldFontPath) : regularDescription;
+    float[] metrics = extractTypoMetrics(regularFontPath);
+    this.defaultFamily =
+        new FontFamily(regular, bold, metrics[0], metrics[1], regularDescription, boldDescription);
     fallbackRegularFont = null;
     fallbackBoldFont = null;
-    regularFontDescription = describeFontFile(regularFontPath);
-    boldFontDescription =
-        (boldFontPath != null) ? describeFontFile(boldFontPath) : regularFontDescription;
     fallbackRegularFontDescription = null;
     fallbackBoldFontDescription = null;
-    float[] metrics = extractTypoMetrics(regularFontPath);
-    typoAscent = metrics[0];
-    typoDescent = metrics[1];
   }
 
   /**
@@ -112,15 +119,16 @@ public class FontManager {
    */
   public FontManager(PDDocument document, TrueTypeFont regularTtf, @Nullable TrueTypeFont boldTtf,
       @Nullable Path fallbackRegularPath, @Nullable Path fallbackBoldPath) throws IOException {
+    this.document = document;
     // Extract naming info before the TrueTypeFont is consumed by PDType0Font.load.
-    regularFontDescription = describeFontOrFallback(regularTtf);
-    boldFontDescription =
-        (boldTtf != null) ? describeFontOrFallback(boldTtf) : regularFontDescription;
-    regularFont = PDType0Font.load(document, regularTtf, true);
-    boldFont = (boldTtf != null) ? PDType0Font.load(document, boldTtf, true) : regularFont;
+    String regularDescription = describeFontOrFallback(regularTtf);
+    String boldDescription =
+        (boldTtf != null) ? describeFontOrFallback(boldTtf) : regularDescription;
+    PDType0Font regular = PDType0Font.load(document, regularTtf, true);
+    PDType0Font bold = (boldTtf != null) ? PDType0Font.load(document, boldTtf, true) : regular;
     float[] metrics = extractTypoMetricsFromTtf(regularTtf);
-    typoAscent = metrics[0];
-    typoDescent = metrics[1];
+    this.defaultFamily =
+        new FontFamily(regular, bold, metrics[0], metrics[1], regularDescription, boldDescription);
     if (fallbackRegularPath != null) {
       fallbackRegularFont = loadFontFromPath(document, fallbackRegularPath);
       fallbackBoldFont = (fallbackBoldPath != null) ? loadFontFromPath(document, fallbackBoldPath)
@@ -133,6 +141,74 @@ public class FontManager {
       fallbackBoldFont = null;
       fallbackRegularFontDescription = null;
       fallbackBoldFontDescription = null;
+    }
+  }
+
+  /**
+   * Enables or disables on-demand resolution of per-cell font names via the system font
+   * directories (see {@link SystemFontLocator}). When disabled (the default), every
+   * {@code fontName}-accepting method behaves exactly like its no-argument counterpart, i.e.
+   * always uses the workbook's default font.
+   *
+   * @param enabled {@code true} to resolve distinct per-cell font names from the system
+   */
+  public void enableSystemFontResolution(boolean enabled) {
+    this.systemFontResolutionEnabled = enabled;
+  }
+
+  /**
+   * Returns the font family for {@code fontName}, resolving and caching it from the system
+   * font directories on first use. Falls back to the workbook's default font family (with a
+   * diagnostic warning) when {@code fontName} cannot be resolved, or when system font
+   * resolution is disabled.
+   */
+  private FontFamily getFamily(String fontName) {
+    if (!systemFontResolutionEnabled) {
+      return defaultFamily;
+    }
+    FontFamily cached = namedFamilyCache.get(fontName);
+    if (cached != null) {
+      return cached;
+    }
+    FontFamily resolved = resolveNamedFamily(fontName);
+    namedFamilyCache.put(fontName, resolved);
+    return resolved;
+  }
+
+  /**
+   * Resolves {@code fontName} from the system font directories, following the same TTC /
+   * bold-suffix lookup convention used for the workbook's default font. Returns the workbook's
+   * default font family (with a warning logged) when the font cannot be found or loaded.
+   */
+  private FontFamily resolveNamedFamily(String fontName) {
+    try {
+      var fontFile = SystemFontLocator.findFontFile(fontName);
+      if (fontFile.isEmpty()) {
+        detailLog.warn("Font '" + fontName + "' used by a cell was not found on the system; "
+            + "falling back to the workbook's default font for this cell.");
+        return defaultFamily;
+      }
+      TrueTypeFont regularTtf = SystemFontLocator.loadTrueTypeFont(fontFile.get(), fontName);
+      if (regularTtf == null) {
+        detailLog.warn("Failed to load font '" + fontName + "' from " + fontFile.get()
+            + "; falling back to the workbook's default font for this cell.");
+        return defaultFamily;
+      }
+      var boldFontFile = SystemFontLocator.findFontFile(fontName + " Bold");
+      TrueTypeFont boldTtf = boldFontFile.isPresent()
+          ? SystemFontLocator.loadTrueTypeFont(boldFontFile.get(), fontName + " Bold") : null;
+      String regularDescription = describeFontOrFallback(regularTtf);
+      String boldDescription =
+          (boldTtf != null) ? describeFontOrFallback(boldTtf) : regularDescription;
+      PDType0Font regular = PDType0Font.load(document, regularTtf, true);
+      PDType0Font bold = (boldTtf != null) ? PDType0Font.load(document, boldTtf, true) : regular;
+      float[] metrics = extractTypoMetricsFromTtf(regularTtf);
+      return new FontFamily(regular, bold, metrics[0], metrics[1], regularDescription,
+          boldDescription);
+    } catch (IOException e) {
+      detailLog.warn("Failed to resolve font '" + fontName + "' used by a cell from the system: "
+          + e.getMessage() + "; falling back to the workbook's default font for this cell.");
+      return defaultFamily;
     }
   }
 
@@ -256,17 +332,32 @@ public class FontManager {
   }
 
   /**
-   * Returns the font to use for the given boldness (primary font, no fallback).
+   * Returns the font to use for the given boldness (primary font, no fallback), from the
+   * workbook's default font.
    *
    * @param bold {@code true} for bold text, {@code false} for regular text
    * @return the PDF font
    */
   public PDType0Font getFont(boolean bold) {
-    return bold ? boldFont : regularFont;
+    return bold ? defaultFamily.bold() : defaultFamily.regular();
   }
 
   /**
-   * Returns the appropriate font for the given Unicode code point, applying fallback logic.
+   * Returns the font to use for the given boldness, resolving {@code fontName} on demand when
+   * system font resolution is enabled (see {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName the cell's font family name (e.g. from {@code Font.getFontName()})
+   * @param bold     {@code true} for bold text, {@code false} for regular text
+   * @return the PDF font
+   */
+  public PDType0Font getFont(String fontName, boolean bold) {
+    FontFamily family = getFamily(fontName);
+    return bold ? family.bold() : family.regular();
+  }
+
+  /**
+   * Returns the appropriate font for the given Unicode code point, applying fallback logic,
+   * from the workbook's default font.
    *
    * <p>If the primary font can encode the character, it is returned. Otherwise the fallback
    * font is tried. If neither can encode the character, {@link PdfGenerateException} is
@@ -278,7 +369,27 @@ public class FontManager {
    * @throws PdfGenerateException if no configured font can encode the character
    */
   public PDType0Font selectFont(int codePoint, boolean bold) throws PdfGenerateException {
-    PDType0Font primary = bold ? boldFont : regularFont;
+    return selectFontFromFamily(defaultFamily, codePoint, bold);
+  }
+
+  /**
+   * Same as {@link #selectFont(int, boolean)}, but resolving {@code fontName} on demand when
+   * system font resolution is enabled (see {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName  the cell's font family name (e.g. from {@code Font.getFontName()})
+   * @param codePoint the Unicode code point to render
+   * @param bold      {@code true} for bold weight
+   * @return the font that can encode {@code codePoint}
+   * @throws PdfGenerateException if no configured font can encode the character
+   */
+  public PDType0Font selectFont(String fontName, int codePoint, boolean bold)
+      throws PdfGenerateException {
+    return selectFontFromFamily(getFamily(fontName), codePoint, bold);
+  }
+
+  private PDType0Font selectFontFromFamily(FontFamily family, int codePoint, boolean bold)
+      throws PdfGenerateException {
+    PDType0Font primary = bold ? family.bold() : family.regular();
     if (canEncode(primary, codePoint)) {
       return primary;
     }
@@ -286,7 +397,7 @@ public class FontManager {
     if (fallback != null && canEncode(fallback, codePoint)) {
       return fallback;
     }
-    String primaryDescription = bold ? boldFontDescription : regularFontDescription;
+    String primaryDescription = bold ? family.boldDescription() : family.regularDescription();
     String fallbackDescription =
         bold ? fallbackBoldFontDescription : fallbackRegularFontDescription;
     throw new PdfGenerateException(
@@ -319,7 +430,7 @@ public class FontManager {
 
   /**
    * Splits {@code text} into runs, each assigned the appropriate font via
-   * {@link #selectFont(int, boolean)}.
+   * {@link #selectFont(int, boolean)}, using the workbook's default font.
    *
    * <p>Consecutive characters that map to the same font are grouped into a single run.
    * Throws {@link PdfGenerateException} if any character cannot be encoded by either
@@ -331,6 +442,26 @@ public class FontManager {
    * @throws PdfGenerateException if a character cannot be rendered by any configured font
    */
   public List<TextRun> segmentText(String text, boolean bold) throws PdfGenerateException {
+    return segmentTextFromFamily(defaultFamily, text, bold);
+  }
+
+  /**
+   * Same as {@link #segmentText(String, boolean)}, but resolving {@code fontName} on demand
+   * when system font resolution is enabled (see {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName the cell's font family name (e.g. from {@code Font.getFontName()})
+   * @param text     the string to segment
+   * @param bold     {@code true} for bold weight
+   * @return ordered list of text runs, each with its assigned font
+   * @throws PdfGenerateException if a character cannot be rendered by any configured font
+   */
+  public List<TextRun> segmentText(String fontName, String text, boolean bold)
+      throws PdfGenerateException {
+    return segmentTextFromFamily(getFamily(fontName), text, bold);
+  }
+
+  private List<TextRun> segmentTextFromFamily(FontFamily family, String text, boolean bold)
+      throws PdfGenerateException {
     List<TextRun> runs = new ArrayList<>();
     if (text.isEmpty()) {
       return runs;
@@ -340,7 +471,7 @@ public class FontManager {
 
     for (int i = 0; i < text.length();) {
       int cp = text.codePointAt(i);
-      PDType0Font font = selectFont(cp, bold);
+      PDType0Font font = selectFontFromFamily(family, cp, bold);
       if (currentFont == null) {
         currentFont = font;
       }
@@ -360,7 +491,7 @@ public class FontManager {
 
   /**
    * Computes the total advance width of {@code text} in points, using per-character font
-   * selection to account for fallback fonts.
+   * selection to account for fallback fonts, from the workbook's default font.
    *
    * <p>If a character cannot be encoded, a best-effort estimate of {@code fontSize} is used
    * for its width rather than throwing, so layout decisions remain stable even when individual
@@ -372,12 +503,33 @@ public class FontManager {
    * @return total advance width in points
    */
   public float getStringWidthWithFallback(String text, boolean bold, float fontSize) {
+    return getStringWidthWithFallbackFromFamily(defaultFamily, text, bold, fontSize);
+  }
+
+  /**
+   * Same as {@link #getStringWidthWithFallback(String, boolean, float)}, but resolving
+   * {@code fontName} on demand when system font resolution is enabled (see
+   * {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName the cell's font family name (e.g. from {@code Font.getFontName()})
+   * @param text     the string whose width to measure
+   * @param bold     {@code true} for bold weight
+   * @param fontSize the font size in points
+   * @return total advance width in points
+   */
+  public float getStringWidthWithFallback(String fontName, String text, boolean bold,
+      float fontSize) {
+    return getStringWidthWithFallbackFromFamily(getFamily(fontName), text, bold, fontSize);
+  }
+
+  private float getStringWidthWithFallbackFromFamily(FontFamily family, String text, boolean bold,
+      float fontSize) {
     float total = 0f;
     for (int i = 0; i < text.length();) {
       int cp = text.codePointAt(i);
       PDType0Font font;
       try {
-        font = selectFont(cp, bold);
+        font = selectFontFromFamily(family, cp, bold);
       } catch (PdfGenerateException e) {
         total += fontSize; // unrenderable character: estimate one em
         i += Character.charCount(cp);
@@ -394,18 +546,39 @@ public class FontManager {
   }
 
   /**
-   * Returns the typographic ascent in 1/1000 em units (from TTF OS/2 sTypoAscender).
-   * Use this for text positioning to match Excel's rendering.
+   * Returns the typographic ascent in 1/1000 em units (from TTF OS/2 sTypoAscender), from the
+   * workbook's default font. Use this for text positioning to match Excel's rendering.
    */
   public float getTypoAscent() {
-    return typoAscent;
+    return defaultFamily.typoAscent();
+  }
+
+  /**
+   * Same as {@link #getTypoAscent()}, but resolving {@code fontName} on demand when system font
+   * resolution is enabled (see {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName the cell's font family name (e.g. from {@code Font.getFontName()})
+   */
+  public float getTypoAscent(String fontName) {
+    return getFamily(fontName).typoAscent();
   }
 
   /**
    * Returns the typographic descent in 1/1000 em units (from TTF OS/2 sTypoDescender,
-   * typically negative). Use this for text positioning to match Excel's rendering.
+   * typically negative), from the workbook's default font. Use this for text positioning to
+   * match Excel's rendering.
    */
   public float getTypoDescent() {
-    return typoDescent;
+    return defaultFamily.typoDescent();
+  }
+
+  /**
+   * Same as {@link #getTypoDescent()}, but resolving {@code fontName} on demand when system
+   * font resolution is enabled (see {@link #enableSystemFontResolution(boolean)}).
+   *
+   * @param fontName the cell's font family name (e.g. from {@code Font.getFontName()})
+   */
+  public float getTypoDescent(String fontName) {
+    return getFamily(fontName).typoDescent();
   }
 }
