@@ -16,23 +16,34 @@
 package jp.ecuacion.util.pdf.excel.report.options;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Holds optional parameters for PDF generation.
  *
- * <p>Use {@link #builder()} to construct an instance.</p>
+ * <p>Use {@link #builderForSystemFonts()} or {@link #builderForExplicitFont(Path)} to construct
+ * an instance, depending on how the rendering font should be resolved:</p>
+ * <ul>
+ *   <li>{@link #builderForSystemFonts()} — the font matching the workbook's default font is
+ *       looked up from the OS font directories (including fonts installed by Microsoft Office).
+ *       If no matching system font is found a {@link
+ *       jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException} is thrown at
+ *       generation time, unless {@link Builder#regularFontPath(Path)} is also set as a
+ *       fallback.</li>
+ *   <li>{@link #builderForExplicitFont(Path)} — the given font file is always used, without any
+ *       system font lookup.</li>
+ * </ul>
  *
- * <p>When {@link Builder#useSystemFonts(boolean) useSystemFonts} is {@code false} (default),
- * {@link Builder#regularFontPath(Path)} is required.
- * When {@code useSystemFonts} is {@code true}, the font matching the workbook's default font
- * is looked up from the OS font directories (including fonts installed by Microsoft Office).
- * If no matching system font is found a {@link
- * jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException} is thrown at generation time.
- * In that case, specify {@link Builder#regularFontPath(Path)} explicitly as a fallback.</p>
+ * <p>Characters that cannot be encoded by the resolved font (system-resolved or explicit) are
+ * tried against fallback fonts in order: first {@link Builder#regularFontPath(Path)}/
+ * {@link Builder#boldFontPath(Path)} (when set — always set in explicit-font mode), then any
+ * fonts registered via {@link Builder#addFallbackFont(Path, Path)}, which can be called
+ * multiple times to cover several scripts/languages not present in the primary font.</p>
  *
- * <p><strong>Font licensing notice:</strong> when {@code useSystemFonts(true)} is set, the
+ * <p><strong>Font licensing notice:</strong> when {@link #builderForSystemFonts()} is used, the
  * system font is embedded in the output PDF. Ensure that the font's licence permits embedding
  * and distribution before enabling this option.</p>
  */
@@ -43,6 +54,8 @@ public class PdfGenerateOptions {
 
   @Nullable
   private final Path boldFontPath;
+
+  private final List<FallbackFont> additionalFallbackFonts;
 
   private final boolean useSystemFonts;
 
@@ -66,10 +79,22 @@ public class PdfGenerateOptions {
     this.useSystemFonts = builder.useSystemFonts;
     this.regularFontPath = builder.regularFontPath;
     this.boldFontPath = builder.boldFontPath;
+    this.additionalFallbackFonts = List.copyOf(builder.additionalFallbackFonts);
     this.excelPassword = builder.excelPassword;
     this.pdfPassword = builder.pdfPassword;
     this.pdfOwnerPassword = builder.pdfOwnerPassword;
     this.dateLocale = builder.dateLocale;
+  }
+
+  /**
+   * A regular/bold font path pair registered as an additional fallback font via
+   * {@link Builder#addFallbackFont(Path, Path)}.
+   *
+   * @param regularFontPath path to the TTF/TTC file used for regular text
+   * @param boldFontPath    path to the TTF/TTC file used for bold text, or {@code null} to
+   *                        fall back to {@code regularFontPath}
+   */
+  public record FallbackFont(Path regularFontPath, @Nullable Path boldFontPath) {
   }
 
   /**
@@ -82,8 +107,9 @@ public class PdfGenerateOptions {
   }
 
   /**
-   * Returns the path to the regular-weight font file, or {@code null} when
-   * {@link #isUseSystemFonts()} is {@code true} and no explicit path was set.
+   * Returns the path to the regular-weight font file. Always non-null when this instance was
+   * built via {@link #builderForExplicitFont(Path)}; may be {@code null} when built via
+   * {@link #builderForSystemFonts()} and no fallback path was set.
    *
    * @return regular font path, or {@code null}
    */
@@ -101,6 +127,18 @@ public class PdfGenerateOptions {
   @Nullable
   public Path getBoldFontPath() {
     return boldFontPath;
+  }
+
+  /**
+   * Returns the additional fallback fonts registered via
+   * {@link Builder#addFallbackFont(Path, Path)}, in registration order.
+   * Tried, in order, after {@link #getRegularFontPath()}/{@link #getBoldFontPath()} when a
+   * character cannot be encoded by the primary font.
+   *
+   * @return additional fallback fonts, possibly empty, never {@code null}
+   */
+  public List<FallbackFont> getAdditionalFallbackFonts() {
+    return additionalFallbackFonts;
   }
 
   /**
@@ -147,12 +185,30 @@ public class PdfGenerateOptions {
   }
 
   /**
-   * Returns a new {@link Builder} instance.
+   * Returns a new {@link Builder} configured to resolve the rendering font from the OS font
+   * directories (see {@link #isUseSystemFonts()}). {@link Builder#regularFontPath(Path)} stays
+   * optional, and acts as the first fallback font when set.
    *
    * @return builder
    */
-  public static Builder builder() {
-    return new Builder();
+  public static Builder builderForSystemFonts() {
+    Builder b = new Builder();
+    b.useSystemFonts = true;
+    return b;
+  }
+
+  /**
+   * Returns a new {@link Builder} configured to always render with the given font file,
+   * without any system font lookup.
+   *
+   * @param regularFontPath path to the TTF/TTC file used for regular text
+   * @return builder
+   */
+  public static Builder builderForExplicitFont(Path regularFontPath) {
+    Builder b = new Builder();
+    b.useSystemFonts = false;
+    b.regularFontPath = regularFontPath;
+    return b;
   }
 
   /**
@@ -167,6 +223,8 @@ public class PdfGenerateOptions {
 
     @Nullable
     private Path boldFontPath;
+
+    private final List<FallbackFont> additionalFallbackFonts = new ArrayList<>();
 
     @Nullable
     private String excelPassword;
@@ -183,33 +241,12 @@ public class PdfGenerateOptions {
     private Builder() {}
 
     /**
-     * Enables system font lookup.
-     *
-     * <p>When set to {@code true}, the OS font directories (including fonts installed by
-     * Microsoft Office) are searched for the font matching the workbook's default font.
-     * The found font is used for both PDF rendering (embedded in the output PDF) and
-     * accurate column-width calculation (MDW).
-     * If no matching font is found, a {@code PdfGenerateException} is thrown at generation time
-     * unless {@link #regularFontPath(Path)} is also set as a fallback.</p>
-     *
-     * <p><strong>Font licensing notice:</strong> the located system font is embedded in the
-     * output PDF. Confirm that the font's licence permits embedding and distribution before
-     * enabling this option.</p>
-     *
-     * @param useSystemFonts {@code true} to enable system font lookup (default {@code false})
-     * @return this builder
-     */
-    public Builder useSystemFonts(boolean useSystemFonts) {
-      this.useSystemFonts = useSystemFonts;
-      return this;
-    }
-
-    /**
      * Sets the path to the regular-weight font file.
      *
-     * <p>Required when {@link #useSystemFonts(boolean)} is {@code false} (default).
-     * Optional when {@code useSystemFonts} is {@code true}; if set it serves as a fallback
-     * when the system font cannot be found.</p>
+     * <p>Already set (and required) when this builder was created via
+     * {@link PdfGenerateOptions#builderForExplicitFont(Path)}. When the builder was created via
+     * {@link PdfGenerateOptions#builderForSystemFonts()}, calling this is optional and sets the
+     * first fallback font, used when the system font cannot be found or lacks a glyph.</p>
      *
      * @param regularFontPath path to the TTF file used for regular text
      * @return this builder
@@ -228,6 +265,23 @@ public class PdfGenerateOptions {
      */
     public Builder boldFontPath(@Nullable Path boldFontPath) {
       this.boldFontPath = boldFontPath;
+      return this;
+    }
+
+    /**
+     * Registers an additional fallback font, tried (in the order registered) after
+     * {@link #regularFontPath(Path)}/{@link #boldFontPath(Path)} when a character cannot be
+     * encoded by the primary font. Can be called multiple times to cover several
+     * scripts/languages not present in the primary font (e.g. a workbook mixing Japanese,
+     * Korean, and Arabic text where no single font covers all three).
+     *
+     * @param regularFontPath path to the TTF/TTC file used for regular text
+     * @param boldFontPath    path to the TTF/TTC file used for bold text, or {@code null} to
+     *                        fall back to {@code regularFontPath}
+     * @return this builder
+     */
+    public Builder addFallbackFont(Path regularFontPath, @Nullable Path boldFontPath) {
+      this.additionalFallbackFonts.add(new FallbackFont(regularFontPath, boldFontPath));
       return this;
     }
 
@@ -289,14 +343,8 @@ public class PdfGenerateOptions {
      * Builds a new {@link PdfGenerateOptions} instance.
      *
      * @return options
-     * @throws IllegalStateException if {@code useSystemFonts} is {@code false} and
-     *     {@code regularFontPath} has not been set
      */
     public PdfGenerateOptions build() {
-      if (!useSystemFonts && regularFontPath == null) {
-        throw new IllegalStateException(
-            "regularFontPath is required when useSystemFonts is false");
-      }
       return new PdfGenerateOptions(this);
     }
   }

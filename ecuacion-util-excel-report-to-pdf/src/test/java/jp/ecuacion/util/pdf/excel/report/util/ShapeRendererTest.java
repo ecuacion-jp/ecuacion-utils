@@ -62,8 +62,7 @@ public class ShapeRendererTest {
     try {
       var reg = ShapeRendererTest.class.getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
       var bold = ShapeRendererTest.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
-      TEST_OPTIONS = PdfGenerateOptions.builder()
-          .regularFontPath(Path.of(reg.toURI()))
+      TEST_OPTIONS = PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
           .boldFontPath(Path.of(bold.toURI()))
           .build();
     } catch (URISyntaxException e) {
