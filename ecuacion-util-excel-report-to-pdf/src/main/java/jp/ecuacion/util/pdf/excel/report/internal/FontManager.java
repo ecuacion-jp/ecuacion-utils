@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import org.apache.fontbox.ttf.NamingTable;
 import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
@@ -43,8 +44,19 @@ public class FontManager {
 
   private final PDType0Font regularFont;
   private final PDType0Font boldFont;
-  @Nullable private final PDType0Font fallbackRegularFont;
-  @Nullable private final PDType0Font fallbackBoldFont;
+  @Nullable
+  private final PDType0Font fallbackRegularFont;
+  @Nullable
+  private final PDType0Font fallbackBoldFont;
+
+  /** Human-readable identification of each loaded font, for diagnostics in error messages. */
+  private final String regularFontDescription;
+
+  private final String boldFontDescription;
+  @Nullable
+  private final String fallbackRegularFontDescription;
+  @Nullable
+  private final String fallbackBoldFontDescription;
 
   /**
    * Typographic ascent in 1/1000 em units (from TTF OS/2 sTypoAscender).
@@ -73,6 +85,11 @@ public class FontManager {
     boldFont = (boldFontPath != null) ? loadFontFromPath(document, boldFontPath) : regularFont;
     fallbackRegularFont = null;
     fallbackBoldFont = null;
+    regularFontDescription = describeFontFile(regularFontPath);
+    boldFontDescription =
+        (boldFontPath != null) ? describeFontFile(boldFontPath) : regularFontDescription;
+    fallbackRegularFontDescription = null;
+    fallbackBoldFontDescription = null;
     float[] metrics = extractTypoMetrics(regularFontPath);
     typoAscent = metrics[0];
     typoDescent = metrics[1];
@@ -95,6 +112,9 @@ public class FontManager {
    */
   public FontManager(PDDocument document, TrueTypeFont regularTtf, @Nullable TrueTypeFont boldTtf,
       @Nullable Path fallbackRegularPath, @Nullable Path fallbackBoldPath) throws IOException {
+    // Extract naming info before the TrueTypeFont is consumed by PDType0Font.load.
+    regularFontDescription = describeFont(regularTtf);
+    boldFontDescription = (boldTtf != null) ? describeFont(boldTtf) : regularFontDescription;
     regularFont = PDType0Font.load(document, regularTtf, true);
     boldFont = (boldTtf != null) ? PDType0Font.load(document, boldTtf, true) : regularFont;
     float[] metrics = extractTypoMetricsFromTtf(regularTtf);
@@ -102,11 +122,16 @@ public class FontManager {
     typoDescent = metrics[1];
     if (fallbackRegularPath != null) {
       fallbackRegularFont = loadFontFromPath(document, fallbackRegularPath);
-      fallbackBoldFont = (fallbackBoldPath != null)
-          ? loadFontFromPath(document, fallbackBoldPath) : fallbackRegularFont;
+      fallbackBoldFont = (fallbackBoldPath != null) ? loadFontFromPath(document, fallbackBoldPath)
+          : fallbackRegularFont;
+      fallbackRegularFontDescription = describeFontFile(fallbackRegularPath);
+      fallbackBoldFontDescription = (fallbackBoldPath != null) ? describeFontFile(fallbackBoldPath)
+          : fallbackRegularFontDescription;
     } else {
       fallbackRegularFont = null;
       fallbackBoldFont = null;
+      fallbackRegularFontDescription = null;
+      fallbackBoldFontDescription = null;
     }
   }
 
@@ -153,6 +178,73 @@ public class FontManager {
   }
 
   /**
+   * Loads {@code fontPath} and builds a diagnostic description from its name table, falling
+   * back to the bare path when the file cannot be parsed or has no usable name records.
+   */
+  private static String describeFontFile(Path fontPath) {
+    try {
+      TrueTypeFont ttf = SystemFontLocator.loadTrueTypeFont(fontPath, "");
+      if (ttf == null) {
+        return fontPath.toString();
+      }
+      try {
+        String naming = describeFont(ttf);
+        return (naming != null) ? naming + " [" + fontPath + "]" : fontPath.toString();
+      } finally {
+        ttf.close();
+      }
+    } catch (IOException ignored) { // NOPMD
+      return fontPath.toString();
+    }
+  }
+
+  /**
+   * Builds a human-readable description (family, subfamily/style, PostScript name) from a
+   * TrueType/OpenType font's {@code name} table, for identifying which font was actually
+   * resolved when a glyph cannot be found (e.g. a font matched by name but lacking CJK coverage).
+   *
+   * @return a description string, or {@code null} if the font has no usable name records
+   */
+  @Nullable
+  private static String describeFont(TrueTypeFont ttf) {
+    try {
+      NamingTable naming = ttf.getNaming();
+      if (naming == null) {
+        return null;
+      }
+      String family = null;
+      String subfamily = null;
+      String postscript = null;
+      for (var record : naming.getNameRecords()) {
+        String value = record.getString();
+        if (value == null || value.isBlank()) {
+          continue;
+        }
+        switch (record.getNameId()) {
+          case 1 -> family = (family == null) ? value : family;
+          case 2 -> subfamily = (subfamily == null) ? value : subfamily;
+          case 6 -> postscript = (postscript == null) ? value : postscript;
+          default -> {
+          }
+        }
+      }
+      if (family == null && postscript == null) {
+        return null;
+      }
+      StringBuilder sb = new StringBuilder(family != null ? family : postscript);
+      if (subfamily != null) {
+        sb.append(' ').append(subfamily);
+      }
+      if (postscript != null) {
+        sb.append(" (PostScript: ").append(postscript).append(')');
+      }
+      return sb.toString();
+    } catch (IOException ignored) { // NOPMD
+      return null;
+    }
+  }
+
+  /**
    * Returns the font to use for the given boldness (primary font, no fallback).
    *
    * @param bold {@code true} for bold text, {@code false} for regular text
@@ -183,11 +275,17 @@ public class FontManager {
     if (fallback != null && canEncode(fallback, codePoint)) {
       return fallback;
     }
+    String primaryDescription = bold ? boldFontDescription : regularFontDescription;
+    String fallbackDescription =
+        bold ? fallbackBoldFontDescription : fallbackRegularFontDescription;
     throw new PdfGenerateException(
-        "Character U+" + Integer.toHexString(codePoint).toUpperCase(Locale.ROOT)
-            + " ('" + new String(Character.toChars(codePoint)) + "') cannot be rendered: "
-            + "glyph not available in any configured font. "
-            + "Add a font that covers this character via PdfGenerateOptions.");
+        "Character U+" + Integer.toHexString(codePoint).toUpperCase(Locale.ROOT) + " ('"
+            + new String(Character.toChars(codePoint)) + "') cannot be rendered: "
+            + "glyph not available in any configured font. " + "Primary font used: "
+            + primaryDescription + ". "
+            + (fallbackDescription != null ? "Fallback font used: " + fallbackDescription + "."
+                : "No fallback font is configured.")
+            + " Add a font that covers this character via PdfGenerateOptions.");
   }
 
   private static boolean canEncode(PDType0Font font, int codePoint) {
@@ -205,7 +303,8 @@ public class FontManager {
    * @param font the font to use for this run
    * @param text the text content of this run
    */
-  public record TextRun(PDType0Font font, String text) {}
+  public record TextRun(PDType0Font font, String text) {
+  }
 
   /**
    * Splits {@code text} into runs, each assigned the appropriate font via
@@ -228,7 +327,7 @@ public class FontManager {
     StringBuilder current = new StringBuilder();
     PDType0Font currentFont = null;
 
-    for (int i = 0; i < text.length(); ) {
+    for (int i = 0; i < text.length();) {
       int cp = text.codePointAt(i);
       PDType0Font font = selectFont(cp, bold);
       if (currentFont == null) {
@@ -263,7 +362,7 @@ public class FontManager {
    */
   public float getStringWidthWithFallback(String text, boolean bold, float fontSize) {
     float total = 0f;
-    for (int i = 0; i < text.length(); ) {
+    for (int i = 0; i < text.length();) {
       int cp = text.codePointAt(i);
       PDType0Font font;
       try {
