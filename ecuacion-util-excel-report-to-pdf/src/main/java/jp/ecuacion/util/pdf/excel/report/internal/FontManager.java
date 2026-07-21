@@ -113,8 +113,9 @@ public class FontManager {
   public FontManager(PDDocument document, TrueTypeFont regularTtf, @Nullable TrueTypeFont boldTtf,
       @Nullable Path fallbackRegularPath, @Nullable Path fallbackBoldPath) throws IOException {
     // Extract naming info before the TrueTypeFont is consumed by PDType0Font.load.
-    regularFontDescription = describeFont(regularTtf);
-    boldFontDescription = (boldTtf != null) ? describeFont(boldTtf) : regularFontDescription;
+    regularFontDescription = describeFontOrFallback(regularTtf);
+    boldFontDescription =
+        (boldTtf != null) ? describeFontOrFallback(boldTtf) : regularFontDescription;
     regularFont = PDType0Font.load(document, regularTtf, true);
     boldFont = (boldTtf != null) ? PDType0Font.load(document, boldTtf, true) : regularFont;
     float[] metrics = extractTypoMetricsFromTtf(regularTtf);
@@ -196,6 +197,16 @@ public class FontManager {
     } catch (IOException ignored) { // NOPMD
       return fontPath.toString();
     }
+  }
+
+  /**
+   * Same as {@link #describeFont(TrueTypeFont)}, but returns a generic placeholder instead of
+   * {@code null} when the font has no usable name records (there is no file path to fall back
+   * to, unlike {@link #describeFontFile(Path)}).
+   */
+  private static String describeFontOrFallback(TrueTypeFont ttf) {
+    String description = describeFont(ttf);
+    return (description != null) ? description : "(unknown font)";
   }
 
   /**
