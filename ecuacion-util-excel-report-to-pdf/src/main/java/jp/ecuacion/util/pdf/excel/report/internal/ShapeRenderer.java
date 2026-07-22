@@ -384,9 +384,9 @@ class ShapeRenderer {
 
     var txBody = shape.getCTShape().isSetTxBody() ? shape.getCTShape().getTxBody() : null;
 
-    float leftInset = CELL_PADDING;
-    float rightInset = CELL_PADDING;
-    float topInset = CELL_PADDING;
+    float leftInset = CELL_PADDING * scaleFactor;
+    float rightInset = CELL_PADDING * scaleFactor;
+    float topInset = CELL_PADDING * scaleFactor;
     var bodyPr = (txBody != null) ? txBody.getBodyPr() : null;
     if (bodyPr != null) {
       long leftIns = 91440L;
@@ -480,7 +480,7 @@ class ShapeRenderer {
       cs.endText();
 
       curY += descent;
-      curY -= CELL_PADDING;
+      curY -= CELL_PADDING * scaleFactor;
     }
   }
 }

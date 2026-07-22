@@ -184,8 +184,12 @@ class CellRenderer {
       textColor = tableFontColor;
     }
 
+    // CELL_PADDING is defined in unscaled points; scale it so padding stays proportionate
+    // when the sheet is rendered smaller than 100% (e.g. "fit to page" print settings).
+    float padding = CELL_PADDING * scaleFactor;
+
     if (style.getShrinkToFit() && !style.getWrapText()) {
-      float available = width - 2 * CELL_PADDING;
+      float available = width - 2 * padding;
       try {
         float naturalWidth = font.getStringWidth(value) / 1000f * fontSize;
         if (naturalWidth > available && available > 0) {
@@ -208,7 +212,7 @@ class CellRenderer {
 
     List<String> lines;
     if (style.getWrapText()) {
-      float maxLineWidth = width - 2 * CELL_PADDING;
+      float maxLineWidth = width - 2 * padding;
       lines = wrapTextToLines(value, font, effectiveFontSize, maxLineWidth);
     } else {
       lines = List.of(value);
@@ -219,11 +223,11 @@ class CellRenderer {
     float startY;
     VerticalAlignment vertAlign = getVerticalAlignment(cell, style);
     if (vertAlign == VerticalAlignment.TOP) {
-      startY = y + height - CELL_PADDING - ascent;
+      startY = y + height - padding - ascent;
     } else if (vertAlign == VerticalAlignment.CENTER) {
       startY = y + (height - totalTextHeight) / 2f - descent;
     } else {
-      startY = y + CELL_PADDING - descent + totalTextHeight - lineHeight;
+      startY = y + padding - descent + totalTextHeight - lineHeight;
     }
 
     for (String line : lines) {
@@ -254,7 +258,7 @@ class CellRenderer {
           fontManager.getStringWidthWithFallback(fontName, line, bold, effectiveFontSize);
       final float textX =
           calculateTextX(getHorizontalAlignment(cell, style), cell, x, width, textWidth,
-              style.getIndention());
+              style.getIndention(), scaleFactor);
 
       cs.beginText();
       cs.setNonStrokingColor(textColor);
@@ -288,8 +292,8 @@ class CellRenderer {
       }
 
       if (underline || doubleUnderline) {
-        float ulWidth = accountingUnderline ? width - 2 * CELL_PADDING : textWidth;
-        float ulX = accountingUnderline ? x + CELL_PADDING : textX;
+        float ulWidth = accountingUnderline ? width - 2 * padding : textWidth;
+        float ulX = accountingUnderline ? x + padding : textX;
         float ulY = lineY + descent - 0.5f;
         cs.setStrokingColor(textColor);
         cs.setLineWidth(effectiveFontSize / 14f);
@@ -332,7 +336,7 @@ class CellRenderer {
     float descent = fontManager.getTypoDescent(fontName) / 1000f * fontSize;
     float lineHeight = ascent - descent;
     float centerX = x + width / 2f;
-    float currentY = y + height - CELL_PADDING - ascent;
+    float currentY = y + height - CELL_PADDING * scaleFactor - ascent;
 
     for (int i = 0; i < value.length(); ) {
       if (currentY + descent < y) {
@@ -404,7 +408,7 @@ class CellRenderer {
   }
 
   private float calculateTextX(HorizontalAlignment align, Cell cell, float x, float width,
-      float textWidth, short indent) {
+      float textWidth, short indent, float scaleFactor) {
     HorizontalAlignment effective = align;
     if (align == HorizontalAlignment.GENERAL && cell != null) {
       CellType type = cell.getCellType() == CellType.FORMULA ? cell.getCachedFormulaResultType()
@@ -413,11 +417,12 @@ class CellRenderer {
         effective = HorizontalAlignment.RIGHT;
       }
     }
-    float indentPt = indent * INDENT_WIDTH_PT;
+    float padding = CELL_PADDING * scaleFactor;
+    float indentPt = indent * INDENT_WIDTH_PT * scaleFactor;
     return switch (effective) {
       case CENTER -> x + (width - textWidth) / 2f;
-      case RIGHT -> x + width - textWidth - CELL_PADDING - indentPt;
-      default -> x + CELL_PADDING + indentPt;
+      case RIGHT -> x + width - textWidth - padding - indentPt;
+      default -> x + padding + indentPt;
     };
   }
 
