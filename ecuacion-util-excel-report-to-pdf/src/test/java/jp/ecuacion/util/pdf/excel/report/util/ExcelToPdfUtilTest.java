@@ -85,7 +85,7 @@ public class ExcelToPdfUtilTest {
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
       TEST_OPTIONS = PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
-          .boldFontPath(Path.of(bold.toURI()))
+          .addBoldFontPath(Path.of(bold.toURI()))
           .build();
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
@@ -99,7 +99,7 @@ public class ExcelToPdfUtilTest {
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
       return PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
-          .boldFontPath(Path.of(bold.toURI()))
+          .addBoldFontPath(Path.of(bold.toURI()))
           .dateLocale(locale)
           .build();
     } catch (Exception e) {
@@ -3226,16 +3226,16 @@ public class ExcelToPdfUtilTest {
   class UseSystemFonts {
 
     @Test
-    @DisplayName("falls back to regularFontPath when system font is not found")
+    @DisplayName("falls back to addRegularFontPath when system font is not found")
     void fallsBackToRegularFontPath(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createWorkbookWithUnknownFont(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
-      // getRegularFontPath() is @Nullable but TEST_OPTIONS always has it set
-      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      // TEST_OPTIONS always has at least one regular/bold font path registered
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
       PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
-          .regularFontPath(regularPath)
-          .boldFontPath(boldPath)
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
           .build();
 
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
@@ -3280,11 +3280,11 @@ public class ExcelToPdfUtilTest {
         try (var out = Files.newOutputStream(excel)) {
           wb.write(out);
         }
-        Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-        Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+        Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+        Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
         PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
-            .regularFontPath(regularPath)
-            .boldFontPath(boldPath)
+            .addRegularFontPath(regularPath)
+            .addBoldFontPath(boldPath)
             .build();
         Path pdf = tempDir.resolve("fallback-fit.pdf");
         ExcelToPdfUtil.generate(excel, List.of("S"), pdf, options);
@@ -3315,17 +3315,19 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("addFallbackFont() registers an additional fallback used alongside regularFontPath")
+    @DisplayName("addRegularFontPath()/addBoldFontPath() called twice register two fallback "
+        + "entries, tried in order")
     void additionalFallbackFontIsWiredIn(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
       Path excel = createWorkbookWithUnknownFont(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
-      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
       PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
-          .regularFontPath(regularPath)
-          .boldFontPath(boldPath)
-          .addFallbackFont(regularPath, boldPath)
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
           .build();
 
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
@@ -3342,11 +3344,11 @@ public class ExcelToPdfUtilTest {
         throws IOException, PdfGenerateException {
       Path excel = createWorkbookWithMixedCellFonts(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
-      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
       PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
-          .regularFontPath(regularPath)
-          .boldFontPath(boldPath)
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
           .build();
 
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
@@ -3601,7 +3603,7 @@ public class ExcelToPdfUtilTest {
 
     /** Computes MDW for NotoSansJP at 96 DPI — same as production with useSystemFonts=false. */
     private static int notoMdw() {
-      Path reg = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+      Path reg = TEST_OPTIONS.getRegularFontPaths().get(0);
       float fontSizePt = 11f; // POI fresh-workbook default
       return SystemFontLocator.computeMdw(reg, "", fontSizePt);
     }
@@ -4232,7 +4234,7 @@ public class ExcelToPdfUtilTest {
         var xSheet = (org.apache.poi.xssf.usermodel.XSSFSheet) wb.getSheet(sheetName);
         // MDW: NotoSansJP at 96 DPI (same as useSystemFonts=false in production)
         int mdw = SystemFontLocator.computeMdw(
-            java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath()), "",
+            TEST_OPTIONS.getRegularFontPaths().get(0), "",
             wb.getFontAt(0).getFontHeightInPoints());
         float naturalColTotal = 0f;
         // Determine used column range from print area or sheet data

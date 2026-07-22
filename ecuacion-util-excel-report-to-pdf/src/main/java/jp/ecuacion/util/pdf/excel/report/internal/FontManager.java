@@ -40,9 +40,10 @@ import org.jspecify.annotations.Nullable;
  * jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions}.
  * If no bold font path is provided, the regular font is used for bold text as well.</p>
  *
- * <p>An optional fallback font pair can be configured. When a character cannot be encoded
- * by the primary font, the fallback font is tried. If the character is not available in
- * either font, {@link PdfGenerateException} is thrown.</p>
+ * <p>Regular and bold fonts are each configured as an ordered list. When a character cannot be
+ * encoded by the primary font (the first entry), the rest of the list is tried, in order; for
+ * bold text, the bold list is tried first, then the regular list. If the character is not
+ * available in any configured font, {@link PdfGenerateException} is thrown.</p>
  *
  * <p>When {@link #enableSystemFontResolution(boolean)} is turned on, per-cell font names
  * (distinct from the workbook's default font) can be resolved on demand via the
@@ -60,27 +61,18 @@ public class FontManager {
       float typoDescent, String regularDescription, String boldDescription) {
   }
 
-  /** A resolved regular/bold fallback font pair, together with diagnostic descriptions. */
-  private record FallbackPair(PDType0Font regular, PDType0Font bold, String regularDescription,
-      String boldDescription) {
-  }
-
-  /**
-   * A regular/bold font path pair to register as an additional fallback font, tried in order
-   * when the primary font (or an earlier fallback) cannot encode a character.
-   *
-   * @param regularFontPath path to the TTF/TTC file used for regular text
-   * @param boldFontPath    path to the TTF/TTC file used for bold text, or {@code null} to
-   *                        fall back to {@code regularFontPath}
-   */
-  public record FallbackFontPaths(Path regularFontPath, @Nullable Path boldFontPath) {
+  /** A loaded font together with a diagnostic description, used for fallback resolution. */
+  private record LoadedFont(PDType0Font font, String description) {
   }
 
   private final PDDocument document;
   private final FontFamily defaultFamily;
 
-  /** Fallback fonts, tried in order, when a character can't be encoded by the primary font. */
-  private final List<FallbackPair> fallbackFamilies;
+  /** Regular fonts, tried in registration order (index 0 is the primary font). */
+  private final List<LoadedFont> regularFonts;
+
+  /** Bold fonts, tried in registration order, before falling through to {@link #regularFonts}. */
+  private final List<LoadedFont> boldFonts;
 
   private boolean systemFontResolutionEnabled = false;
 
@@ -88,83 +80,49 @@ public class FontManager {
   private final Map<String, FontFamily> namedFamilyCache = new HashMap<>();
 
   /**
-   * Constructs a {@code FontManager} loading fonts from file paths (no fallback font).
+   * Constructs a {@code FontManager} loading fonts from file paths.
    *
-   * @param document        the PDF document to embed fonts into
-   * @param regularFontPath path to the TTF/TTC file used for regular text
-   * @param boldFontPath    path to the TTF/TTC file used for bold text, or {@code null} to
-   *                        fall back to {@code regularFontPath}
+   * @param document         the PDF document to embed fonts into
+   * @param regularFontPaths paths to the TTF/TTC files used for regular text, tried in order
+   *                         (must not be empty; the first entry is the primary font)
+   * @param boldFontPaths    paths to the TTF/TTC files used for bold text, tried in order
+   *                         before falling through to {@code regularFontPaths}. When empty,
+   *                         {@code regularFontPaths} is used for bold text as well
    * @throws IOException if a font file cannot be read
    */
-  public FontManager(PDDocument document, Path regularFontPath, @Nullable Path boldFontPath)
+  public FontManager(PDDocument document, List<Path> regularFontPaths, List<Path> boldFontPaths)
       throws IOException {
-    this(document, regularFontPath, boldFontPath, List.of());
-  }
-
-  /**
-   * Constructs a {@code FontManager} loading fonts from file paths, with additional fallback
-   * fonts tried, in order, for characters the primary font cannot encode.
-   *
-   * @param document                the PDF document to embed fonts into
-   * @param regularFontPath         path to the TTF/TTC file used for regular text
-   * @param boldFontPath            path to the TTF/TTC file used for bold text, or {@code null}
-   *                                to fall back to {@code regularFontPath}
-   * @param additionalFallbackFonts fallback fonts, tried in order, for characters not covered
-   *                                by the primary font
-   * @throws IOException if a font file cannot be read
-   */
-  public FontManager(PDDocument document, Path regularFontPath, @Nullable Path boldFontPath,
-      List<FallbackFontPaths> additionalFallbackFonts) throws IOException {
     this.document = document;
-    PDType0Font regular = loadFontFromPath(document, regularFontPath);
-    PDType0Font bold = (boldFontPath != null) ? loadFontFromPath(document, boldFontPath) : regular;
-    String regularDescription = describeFontFile(regularFontPath);
-    String boldDescription =
-        (boldFontPath != null) ? describeFontFile(boldFontPath) : regularDescription;
-    float[] metrics = extractTypoMetrics(regularFontPath);
+    this.regularFonts = loadFonts(document, regularFontPaths);
+    this.boldFonts = loadFonts(document, boldFontPaths);
+    PDType0Font regular = regularFonts.get(0).font();
+    PDType0Font bold = !boldFonts.isEmpty() ? boldFonts.get(0).font() : regular;
+    String regularDescription = regularFonts.get(0).description();
+    String boldDescription = !boldFonts.isEmpty() ? boldFonts.get(0).description()
+        : regularDescription;
+    float[] metrics = extractTypoMetrics(regularFontPaths.get(0));
     this.defaultFamily =
         new FontFamily(regular, bold, metrics[0], metrics[1], regularDescription, boldDescription);
-    this.fallbackFamilies = loadFallbackFamilies(document, additionalFallbackFonts);
   }
 
   /**
-   * Constructs a {@code FontManager} loading fonts from {@link TrueTypeFont} objects
-   * (e.g. fonts resolved from a TrueType Collection via {@link SystemFontLocator}),
-   * with an optional fallback font for characters not covered by the primary fonts.
+   * Constructs a {@code FontManager} loading its primary fonts from {@link TrueTypeFont} objects
+   * (e.g. fonts resolved from a TrueType Collection via {@link SystemFontLocator}), with
+   * additional fallback fonts loaded from file paths.
    *
-   * @param document            the PDF document to embed fonts into
-   * @param regularTtf          regular-weight font
-   * @param boldTtf             bold-weight font, or {@code null} to fall back to
-   *                            {@code regularTtf}
-   * @param fallbackRegularPath path to the fallback TTF/TTC used when the primary font
-   *                            lacks a glyph, or {@code null} for no fallback
-   * @param fallbackBoldPath    path to the bold fallback font, or {@code null} to share
-   *                            {@code fallbackRegularPath}
+   * @param document           the PDF document to embed fonts into
+   * @param regularTtf         regular-weight primary font
+   * @param boldTtf            bold-weight primary font, or {@code null} to fall back to
+   *                           {@code regularTtf}
+   * @param fallbackRegularPaths paths to fallback TTF/TTC files used for regular text, tried
+   *                             in order after {@code regularTtf}
+   * @param fallbackBoldPaths    paths to fallback TTF/TTC files used for bold text, tried in
+   *                             order after {@code boldTtf}, before falling through to
+   *                             {@code fallbackRegularPaths}
    * @throws IOException if a font cannot be loaded
    */
   public FontManager(PDDocument document, TrueTypeFont regularTtf, @Nullable TrueTypeFont boldTtf,
-      @Nullable Path fallbackRegularPath, @Nullable Path fallbackBoldPath) throws IOException {
-    this(document, regularTtf, boldTtf,
-        (fallbackRegularPath != null)
-            ? List.of(new FallbackFontPaths(fallbackRegularPath, fallbackBoldPath))
-            : List.of());
-  }
-
-  /**
-   * Constructs a {@code FontManager} loading fonts from {@link TrueTypeFont} objects
-   * (e.g. fonts resolved from a TrueType Collection via {@link SystemFontLocator}),
-   * with additional fallback fonts tried, in order, for characters not covered by the
-   * primary fonts.
-   *
-   * @param document     the PDF document to embed fonts into
-   * @param regularTtf   regular-weight font
-   * @param boldTtf      bold-weight font, or {@code null} to fall back to {@code regularTtf}
-   * @param fallbackFonts fallback fonts, tried in order, for characters not covered by the
-   *                      primary font
-   * @throws IOException if a font cannot be loaded
-   */
-  public FontManager(PDDocument document, TrueTypeFont regularTtf, @Nullable TrueTypeFont boldTtf,
-      List<FallbackFontPaths> fallbackFonts) throws IOException {
+      List<Path> fallbackRegularPaths, List<Path> fallbackBoldPaths) throws IOException {
     this.document = document;
     // Extract naming info before the TrueTypeFont is consumed by PDType0Font.load.
     String regularDescription = describeFontOrFallback(regularTtf);
@@ -175,20 +133,15 @@ public class FontManager {
     float[] metrics = extractTypoMetricsFromTtf(regularTtf);
     this.defaultFamily =
         new FontFamily(regular, bold, metrics[0], metrics[1], regularDescription, boldDescription);
-    this.fallbackFamilies = loadFallbackFamilies(document, fallbackFonts);
+    this.regularFonts = loadFonts(document, fallbackRegularPaths);
+    this.boldFonts = loadFonts(document, fallbackBoldPaths);
   }
 
-  private static List<FallbackPair> loadFallbackFamilies(PDDocument document,
-      List<FallbackFontPaths> fallbackFonts) throws IOException {
-    List<FallbackPair> result = new ArrayList<>();
-    for (FallbackFontPaths paths : fallbackFonts) {
-      PDType0Font regular = loadFontFromPath(document, paths.regularFontPath());
-      PDType0Font bold = (paths.boldFontPath() != null)
-          ? loadFontFromPath(document, paths.boldFontPath()) : regular;
-      String regularDescription = describeFontFile(paths.regularFontPath());
-      String boldDescription = (paths.boldFontPath() != null)
-          ? describeFontFile(paths.boldFontPath()) : regularDescription;
-      result.add(new FallbackPair(regular, bold, regularDescription, boldDescription));
+  private static List<LoadedFont> loadFonts(PDDocument document, List<Path> fontPaths)
+      throws IOException {
+    List<LoadedFont> result = new ArrayList<>();
+    for (Path fontPath : fontPaths) {
+      result.add(new LoadedFont(loadFontFromPath(document, fontPath), describeFontFile(fontPath)));
     }
     return result;
   }
@@ -409,7 +362,7 @@ public class FontManager {
    * from the workbook's default font.
    *
    * <p>If the primary font can encode the character, it is returned. Otherwise the fallback
-   * font is tried. If neither can encode the character, {@link PdfGenerateException} is
+   * fonts are tried, in order. If none can encode the character, {@link PdfGenerateException} is
    * thrown so the caller can surface an actionable error.</p>
    *
    * @param codePoint the Unicode code point to render
@@ -442,25 +395,36 @@ public class FontManager {
     if (canEncode(primary, codePoint)) {
       return primary;
     }
-    for (FallbackPair fallback : fallbackFamilies) {
-      PDType0Font font = bold ? fallback.bold() : fallback.regular();
-      if (canEncode(font, codePoint)) {
-        return font;
+    if (bold) {
+      for (LoadedFont font : boldFonts) {
+        if (canEncode(font.font(), codePoint)) {
+          return font.font();
+        }
+      }
+    }
+    for (LoadedFont font : regularFonts) {
+      if (canEncode(font.font(), codePoint)) {
+        return font.font();
       }
     }
     String primaryDescription = bold ? family.boldDescription() : family.regularDescription();
-    String fallbackDescriptions = fallbackFamilies.stream()
-        .map(f -> bold ? f.boldDescription() : f.regularDescription())
-        .collect(Collectors.joining(", "));
-    throw new PdfGenerateException(
+    StringBuilder message = new StringBuilder(
         "Character U+" + Integer.toHexString(codePoint).toUpperCase(Locale.ROOT) + " ('"
             + new String(Character.toChars(codePoint)) + "') cannot be rendered: "
             + "glyph not available in any configured font. " + "Primary font used: "
-            + primaryDescription + ". "
-            + (!fallbackFamilies.isEmpty()
-                ? "Fallback fonts tried: " + fallbackDescriptions + "."
-                : "No fallback font is configured.")
-            + " Add a font that covers this character via PdfGenerateOptions.");
+            + primaryDescription + ". ");
+    if (bold && !boldFonts.isEmpty()) {
+      message.append("Fallback bold fonts tried: ").append(boldFonts.stream()
+          .map(LoadedFont::description).collect(Collectors.joining(", "))).append(". ");
+    }
+    if (!regularFonts.isEmpty()) {
+      message.append("Fallback regular fonts tried: ").append(regularFonts.stream()
+          .map(LoadedFont::description).collect(Collectors.joining(", "))).append(".");
+    } else {
+      message.append("No fallback font is configured.");
+    }
+    message.append(" Add a font that covers this character via PdfGenerateOptions.");
+    throw new PdfGenerateException(message.toString());
   }
 
   private static boolean canEncode(PDType0Font font, int codePoint) {

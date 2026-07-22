@@ -18,7 +18,6 @@ package jp.ecuacion.util.pdf.excel.report.util;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import jp.ecuacion.lib.core.util.LocaleUtil;
@@ -122,18 +121,16 @@ public class ExcelToPdfUtil {
         }
         var systemFontFile = SystemFontLocator.findFontFile(defaultFontName);
         if (systemFontFile.isEmpty()) {
-          // No system font found: try the explicitly specified font as fallback.
-          if (options.getRegularFontPath() != null) {
-            Path reg = options.getRegularFontPath();
-            Path bold = options.getBoldFontPath() != null ? options.getBoldFontPath() : reg;
-            fontManager = new FontManager(document, reg, bold,
-                toFallbackFontPaths(options.getAdditionalFallbackFonts()));
+          // No system font found: try the explicitly specified fonts as fallback.
+          List<Path> regularPaths = options.getRegularFontPaths();
+          if (!regularPaths.isEmpty()) {
+            fontManager = new FontManager(document, regularPaths, options.getBoldFontPaths());
             if (mdw == 0) {
-              mdw = SystemFontLocator.computeExcelMdw(reg, "", fontSizePt);
+              mdw = SystemFontLocator.computeExcelMdw(regularPaths.get(0), "", fontSizePt);
             }
           } else {
             throw new PdfGenerateException("System font '" + defaultFontName + "' not found. "
-                + "Install the font or set regularFontPath as a fallback in "
+                + "Install the font or register a fallback via addRegularFontPath() in "
                 + "PdfGenerateOptions.");
           }
         } else {
@@ -150,26 +147,19 @@ public class ExcelToPdfUtil {
           var boldTtf = boldFontFile.isPresent()
               ? SystemFontLocator.loadTrueTypeFont(boldFontFile.get(), defaultFontName + " Bold")
               : null;
-          // Pass regularFontPath as the first fallback, followed by any additional fallback
-          // fonts, so that characters not in the system font (e.g. CJK characters in a Calibri
-          // workbook, or a third script not covered by either) are rendered with a fallback.
-          List<FontManager.FallbackFontPaths> fallbacks = new ArrayList<>();
-          if (options.getRegularFontPath() != null) {
-            fallbacks.add(new FontManager.FallbackFontPaths(options.getRegularFontPath(),
-                options.getBoldFontPath()));
-          }
-          fallbacks.addAll(toFallbackFontPaths(options.getAdditionalFallbackFonts()));
-          fontManager = new FontManager(document, regularTtf, boldTtf, fallbacks);
+          // The registered regular/bold fonts are used entirely as fallback, so that
+          // characters not in the system font (e.g. CJK characters in a Calibri workbook, or a
+          // third script not covered by either) are rendered with a fallback.
+          fontManager = new FontManager(document, regularTtf, boldTtf,
+              options.getRegularFontPaths(), options.getBoldFontPaths());
         }
       } else {
         // Explicit font mode: always use the supplied font at 96 DPI for MDW.
         // 96 DPI is the OOXML standard print resolution and gives consistent results
         // regardless of the screen being used.
-        Path reg = java.util.Objects.requireNonNull(options.getRegularFontPath());
-        Path bold = options.getBoldFontPath() != null ? options.getBoldFontPath() : reg;
-        fontManager = new FontManager(document, reg, bold,
-            toFallbackFontPaths(options.getAdditionalFallbackFonts()));
-        mdw = SystemFontLocator.computeMdw(reg, "", fontSizePt); // fixed 96 DPI
+        List<Path> regularPaths = options.getRegularFontPaths();
+        fontManager = new FontManager(document, regularPaths, options.getBoldFontPaths());
+        mdw = SystemFontLocator.computeMdw(regularPaths.get(0), "", fontSizePt); // fixed 96 DPI
       }
       // Enables per-cell font resolution: cells whose font differs from the workbook's
       // default (e.g. a CJK font used only for some cells) are resolved individually,
@@ -207,15 +197,6 @@ public class ExcelToPdfUtil {
     } catch (IOException e) {
       throw new PdfGenerateException("Failed to generate PDF from '" + excelPath + "'", e);
     }
-  }
-
-  private static List<FontManager.FallbackFontPaths> toFallbackFontPaths(
-      List<PdfGenerateOptions.FallbackFont> additionalFallbackFonts) {
-    List<FontManager.FallbackFontPaths> result = new ArrayList<>();
-    for (PdfGenerateOptions.FallbackFont f : additionalFallbackFonts) {
-      result.add(new FontManager.FallbackFontPaths(f.regularFontPath(), f.boldFontPath()));
-    }
-    return result;
   }
 
   private static Workbook openWorkbook(File file, @Nullable String password) throws IOException {
