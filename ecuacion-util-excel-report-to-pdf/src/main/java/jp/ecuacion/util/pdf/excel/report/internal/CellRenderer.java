@@ -19,7 +19,6 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.util.Matrix;
@@ -94,7 +93,7 @@ class CellRenderer {
    */
   void renderForeground(PDPageContentStream cs, @Nullable Cell cell, float x, float y,
       float width, float height, float scaleFactor, @Nullable TableCellStyle tableStyle,
-      float overflowWidth) throws IOException, PdfGenerateException {
+      float overflowWidth) throws IOException {
 
     if (cell != null) {
       String value = formatter.getCellDisplayValue(cell);
@@ -140,7 +139,7 @@ class CellRenderer {
   /** Backward-compatible single-call version (no overflow). */
   void renderCell(PDPageContentStream cs, @Nullable Cell cell, float x, float y,
       float width, float height, float scaleFactor, @Nullable TableCellStyle tableStyle)
-      throws IOException, PdfGenerateException {
+      throws IOException {
     renderBackground(cs, cell, x, y, width, height, tableStyle);
     renderForeground(cs, cell, x, y, width, height, scaleFactor, tableStyle, width);
   }
@@ -151,7 +150,7 @@ class CellRenderer {
 
   private void renderText(PDPageContentStream cs, Cell cell, String value, float x, float y,
       float width, float height, float scaleFactor, @Nullable Color tableFontColor,
-      boolean tableFontBold) throws IOException, PdfGenerateException {
+      boolean tableFontBold) throws IOException {
 
     CellStyle style = cell.getCellStyle();
     Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());
@@ -312,7 +311,7 @@ class CellRenderer {
   }
 
   private void renderVerticalText(PDPageContentStream cs, Cell cell, String value, float x, float y,
-      float width, float height, float scaleFactor) throws IOException, PdfGenerateException {
+      float width, float height, float scaleFactor) throws IOException {
 
     CellStyle style = cell.getCellStyle();
     Font poiFont = cell.getSheet().getWorkbook().getFontAt(style.getFontIndex());

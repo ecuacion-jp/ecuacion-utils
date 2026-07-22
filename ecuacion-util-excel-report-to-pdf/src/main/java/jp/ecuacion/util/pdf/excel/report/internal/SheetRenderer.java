@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.excel.report.exception.SheetHasNoPrintAreaException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -115,7 +116,7 @@ public class SheetRenderer {
    * @throws IOException if a PDF I/O error occurs
    * @throws PdfGenerateException if the sheet cannot be rendered
    */
-  public void render(Workbook workbook, int sheetIndex) throws IOException, PdfGenerateException {
+  public void render(Workbook workbook, int sheetIndex) throws IOException {
     Sheet sheet = workbook.getSheetAt(sheetIndex);
     cellRenderer.currentWorkbook = (workbook instanceof XSSFWorkbook xssfWb) ? xssfWb : null;
 
@@ -319,8 +320,7 @@ public class SheetRenderer {
   // Page setup helpers
   // -------------------------------------------------------------------------
 
-  private int[] getPrintAreaBounds(Workbook workbook, Sheet sheet, int sheetIndex)
-      throws PdfGenerateException {
+  private int[] getPrintAreaBounds(Workbook workbook, Sheet sheet, int sheetIndex) {
     String printArea = workbook.getPrintArea(sheetIndex);
 
     if (printArea != null && !printArea.isBlank()) {
@@ -350,8 +350,7 @@ public class SheetRenderer {
       }
     }
     if (firstCol == Integer.MAX_VALUE) {
-      throw new PdfGenerateException(
-          "Sheet '" + sheet.getSheetName() + "' has no print area and no data.");
+      throw new SheetHasNoPrintAreaException(sheet.getSheetName());
     }
     return new int[] {firstRow, lastRow, firstCol, lastCol};
   }
@@ -590,7 +589,7 @@ public class SheetRenderer {
       Map<String, CellRangeAddress> mergedRegionMap, int repeatFirst, int repeatLast,
       int repeatFirstCol, int repeatLastCol, float repeatingColsWidth, int preambleLastRow,
       int pageNumber, int totalPages, List<TableRenderInfo> tableInfos)
-      throws IOException, PdfGenerateException {
+      throws IOException {
 
     PDPage page = new PDPage(pageSize);
     document.addPage(page);
@@ -670,7 +669,7 @@ public class SheetRenderer {
       int lastPageCol, int printFirstRow, int printFirstCol, float[] rowHeights, float[] colWidths,
       float scaleFactor, Map<String, CellRangeAddress> mergedRegionMap, float currentY,
       float leftMargin, int pageFirstRow, int pageLastRow, List<TableRenderInfo> tableInfos)
-      throws IOException, PdfGenerateException {
+      throws IOException {
     float rowHeight = rowHeights[r - printFirstRow];
     Row row = sheet.getRow(r);
 

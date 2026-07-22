@@ -20,10 +20,8 @@ import java.io.IOException;
 import java.text.Format;
 import java.time.format.DateTimeFormatter;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
+import jp.ecuacion.util.excel.exception.CellContainsErrorException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -253,14 +251,8 @@ public class ExcelReadUtil {
 
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
-      throw new ExcelTableException("jp.ecuacion.util.excel.CellContainsError.message",
-          ArrayUtils.addAll(
-              new Object[] {cell.getRow().getSheet().getSheetName(),
-                  cell.getAddress().formatAsString()},
-              StringUtils.isEmpty(filename) ? new Object[] {"", ""}
-                  : new Object[] {
-                      Arg.message("jp.ecuacion.util.excel.common.messageItemSeparator"),
-                      Arg.message("jp.ecuacion.util.excel.common.filename", filename)}));
+      throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
+          cell.getAddress().formatAsString(), filename);
 
     } else if (cellType == CellType.BOOLEAN) {
       return cell.getBooleanCellValue() ? "TRUE" : "FALSE";

@@ -20,6 +20,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.FarLeftHeaderLabelNotFoundException;
 import jp.ecuacion.util.excel.table.reader.IfExcelTableReader;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -168,9 +169,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
       }
     }
 
-    throw new ExcelTableException(
-        "jp.ecuacion.util.excel.reader.FarLeftHeaderLabelNotFound.message",
-        sheet.getSheetName(), Integer.toString(tableStartColumnNumber),
+    throw new FarLeftHeaderLabelNotFoundException(sheet.getSheetName(), tableStartColumnNumber,
         getFarLeftAndTopHeaderLabel());
   }
 

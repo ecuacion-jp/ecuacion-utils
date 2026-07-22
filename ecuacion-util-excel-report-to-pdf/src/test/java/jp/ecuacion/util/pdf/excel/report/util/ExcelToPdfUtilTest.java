@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.excel.report.exception.SystemFontNotFoundException;
 import jp.ecuacion.util.pdf.excel.report.internal.SystemFontLocator;
 import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import org.apache.pdfbox.Loader;
@@ -3311,7 +3312,7 @@ public class ExcelToPdfUtilTest {
           .build();
 
       assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options))
-          .isInstanceOf(PdfGenerateException.class);
+          .isInstanceOf(SystemFontNotFoundException.class);
     }
 
     @Test

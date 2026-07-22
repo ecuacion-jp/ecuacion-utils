@@ -52,6 +52,25 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 
 - [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-report-to-pdf/latest/jp.ecuacion.util.pdf.excel.report/module-summary.html)
 
+## Exception Handling
+
+`ExcelToPdfUtil.generate()` can throw two kinds of exceptions:
+
+- `UncheckedIOException` (unchecked, `java.io.UncheckedIOException`) — a purely technical failure while reading the Excel file or writing the PDF file (e.g. a corrupt file, a disk I/O error), unrelated to the Excel file's content or the font environment. `getCause()` returns the underlying `IOException`.
+- A subclass of `PdfGenerateException` (unchecked, `PdfGenerateException` extends `jp.ecuacion.lib.core.exception.ViolationException`) — a failure that may originate from the given Excel file's content or from the font environment it depends on (a missing sheet, a missing/unloadable font, an unrenderable character). `PdfGenerateException` itself is abstract; one of the concrete subclasses below is always the actual exception thrown.
+
+Each failure case has its own exception class, so applications that want to handle — or reclassify — a specific case can `catch` it by type instead of branching on a string `messageId`:
+
+| Exception class | Thrown when | Constructor args |
+| --- | --- | --- |
+| `SheetNotExistException` | A sheet name passed to `generate()` does not exist in the Excel file. | sheet name |
+| `SheetHasNoPrintAreaException` | A sheet has neither a defined print area nor any data to infer one from. | sheet name |
+| `SystemFontNotFoundException` | `useSystemFonts` is enabled and the workbook's default font is not installed on the running system, with no fallback font configured. | font name |
+| `FontLoadFailedException` | A system font file was located but could not be loaded as a `TrueTypeFont`. | font name, font file path |
+| `CharacterNotRenderableException` | A character in a cell cannot be encoded by the primary font or any configured fallback font. | codepoint (hex), character, primary font description, fallback fonts tried |
+
+All five live in `jp.ecuacion.util.pdf.excel.report.exception` and extend `PdfGenerateException`, so `catch (PdfGenerateException e)` still works for callers that only want to handle "some PDF generation problem" generically. Each also carries a `messageId` (via `getMessageId()`, inherited from `ViolationException`) intended for i18n display to the end user; the message text is defined in `messages_util_excel_report_to_pdf.properties` / `messages_util_excel_report_to_pdf_ja.properties`.
+
 ## Sample Code
 
 - [ecuacion-util-excel-report-to-pdf-sample](https://github.com/ecuacion-jp/ecuacion-utils/tree/main/ecuacion-util-excel-report-to-pdf-sample)

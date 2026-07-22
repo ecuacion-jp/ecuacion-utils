@@ -17,6 +17,7 @@ package jp.ecuacion.util.excel.table.reader;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import jp.ecuacion.util.excel.exception.CellContainsErrorException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.IfDataTypeTypedExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
@@ -63,8 +64,8 @@ public interface IfDataTypeTypedExcelTableReader
     } else if (cellType == CellType.BOOLEAN) {
       return cell.getBooleanCellValue();
     } else if (cellType == CellType.ERROR) {
-      throw new ExcelTableException("jp.ecuacion.util.excel.CellContainsError.message",
-          cell.getRow().getSheet().getSheetName(), cell.getAddress().formatAsString(), "", "");
+      throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
+          cell.getAddress().formatAsString(), null);
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType);
     }
