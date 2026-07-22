@@ -77,33 +77,32 @@ public class PdfGenerateOptionsTest {
   }
 
   @Nested
-  @DisplayName("Builder: addFallbackFont")
-  class AdditionalFallbackFonts {
+  @DisplayName("Builder: addRegularFontPath / addBoldFontPath")
+  class RegularAndBoldFontPaths {
 
     @Test
-    @DisplayName("not called — getAdditionalFallbackFonts() returns an empty list")
-    void notCalledReturnsEmptyList() throws Exception {
-      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
-          .build();
+    @DisplayName("builderForExplicitFont — the given path is the first regularFontPaths entry")
+    void explicitFontIsFirstRegularEntry() throws Exception {
+      Path regular = regularFontPath();
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regular).build();
 
-      assertThat(opts.getAdditionalFallbackFonts()).isEmpty();
+      assertThat(opts.getRegularFontPaths()).containsExactly(regular);
+      assertThat(opts.getBoldFontPaths()).isEmpty();
     }
 
     @Test
-    @DisplayName("called twice — returns both entries in registration order")
+    @DisplayName("addRegularFontPath/addBoldFontPath called twice — returns entries in order")
     void calledTwiceReturnsEntriesInOrder() throws Exception {
       Path first = regularFontPath();
       Path second = regularFontPath();
-      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(regularFontPath())
-          .addFallbackFont(first, null)
-          .addFallbackFont(second, first)
+      Path bold = regularFontPath();
+      PdfGenerateOptions opts = PdfGenerateOptions.builderForExplicitFont(first)
+          .addRegularFontPath(second)
+          .addBoldFontPath(bold)
           .build();
 
-      assertThat(opts.getAdditionalFallbackFonts()).hasSize(2);
-      assertThat(opts.getAdditionalFallbackFonts().get(0).regularFontPath()).isEqualTo(first);
-      assertThat(opts.getAdditionalFallbackFonts().get(0).boldFontPath()).isNull();
-      assertThat(opts.getAdditionalFallbackFonts().get(1).regularFontPath()).isEqualTo(second);
-      assertThat(opts.getAdditionalFallbackFonts().get(1).boldFontPath()).isEqualTo(first);
+      assertThat(opts.getRegularFontPaths()).containsExactly(first, second);
+      assertThat(opts.getBoldFontPaths()).containsExactly(bold);
     }
   }
 
@@ -117,7 +116,7 @@ public class PdfGenerateOptionsTest {
       PdfGenerateOptions opts = PdfGenerateOptions.builderForSystemFonts().build();
 
       assertThat(opts.isUseSystemFonts()).isTrue();
-      assertThat(opts.getRegularFontPath()).isNull();
+      assertThat(opts.getRegularFontPaths()).isEmpty();
     }
   }
 }
