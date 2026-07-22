@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import jp.ecuacion.lib.core.logging.DetailLogger;
+import jp.ecuacion.util.pdf.excel.report.exception.CharacterNotRenderableException;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import org.apache.fontbox.ttf.NamingTable;
 import org.apache.fontbox.ttf.TrueTypeFont;
@@ -370,7 +371,7 @@ public class FontManager {
    * @return the font that can encode {@code codePoint}
    * @throws PdfGenerateException if no configured font can encode the character
    */
-  public PDType0Font selectFont(int codePoint, boolean bold) throws PdfGenerateException {
+  public PDType0Font selectFont(int codePoint, boolean bold) {
     return selectFontFromFamily(defaultFamily, codePoint, bold);
   }
 
@@ -384,13 +385,11 @@ public class FontManager {
    * @return the font that can encode {@code codePoint}
    * @throws PdfGenerateException if no configured font can encode the character
    */
-  public PDType0Font selectFont(String fontName, int codePoint, boolean bold)
-      throws PdfGenerateException {
+  public PDType0Font selectFont(String fontName, int codePoint, boolean bold) {
     return selectFontFromFamily(getFamily(fontName), codePoint, bold);
   }
 
-  private PDType0Font selectFontFromFamily(FontFamily family, int codePoint, boolean bold)
-      throws PdfGenerateException {
+  private PDType0Font selectFontFromFamily(FontFamily family, int codePoint, boolean bold) {
     PDType0Font primary = bold ? family.bold() : family.regular();
     if (canEncode(primary, codePoint)) {
       return primary;
@@ -407,24 +406,26 @@ public class FontManager {
         return font.font();
       }
     }
-    String primaryDescription = bold ? family.boldDescription() : family.regularDescription();
-    StringBuilder message = new StringBuilder(
-        "Character U+" + Integer.toHexString(codePoint).toUpperCase(Locale.ROOT) + " ('"
-            + new String(Character.toChars(codePoint)) + "') cannot be rendered: "
-            + "glyph not available in any configured font. " + "Primary font used: "
-            + primaryDescription + ". ");
+    StringBuilder fallbackDescription = new StringBuilder();
     if (bold && !boldFonts.isEmpty()) {
-      message.append("Fallback bold fonts tried: ").append(boldFonts.stream()
-          .map(LoadedFont::description).collect(Collectors.joining(", "))).append(". ");
+      fallbackDescription.append("bold: ").append(
+          boldFonts.stream().map(LoadedFont::description).collect(Collectors.joining(", ")));
     }
     if (!regularFonts.isEmpty()) {
-      message.append("Fallback regular fonts tried: ").append(regularFonts.stream()
-          .map(LoadedFont::description).collect(Collectors.joining(", "))).append(".");
-    } else {
-      message.append("No fallback font is configured.");
+      if (fallbackDescription.length() > 0) {
+        fallbackDescription.append("; ");
+      }
+      fallbackDescription.append("regular: ").append(
+          regularFonts.stream().map(LoadedFont::description).collect(Collectors.joining(", ")));
     }
-    message.append(" Add a font that covers this character via PdfGenerateOptions.");
-    throw new PdfGenerateException(message.toString());
+    if (fallbackDescription.length() == 0) {
+      fallbackDescription.append("(none configured)");
+    }
+    String primaryDescription = bold ? family.boldDescription() : family.regularDescription();
+    throw new CharacterNotRenderableException(
+        Integer.toHexString(codePoint).toUpperCase(Locale.ROOT),
+        new String(Character.toChars(codePoint)), primaryDescription,
+        fallbackDescription.toString());
   }
 
   private static boolean canEncode(PDType0Font font, int codePoint) {
@@ -458,7 +459,7 @@ public class FontManager {
    * @return ordered list of text runs, each with its assigned font
    * @throws PdfGenerateException if a character cannot be rendered by any configured font
    */
-  public List<TextRun> segmentText(String text, boolean bold) throws PdfGenerateException {
+  public List<TextRun> segmentText(String text, boolean bold) {
     return segmentTextFromFamily(defaultFamily, text, bold);
   }
 
@@ -472,13 +473,11 @@ public class FontManager {
    * @return ordered list of text runs, each with its assigned font
    * @throws PdfGenerateException if a character cannot be rendered by any configured font
    */
-  public List<TextRun> segmentText(String fontName, String text, boolean bold)
-      throws PdfGenerateException {
+  public List<TextRun> segmentText(String fontName, String text, boolean bold) {
     return segmentTextFromFamily(getFamily(fontName), text, bold);
   }
 
-  private List<TextRun> segmentTextFromFamily(FontFamily family, String text, boolean bold)
-      throws PdfGenerateException {
+  private List<TextRun> segmentTextFromFamily(FontFamily family, String text, boolean bold) {
     List<TextRun> runs = new ArrayList<>();
     if (text.isEmpty()) {
       return runs;

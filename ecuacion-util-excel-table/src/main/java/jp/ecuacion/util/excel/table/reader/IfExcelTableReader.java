@@ -18,6 +18,8 @@ package jp.ecuacion.util.excel.table.reader;
 import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.NumberOfTableHeadersDifferException;
+import jp.ecuacion.util.excel.exception.TableHeaderTitleWrongException;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import org.apache.poi.ss.usermodel.Cell;
 import org.jspecify.annotations.Nullable;
@@ -49,17 +51,15 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
 
       if ((!ignoresAdditionalColumns && headerList.size() != headerLabels.length)
           || (ignoresAdditionalColumns && headerList.size() < headerLabels.length)) {
-        throw new ExcelTableException("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message",
-            getSheetName(), Integer.toString(headerList.size()),
-            Integer.toString(headerLabels.length));
+        throw new NumberOfTableHeadersDifferException(getSheetName(), headerList.size(),
+            headerLabels.length);
       }
 
       for (int j = 0; j < headerLabels.length; j++) {
         if (!headerLabels[j].equals(getStringValue(headerList.get(j)))) {
           int positionFromUser = j + 1;
-          throw new ExcelTableException("jp.ecuacion.util.excel.TableHeaderTitleWrong.message",
-              getSheetName(), Integer.toString(positionFromUser), getStringValue(headerList.get(j)),
-              headerLabels[j]);
+          throw new TableHeaderTitleWrongException(getSheetName(), positionFromUser,
+              getStringValue(headerList.get(j)), headerLabels[j]);
         }
       }
     }

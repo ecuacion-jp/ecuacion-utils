@@ -41,7 +41,7 @@ public class ExcelTableExceptionTest {
       Cell cell = row.createCell(0);
       cell.setCellValue("test");
 
-      ExcelTableException ex = new ExcelTableException("msg.id");
+      ExcelTableException ex = new SheetNotExistException("Sheet1");
       ex.cell(cell);
 
       assertThat(ex.getCell()).isSameAs(cell);
@@ -58,7 +58,7 @@ public class ExcelTableExceptionTest {
       Row row = sheet.createRow(0);
       Cell cell = row.createCell(0);
 
-      ExcelTableException ex = new ExcelTableException("msg.id");
+      ExcelTableException ex = new SheetNotExistException("Sheet1");
       ExcelTableException result = ex.cell(cell);
 
       assertThat(result).isSameAs(ex);
