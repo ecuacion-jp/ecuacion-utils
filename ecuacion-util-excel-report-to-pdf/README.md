@@ -7,8 +7,8 @@
 ## Usage Example
 
 ```java
-PdfGenerateOptions options = PdfGenerateOptions.builder()
-    .regularFontPath(Path.of("/path/to/NotoSansJP-Regular.ttf"))
+PdfGenerateOptions options =
+    PdfGenerateOptions.builderForExplicitFont(Path.of("/path/to/NotoSansJP-Regular.ttf"))
     .boldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
     .build();
 
@@ -242,18 +242,17 @@ The following features have been verified through automated tests.
 
 ### System font support (`useSystemFonts`)
 
-By default, font files must be specified explicitly via `regularFontPath` in `PdfGenerateOptions`.
-When `useSystemFonts(true)` is set, the library automatically searches the OS font directories
-for the font that matches the workbook's default font. The located font is embedded in the output
-PDF and is used for accurate column-width calculation.
+By default, font files must be specified explicitly via `PdfGenerateOptions.builderForExplicitFont`.
+Using `PdfGenerateOptions.builderForSystemFonts()` instead, the library automatically searches the
+OS font directories for the font that matches the workbook's default font. The located font is
+embedded in the output PDF and is used for accurate column-width calculation.
 
 ```java
-PdfGenerateOptions options = PdfGenerateOptions.builder()
-    .useSystemFonts(true)   // regularFontPath becomes optional
-    .build();
+PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+    .build();   // regularFontPath is optional here — it acts as a fallback
 ```
 
-When `useSystemFonts(true)` is set and no matching system font is found, a
+When `builderForSystemFonts()` is used and no matching system font is found, a
 `PdfGenerateException` is thrown. Specifying `regularFontPath` in addition acts as a fallback for
 that case.
 
@@ -267,6 +266,38 @@ When the workbook's default font does not contain CJK glyphs (e.g. Calibri), any
 in cell text are automatically rendered using the fallback font specified by `regularFontPath`,
 on a character-by-character basis.
 
+#### Multiple fallback fonts
+
+`regularFontPath`/`boldFontPath` act as the first fallback font tried when a character can't be
+encoded by the primary font. For workbooks mixing three or more scripts where no single fallback
+font covers all of them (e.g. a report mixing Japanese, Korean, and Arabic text), additional
+fallback fonts can be registered via `addFallbackFont`, which can be called multiple times; each
+character is tried against the primary font, then each fallback in registration order, until one
+can encode it:
+
+```java
+PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+    .regularFontPath(japaneseFontPath)         // first fallback
+    .addFallbackFont(koreanFontPath, null)     // second fallback
+    .addFallbackFont(arabicFontPath, null)     // third fallback
+    .build();
+```
+
+This also applies in explicit font mode (`builderForExplicitFont`): `addFallbackFont` fonts are
+tried for characters the primary `regularFontPath` font cannot encode.
+
+#### Per-cell font resolution
+
+When a cell's font differs from the workbook's default font (e.g. most of the report uses
+Calibri, but a few cells are explicitly set to a Japanese font for localized content), that
+cell's own font is resolved from the OS font directories and used for the cell, instead of
+always using the workbook's default font. This applies to each distinct font name found in the
+workbook, following the same weight-variant and TTC lookup rules described above.
+
+If a cell's font cannot be found on the system, the cell falls back to the workbook's default
+font (a warning is logged) rather than failing PDF generation — generation only fails when the
+workbook's default font itself cannot be resolved and no `regularFontPath` fallback is set.
+
 > **Font licensing notice:** the located system font is embedded in the output PDF.
 > Confirm that the font's licence permits embedding and distribution before enabling this option.
 
@@ -276,8 +307,8 @@ Setting `pdfPassword` in `PdfGenerateOptions` encrypts the output PDF with **256
 The PDF can only be opened with the specified password.
 
 ```java
-PdfGenerateOptions options = PdfGenerateOptions.builder()
-    .regularFontPath(Path.of("/path/to/NotoSansJP-Regular.ttf"))
+PdfGenerateOptions options =
+    PdfGenerateOptions.builderForExplicitFont(Path.of("/path/to/NotoSansJP-Regular.ttf"))
     .pdfPassword("user-password")           // required to open the PDF
     .pdfOwnerPassword("owner-password")     // optional; controls security settings
     .build();

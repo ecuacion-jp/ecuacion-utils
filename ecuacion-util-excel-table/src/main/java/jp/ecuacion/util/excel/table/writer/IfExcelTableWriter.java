@@ -20,10 +20,14 @@ import org.apache.poi.ss.usermodel.Cell;
 
 /**
  * Provides the excel table writer methods.
- * 
- * <p>Since the number of {@code CellStyle} in an excel file has limit (64,000), 
- * first data line of {@code CellStyle} is reused to cells at the latter lines.</p>
- * 
+ *
+ * <p>Some implementations (e.g. {@link IfDataTypeCellExcelTableWriter}, and
+ * {@link IfDataTypeTypedExcelTableWriter} for date-formatted values) create new
+ * {@code CellStyle}s while writing and cache/reuse them across rows, since the number of
+ * {@code CellStyle}s in an excel file has a limit (64,000). See those interfaces for details.
+ * {@link IfDataTypeStringExcelTableWriter} writes via {@code Cell#setCellValue} only and never
+ * creates a new {@code CellStyle}, so this concern does not apply to it.</p>
+ *
  * @param <T> See {@link IfExcelTable}.
  */
 public interface IfExcelTableWriter<T> extends IfExcelTable<T> {

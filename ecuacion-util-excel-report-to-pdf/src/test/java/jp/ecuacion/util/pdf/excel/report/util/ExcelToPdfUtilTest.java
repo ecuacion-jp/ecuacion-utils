@@ -84,9 +84,8 @@ public class ExcelToPdfUtilTest {
           .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
-      TEST_OPTIONS = PdfGenerateOptions.builder()
-          .regularFontPath(Path.of(reg.toURI()))
-          .boldFontPath(Path.of(bold.toURI()))
+      TEST_OPTIONS = PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
+          .addBoldFontPath(Path.of(bold.toURI()))
           .build();
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
@@ -99,9 +98,8 @@ public class ExcelToPdfUtilTest {
           .getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf");
       var bold = ExcelToPdfUtilTest.class
           .getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf");
-      return PdfGenerateOptions.builder()
-          .regularFontPath(Path.of(reg.toURI()))
-          .boldFontPath(Path.of(bold.toURI()))
+      return PdfGenerateOptions.builderForExplicitFont(Path.of(reg.toURI()))
+          .addBoldFontPath(Path.of(bold.toURI()))
           .dateLocale(locale)
           .build();
     } catch (Exception e) {
@@ -3228,17 +3226,16 @@ public class ExcelToPdfUtilTest {
   class UseSystemFonts {
 
     @Test
-    @DisplayName("falls back to regularFontPath when system font is not found")
+    @DisplayName("falls back to addRegularFontPath when system font is not found")
     void fallsBackToRegularFontPath(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       Path excel = createWorkbookWithUnknownFont(tempDir);
       Path pdf = tempDir.resolve("out.pdf");
-      // getRegularFontPath() is @Nullable but TEST_OPTIONS always has it set
-      Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-      Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
-      PdfGenerateOptions options = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
-          .regularFontPath(regularPath)
-          .boldFontPath(boldPath)
+      // TEST_OPTIONS always has at least one regular/bold font path registered
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
           .build();
 
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
@@ -3283,12 +3280,11 @@ public class ExcelToPdfUtilTest {
         try (var out = Files.newOutputStream(excel)) {
           wb.write(out);
         }
-        Path regularPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
-        Path boldPath = java.util.Objects.requireNonNull(TEST_OPTIONS.getBoldFontPath());
-        PdfGenerateOptions options = PdfGenerateOptions.builder()
-            .useSystemFonts(true)
-            .regularFontPath(regularPath)
-            .boldFontPath(boldPath)
+        Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+        Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
+        PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+            .addRegularFontPath(regularPath)
+            .addBoldFontPath(boldPath)
             .build();
         Path pdf = tempDir.resolve("fallback-fit.pdf");
         ExcelToPdfUtil.generate(excel, List.of("S"), pdf, options);
@@ -3311,12 +3307,58 @@ public class ExcelToPdfUtilTest {
         throw new RuntimeException(e);
       }
       Path pdf = tempDir.resolve("out.pdf");
-      PdfGenerateOptions options = PdfGenerateOptions.builder()
-          .useSystemFonts(true)
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
           .build();
 
       assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options))
           .isInstanceOf(PdfGenerateException.class);
+    }
+
+    @Test
+    @DisplayName("addRegularFontPath()/addBoldFontPath() called twice register two fallback "
+        + "entries, tried in order")
+    void additionalFallbackFontIsWiredIn(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createWorkbookWithUnknownFont(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
+          .build();
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+      }
+    }
+
+    @Test
+    @DisplayName("a cell using a font different from the workbook default still renders "
+        + "(per-cell font not found on system falls back to the default font)")
+    void cellSpecificFontFallsBackToDefaultFont(@TempDir Path tempDir)
+        throws IOException, PdfGenerateException {
+      Path excel = createWorkbookWithMixedCellFonts(tempDir);
+      Path pdf = tempDir.resolve("out.pdf");
+      Path regularPath = TEST_OPTIONS.getRegularFontPaths().get(0);
+      Path boldPath = TEST_OPTIONS.getBoldFontPaths().get(0);
+      PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+          .addRegularFontPath(regularPath)
+          .addBoldFontPath(boldPath)
+          .build();
+
+      ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, options);
+
+      try (PDDocument doc = Loader.loadPDF(pdf.toFile())) {
+        assertThat(doc.getNumberOfPages()).isEqualTo(1);
+        var stripper = new PDFTextStripper();
+        String text = stripper.getText(doc);
+        assertThat(text).contains("default font cell").contains("other font cell");
+      }
     }
   }
 
@@ -3561,7 +3603,7 @@ public class ExcelToPdfUtilTest {
 
     /** Computes MDW for NotoSansJP at 96 DPI — same as production with useSystemFonts=false. */
     private static int notoMdw() {
-      Path reg = java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath());
+      Path reg = TEST_OPTIONS.getRegularFontPaths().get(0);
       float fontSizePt = 11f; // POI fresh-workbook default
       return SystemFontLocator.computeMdw(reg, "", fontSizePt);
     }
@@ -4192,7 +4234,7 @@ public class ExcelToPdfUtilTest {
         var xSheet = (org.apache.poi.xssf.usermodel.XSSFSheet) wb.getSheet(sheetName);
         // MDW: NotoSansJP at 96 DPI (same as useSystemFonts=false in production)
         int mdw = SystemFontLocator.computeMdw(
-            java.util.Objects.requireNonNull(TEST_OPTIONS.getRegularFontPath()), "",
+            TEST_OPTIONS.getRegularFontPaths().get(0), "",
             wb.getFontAt(0).getFontHeightInPoints());
         float naturalColTotal = 0f;
         // Determine used column range from print area or sheet data
@@ -6173,6 +6215,44 @@ public class ExcelToPdfUtilTest {
       row.setHeightInPoints(15);
       row.createCell(0).setCellValue("test");
       Path path = dir.resolve("test.xlsx");
+      try (var out = Files.newOutputStream(path)) {
+        wb.write(out);
+      }
+      return path;
+    }
+  }
+
+  /**
+   * Creates a workbook whose default font (index 0) resolves normally (regular NotoSansJP
+   * name, which won't be found on the system either, so it falls back to the fallback font
+   * path), and where one cell explicitly uses a *different*, also-unresolvable font name.
+   * Used to verify that per-cell font resolution falls back gracefully without throwing when
+   * a cell's own font — not just the workbook default — can't be found on the system.
+   */
+  private Path createWorkbookWithMixedCellFonts(Path dir) throws IOException {
+    try (XSSFWorkbook wb = new XSSFWorkbook()) {
+      XSSFFont defaultFont = wb.getFontAt(0);
+      defaultFont.setFontName("__FictionalDefaultFontZZZ001__");
+      defaultFont.setFontHeightInPoints((short) 11);
+
+      XSSFFont otherFont = wb.createFont();
+      otherFont.setFontName("__FictionalOtherFontZZZ002__");
+      otherFont.setFontHeightInPoints((short) 11);
+      XSSFCellStyle otherStyle = wb.createCellStyle();
+      otherStyle.setFont(otherFont);
+
+      var sheet = wb.createSheet("Sheet1");
+      sheet.getPrintSetup().setPaperSize(PrintSetup.A4_PAPERSIZE);
+      var row0 = sheet.createRow(0);
+      row0.setHeightInPoints(15);
+      row0.createCell(0).setCellValue("default font cell");
+      var row1 = sheet.createRow(1);
+      row1.setHeightInPoints(15);
+      var otherCell = row1.createCell(0);
+      otherCell.setCellValue("other font cell");
+      otherCell.setCellStyle(otherStyle);
+
+      Path path = dir.resolve("mixed-fonts.xlsx");
       try (var out = Files.newOutputStream(path)) {
         wb.write(out);
       }

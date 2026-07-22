@@ -46,19 +46,19 @@ class FontManagerTest {
   class PathConstructor {
 
     @Test
-    @DisplayName("boldFontPath=null — bold and regular are the same font instance")
+    @DisplayName("boldFontPaths empty — bold and regular are the same font instance")
     void noBoldPathFallsBackToRegular() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         assertThat(fm.getFont(true)).isSameAs(fm.getFont(false));
       }
     }
 
     @Test
-    @DisplayName("boldFontPath set — bold and regular are different font instances")
+    @DisplayName("boldFontPaths set — bold and regular are different font instances")
     void withBoldPathReturnsDifferentFonts() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), boldFont());
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
         assertThat(fm.getFont(true)).isNotSameAs(fm.getFont(false));
       }
     }
@@ -74,19 +74,19 @@ class FontManagerTest {
       var ttf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, ttf, null, null, null);
+        var fm = new FontManager(doc, ttf, null, List.of(), List.of());
         assertThat(fm.getFont(false)).isNotNull();
         assertThat(fm.getFont(true)).isSameAs(fm.getFont(false));
       }
     }
 
     @Test
-    @DisplayName("fallbackRegularPath set — construction succeeds, font non-null")
+    @DisplayName("fallbackRegularPaths set — construction succeeds, font non-null")
     void fromTtfWithFallbackPath() throws Exception {
       var ttf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, ttf, null, boldFont(), null);
+        var fm = new FontManager(doc, ttf, null, List.of(boldFont()), List.of());
         assertThat(fm.getFont(false)).isNotNull();
       }
     }
@@ -99,7 +99,7 @@ class FontManagerTest {
       var boldTtf = Objects.requireNonNull(
           SystemFontLocator.loadTrueTypeFont(boldFont(), "Noto Sans JP Bold"));
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularTtf, boldTtf, null, null);
+        var fm = new FontManager(doc, regularTtf, boldTtf, List.of(), List.of());
         assertThat(fm.getFont(true)).isNotSameAs(fm.getFont(false));
       }
     }
@@ -113,7 +113,7 @@ class FontManagerTest {
     @DisplayName("NotoSansJP: ascent > 0, descent < 0")
     void ascentAndDescent() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         assertThat(fm.getTypoAscent()).isGreaterThan(0f);
         assertThat(fm.getTypoDescent()).isLessThan(0f);
       }
@@ -128,7 +128,7 @@ class FontManagerTest {
     @DisplayName("encodable char in NotoSansJP — returns primary font")
     void encodableCharReturnsPrimaryFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), boldFont());
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
         var font = fm.selectFont('A', false);
         assertThat(font).isSameAs(fm.getFont(false));
       }
@@ -138,7 +138,7 @@ class FontManagerTest {
     @DisplayName("bold=true, encodable char in NotoSansJP — returns bold font")
     void encodableCharReturnsBoldFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), boldFont());
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
         var font = fm.selectFont('A', true);
         assertThat(font).isSameAs(fm.getFont(true));
       }
@@ -148,7 +148,7 @@ class FontManagerTest {
     @DisplayName("no fallback, unencodable char — throws PdfGenerateException")
     void noFallbackUnencodableThrows() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         // U+E000 is Private Use Area — not included in any standard font
         assertThatThrownBy(() -> fm.selectFont(0xE000, false))
             .isInstanceOf(PdfGenerateException.class);
@@ -164,7 +164,7 @@ class FontManagerTest {
     @DisplayName("empty string — returns empty list")
     void emptyStringReturnsEmptyList() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         assertThat(fm.segmentText("", false)).isEmpty();
       }
     }
@@ -173,7 +173,7 @@ class FontManagerTest {
     @DisplayName("ASCII text — concatenated TextRuns match original string")
     void asciiTextReturnsRuns() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         List<FontManager.TextRun> runs = fm.segmentText("Hello", false);
         assertThat(runs).isNotEmpty();
         String combined = runs.stream().map(FontManager.TextRun::text).reduce("", String::concat);
@@ -185,10 +185,136 @@ class FontManagerTest {
     @DisplayName("bold=true — each TextRun uses bold font")
     void boldTextRunsUseBoldFont() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), boldFont());
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
         List<FontManager.TextRun> runs = fm.segmentText("Hi", true);
         assertThat(runs).isNotEmpty();
         runs.forEach(run -> assertThat(run.font()).isSameAs(fm.getFont(true)));
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("named font resolution (per-cell fonts)")
+  class NamedFontResolution {
+
+    @Test
+    @DisplayName("resolution disabled (default) — fontName is ignored, same as no-arg overload")
+    void disabledResolutionIgnoresFontName() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
+        assertThat(fm.getFont("Some Other Font", false)).isSameAs(fm.getFont(false));
+        assertThat(fm.getFont("Some Other Font", true)).isSameAs(fm.getFont(true));
+        assertThat(fm.getTypoAscent("Some Other Font")).isEqualTo(fm.getTypoAscent());
+        assertThat(fm.getTypoDescent("Some Other Font")).isEqualTo(fm.getTypoDescent());
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — falls back to default font")
+    void unknownFontNameFallsBackToDefault() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.getFont(fictionalName, false)).isSameAs(fm.getFont(false));
+        assertThat(fm.getFont(fictionalName, true)).isSameAs(fm.getFont(true));
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — typo metrics fall back to default")
+    void unknownFontNameTypoMetricsFallBackToDefault() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.getTypoAscent(fictionalName)).isEqualTo(fm.getTypoAscent());
+        assertThat(fm.getTypoDescent(fictionalName)).isEqualTo(fm.getTypoDescent());
+      }
+    }
+
+    @Test
+    @DisplayName("resolution enabled, unresolvable font name — selectFont/segmentText still work")
+    void unknownFontNameSelectAndSegmentFallBack() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, List.of(regularFont()), List.of(boldFont()));
+        fm.enableSystemFontResolution(true);
+        String fictionalName = "__FictionalFontForTestZZZ999__";
+        assertThat(fm.selectFont(fictionalName, 'A', false)).isSameAs(fm.getFont(false));
+        List<FontManager.TextRun> runs = fm.segmentText(fictionalName, "Hi", false);
+        assertThat(runs).isNotEmpty();
+        runs.forEach(run -> assertThat(run.font()).isSameAs(fm.getFont(false)));
+        assertThat(fm.getStringWidthWithFallback(fictionalName, "Hi", false, 12f))
+            .isEqualTo(fm.getStringWidthWithFallback("Hi", false, 12f));
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("multiple fallback fonts")
+  class MultipleFallbackFonts {
+
+    @Test
+    @DisplayName("Path constructor with multiple regular/bold entries — construction succeeds")
+    void multipleFallbacksConstructSuccessfully() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc,
+            List.of(regularFont(), regularFont(), regularFont()),
+            List.of(boldFont(), boldFont()));
+        assertThat(fm.getFont(false)).isNotNull();
+      }
+    }
+
+    @Test
+    @DisplayName("TrueTypeFont constructor with multiple fallback entries — construction succeeds")
+    void multipleFallbacksFromTtfConstructor() throws Exception {
+      var ttf = Objects.requireNonNull(
+          SystemFontLocator.loadTrueTypeFont(regularFont(), "Noto Sans JP"));
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc, ttf, null,
+            List.of(regularFont(), regularFont()), List.of(boldFont()));
+        assertThat(fm.getFont(false)).isNotNull();
+      }
+    }
+
+    @Test
+    @DisplayName("encodable char — resolved by primary font, fallbacks not needed")
+    void encodableCharUsesPrimary() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc,
+            List.of(regularFont(), regularFont()), List.of(boldFont()));
+        assertThat(fm.selectFont('A', false)).isSameAs(fm.getFont(false));
+      }
+    }
+
+    @Test
+    @DisplayName("regular: all fallbacks fail — throws with regular fallback descriptions listed")
+    void allRegularFallbacksFailThrowsWithDescriptions() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc,
+            List.of(regularFont(), regularFont(), regularFont()), List.of());
+        // U+E000 is Private Use Area — not included in any standard font, including
+        // NotoSansJP, so neither the primary nor any of the fallback entries can encode it.
+        assertThatThrownBy(() -> fm.selectFont(0xE000, false))
+            .isInstanceOf(PdfGenerateException.class)
+            .hasMessageContaining("Fallback regular fonts tried:");
+      }
+    }
+
+    @Test
+    @DisplayName("bold: bold fallbacks exhausted — message lists both bold and regular fonts "
+        + "tried (bold falls through to the regular list)")
+    void allBoldFallbacksFailFallsThroughToRegularDescriptions() throws Exception {
+      try (PDDocument doc = new PDDocument()) {
+        var fm = new FontManager(doc,
+            List.of(regularFont(), regularFont()), List.of(boldFont(), boldFont()));
+        // U+E000 is unencodable by every configured font (regular and bold alike), so the
+        // exception message must show that both the bold list and the regular fallback list
+        // (consulted after the bold list is exhausted) were tried.
+        assertThatThrownBy(() -> fm.selectFont(0xE000, true))
+            .isInstanceOf(PdfGenerateException.class)
+            .hasMessageContaining("Fallback bold fonts tried:")
+            .hasMessageContaining("Fallback regular fonts tried:");
       }
     }
   }
@@ -201,7 +327,7 @@ class FontManagerTest {
     @DisplayName("normal text — returns positive width")
     void normalTextReturnsPositiveWidth() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         float width = fm.getStringWidthWithFallback("Hello", false, 12f);
         assertThat(width).isGreaterThan(0f);
       }
@@ -211,7 +337,7 @@ class FontManagerTest {
     @DisplayName("empty string — returns 0")
     void emptyStringReturnsZero() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         assertThat(fm.getStringWidthWithFallback("", false, 12f)).isEqualTo(0f);
       }
     }
@@ -220,7 +346,7 @@ class FontManagerTest {
     @DisplayName("unencodable char — width estimated as fontSize (1em)")
     void unencodableCharEstimatedAsFontSize() throws Exception {
       try (PDDocument doc = new PDDocument()) {
-        var fm = new FontManager(doc, regularFont(), null);
+        var fm = new FontManager(doc, List.of(regularFont()), List.of());
         // U+E000 is unencodable — estimated width = fontSize (12f)
         String pua = new String(Character.toChars(0xE000));
         float width = fm.getStringWidthWithFallback(pua, false, 12f);
