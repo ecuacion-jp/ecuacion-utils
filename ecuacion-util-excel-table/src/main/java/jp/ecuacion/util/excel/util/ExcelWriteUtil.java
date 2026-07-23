@@ -28,7 +28,11 @@ import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ExceptionUtil;
 import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
 import jp.ecuacion.lib.core.violation.Violations;
+import jp.ecuacion.util.excel.exception.ExcelFeatureNotImplementedException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.ExternalWorkbookNotFoundException;
+import jp.ecuacion.util.excel.exception.FormulaEvaluationUnknownErrorException;
+import jp.ecuacion.util.excel.exception.SheetNotExistException;
 import jp.ecuacion.util.excel.table.ExcelTable.ContextContainer;
 import jp.ecuacion.util.excel.table.writer.ExcelTableWriter;
 import org.apache.poi.EncryptedDocumentException;
@@ -125,7 +129,7 @@ public class ExcelWriteUtil {
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new ExcelTableException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
+      throw new SheetNotExistException(sheetName);
     }
 
     int poiBasisTableStartColumnNumber = writer.getPoiBasisDeterminedTableStartColumnNumber();
@@ -373,17 +377,15 @@ public class ExcelWriteUtil {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
 
-      Object[] args = new Object[] {sheetName, cellAddress, reason, fileInfoArg};
-      throw new ExcelTableException(MSG_PREFIX + "NotImplementedException.message", args).cell(cell)
-          .cause(ex);
+      throw new ExcelFeatureNotImplementedException(sheetName, cellAddress, reason, fileInfoArg)
+          .cell(cell).cause(ex);
 
     } catch (IllegalStateException ex) {
       if (ex.getCause() != null && Objects.requireNonNull(ex.getCause()).getCause() != null
           && Objects.requireNonNull(ex.getCause())
               .getCause() instanceof WorkbookNotFoundException) {
-        Object[] args = new Object[] {sheetName, cellAddress, cell.getCellFormula(), fileInfoArg};
-        throw new ExcelTableException(MSG_PREFIX + "WorkbookNotFoundException.message", args)
-            .cell(cell).cause(ex);
+        throw new ExternalWorkbookNotFoundException(sheetName, cellAddress,
+            cell.getCellFormula(), fileInfoArg).cell(cell).cause(ex);
 
       } else {
         throwExceptionForUnknownException(ex, cell, fileInfo);
@@ -401,10 +403,9 @@ public class ExcelWriteUtil {
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
     Object fileInfoArg = getFileInfoString(fileInfo);
-    Object[] args = new Object[] {fileInfoArg, cell.getSheet().getSheetName(),
-        cell.getAddress().formatAsString(), sb.toString()};
 
-    throw new ExcelTableException(MSG_PREFIX + "DetailUnknown.message", args).cell(cell).cause(ex);
+    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell.getSheet().getSheetName(),
+        cell.getAddress().formatAsString(), sb.toString()).cell(cell).cause(ex);
   }
 
   private static Object getFileInfoString(String fileInfo) {

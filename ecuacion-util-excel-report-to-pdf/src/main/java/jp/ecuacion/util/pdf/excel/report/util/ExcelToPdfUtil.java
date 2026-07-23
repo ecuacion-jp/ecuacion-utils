@@ -17,11 +17,15 @@ package jp.ecuacion.util.pdf.excel.report.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import jp.ecuacion.lib.core.util.LocaleUtil;
+import jp.ecuacion.util.pdf.excel.report.exception.FontLoadFailedException;
 import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.excel.report.exception.SheetNotExistException;
+import jp.ecuacion.util.pdf.excel.report.exception.SystemFontNotFoundException;
 import jp.ecuacion.util.pdf.excel.report.internal.FontManager;
 import jp.ecuacion.util.pdf.excel.report.internal.SheetRenderer;
 import jp.ecuacion.util.pdf.excel.report.internal.SystemFontLocator;
@@ -62,10 +66,14 @@ public class ExcelToPdfUtil {
    * @param sheetNames list of sheet names to include in the PDF, in order
    * @param outputPath path to the output PDF file
    * @param options parameters including font paths and optional passwords
-   * @throws PdfGenerateException if an error occurs during PDF generation
+   * @throws PdfGenerateException if the Excel file or the font environment prevents PDF
+   *     generation (e.g. a referenced sheet or font is missing, or a character cannot be
+   *     rendered)
+   * @throws UncheckedIOException if a technical failure occurs while reading the Excel file or
+   *     writing the PDF file
    */
   public static void generate(Path excelPath, List<String> sheetNames, Path outputPath,
-      PdfGenerateOptions options) throws PdfGenerateException {
+      PdfGenerateOptions options) {
 
     String excelPassword = options.getExcelPassword();
     String pdfPassword = options.getPdfPassword();
@@ -129,9 +137,7 @@ public class ExcelToPdfUtil {
               mdw = SystemFontLocator.computeExcelMdw(regularPaths.get(0), "", fontSizePt);
             }
           } else {
-            throw new PdfGenerateException("System font '" + defaultFontName + "' not found. "
-                + "Install the font or register a fallback via addRegularFontPath() in "
-                + "PdfGenerateOptions.");
+            throw new SystemFontNotFoundException(defaultFontName);
           }
         } else {
           Path fontFile = systemFontFile.get();
@@ -140,8 +146,7 @@ public class ExcelToPdfUtil {
           }
           var regularTtf = SystemFontLocator.loadTrueTypeFont(fontFile, defaultFontName);
           if (regularTtf == null) {
-            throw new PdfGenerateException(
-                "Failed to load font '" + defaultFontName + "' from " + fontFile);
+            throw new FontLoadFailedException(defaultFontName, fontFile);
           }
           var boldFontFile = SystemFontLocator.findFontFile(defaultFontName + " Bold");
           var boldTtf = boldFontFile.isPresent()
@@ -173,7 +178,7 @@ public class ExcelToPdfUtil {
       for (String sheetName : sheetNames) {
         int sheetIndex = workbook.getSheetIndex(sheetName);
         if (sheetIndex == -1) {
-          throw new PdfGenerateException("Sheet not found: '" + sheetName + "'");
+          throw new SheetNotExistException(sheetName);
         }
         renderer.render(workbook, sheetIndex);
       }
@@ -192,10 +197,8 @@ public class ExcelToPdfUtil {
 
       document.save(outputPath.toFile());
 
-    } catch (PdfGenerateException e) {
-      throw e;
     } catch (IOException e) {
-      throw new PdfGenerateException("Failed to generate PDF from '" + excelPath + "'", e);
+      throw new UncheckedIOException("Failed to generate PDF from '" + excelPath + "'", e);
     }
   }
 

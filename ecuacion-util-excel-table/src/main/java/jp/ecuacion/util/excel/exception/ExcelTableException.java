@@ -25,9 +25,16 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Exception thrown when a table-related error occurs in {@code ecuacion-util-excel-table}.
+ * Is the common superclass of exceptions thrown when a table-related error occurs in
+ * {@code ecuacion-util-excel-table}.
+ *
+ * <p>Each specific failure is represented by one of the concrete subclasses in this package
+ * (e.g. {@link SheetNotExistException}, {@link CellContainsErrorException}), so callers can
+ * {@code catch} the specific case they want to handle differently instead of branching on a
+ * {@code messageId} string. Catching this class itself still works for callers that only want
+ * to handle "some table error" generically.</p>
  */
-public class ExcelTableException extends ViolationException {
+public abstract class ExcelTableException extends ViolationException {
 
   private static final long serialVersionUID = 1L;
 
@@ -41,7 +48,7 @@ public class ExcelTableException extends ViolationException {
    * @param messageId messageId
    * @param messageArgs messageArgs
    */
-  public ExcelTableException(String messageId, @Nullable Object... messageArgs) {
+  protected ExcelTableException(String messageId, @Nullable Object... messageArgs) {
     super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 

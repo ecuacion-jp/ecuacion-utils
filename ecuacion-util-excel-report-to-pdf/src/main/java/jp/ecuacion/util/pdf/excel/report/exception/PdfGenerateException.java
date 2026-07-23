@@ -15,29 +15,43 @@
  */
 package jp.ecuacion.util.pdf.excel.report.exception;
 
+import jp.ecuacion.lib.core.exception.ViolationException;
+import jp.ecuacion.lib.core.violation.BusinessViolation;
+import jp.ecuacion.lib.core.violation.Violations;
+import org.jspecify.annotations.Nullable;
+
 /**
- * Thrown when an error occurs during PDF generation from an Excel file.
+ * Is the common superclass of exceptions thrown when PDF generation fails for a reason that may
+ * originate from the given Excel file or from the runtime environment (e.g. a font it depends
+ * on), as opposed to a purely technical failure such as an {@code IOException} from the
+ * underlying libraries.
+ *
+ * <p>Each specific failure is represented by one of the concrete subclasses in this package
+ * (e.g. {@link SheetNotExistException}, {@link CharacterNotRenderableException}), so callers can
+ * {@code catch} the specific case they want to handle differently instead of branching on a
+ * {@code messageId} string. Catching this class itself still works for callers that only want
+ * to handle "some PDF generation problem" generically.</p>
  */
-public class PdfGenerateException extends Exception {
+public abstract class PdfGenerateException extends ViolationException {
 
   private static final long serialVersionUID = 1L;
 
   /**
-   * Constructs a new exception with the specified detail message.
+   * Constructs an instance.
    *
-   * @param message detail message
+   * @param messageId messageId
+   * @param messageArgs messageArgs
    */
-  public PdfGenerateException(String message) {
-    super(message);
+  protected PdfGenerateException(String messageId, @Nullable Object... messageArgs) {
+    super(new Violations().add(new BusinessViolation(messageId, messageArgs)));
   }
 
   /**
-   * Constructs a new exception with the specified detail message and cause.
+   * Gets messageId.
    *
-   * @param message detail message
-   * @param cause the cause
+   * @return messageId
    */
-  public PdfGenerateException(String message, Throwable cause) {
-    super(message, cause);
+  public String getMessageId() {
+    return getViolations().getBusinessViolations().get(0).getMessageId();
   }
 }

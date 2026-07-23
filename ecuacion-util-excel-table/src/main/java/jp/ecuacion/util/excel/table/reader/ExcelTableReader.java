@@ -29,8 +29,10 @@ import java.util.Set;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
+import jp.ecuacion.util.excel.exception.ColumnSizeIsZeroException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.exception.LoopBreakException;
+import jp.ecuacion.util.excel.exception.SheetNotExistException;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import jp.ecuacion.util.excel.util.ExcelReadUtil;
@@ -317,9 +319,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     int size = columnNumber - poiBasisDeterminedTableStartColumnNumber;
 
     if (size == 0) {
-      throw new ExcelTableException("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message",
-          sheet.getSheetName(), Integer.toString(poiBasisDeterminedTableStartRowNumber + 1),
-          Integer.toString(poiBasisDeterminedTableStartColumnNumber + 1)).sheet(sheet);
+      throw new ColumnSizeIsZeroException(sheet.getSheetName(),
+          poiBasisDeterminedTableStartRowNumber + 1, poiBasisDeterminedTableStartColumnNumber + 1)
+          .sheet(sheet);
     }
 
     return size;
@@ -437,7 +439,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     Sheet sheet = workbook.getSheet(sheetName);
 
     if (sheet == null) {
-      throw new ExcelTableException("jp.ecuacion.util.excel.SheetNotExist.message", sheetName);
+      throw new SheetNotExistException(sheetName);
     }
 
     Integer tableRowSize =

@@ -22,8 +22,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.excel.report.exception.CharacterNotRenderableException;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -145,13 +146,13 @@ class FontManagerTest {
     }
 
     @Test
-    @DisplayName("no fallback, unencodable char — throws PdfGenerateException")
+    @DisplayName("no fallback, unencodable char — throws CharacterNotRenderableException")
     void noFallbackUnencodableThrows() throws Exception {
       try (PDDocument doc = new PDDocument()) {
         var fm = new FontManager(doc, List.of(regularFont()), List.of());
         // U+E000 is Private Use Area — not included in any standard font
         assertThatThrownBy(() -> fm.selectFont(0xE000, false))
-            .isInstanceOf(PdfGenerateException.class);
+            .isInstanceOf(CharacterNotRenderableException.class);
       }
     }
   }
@@ -296,8 +297,9 @@ class FontManagerTest {
         // U+E000 is Private Use Area — not included in any standard font, including
         // NotoSansJP, so neither the primary nor any of the fallback entries can encode it.
         assertThatThrownBy(() -> fm.selectFont(0xE000, false))
-            .isInstanceOf(PdfGenerateException.class)
-            .hasMessageContaining("Fallback regular fonts tried:");
+            .asInstanceOf(InstanceOfAssertFactories.throwable(CharacterNotRenderableException.class))
+            .satisfies(e -> assertThat(e.getViolations().getBusinessViolations().get(0)
+                .getMessageArgs()[3]).asString().contains("regular:"));
       }
     }
 
@@ -309,12 +311,12 @@ class FontManagerTest {
         var fm = new FontManager(doc,
             List.of(regularFont(), regularFont()), List.of(boldFont(), boldFont()));
         // U+E000 is unencodable by every configured font (regular and bold alike), so the
-        // exception message must show that both the bold list and the regular fallback list
-        // (consulted after the bold list is exhausted) were tried.
+        // exception's fallback description must show that both the bold list and the regular
+        // fallback list (consulted after the bold list is exhausted) were tried.
         assertThatThrownBy(() -> fm.selectFont(0xE000, true))
-            .isInstanceOf(PdfGenerateException.class)
-            .hasMessageContaining("Fallback bold fonts tried:")
-            .hasMessageContaining("Fallback regular fonts tried:");
+            .asInstanceOf(InstanceOfAssertFactories.throwable(CharacterNotRenderableException.class))
+            .satisfies(e -> assertThat(e.getViolations().getBusinessViolations().get(0)
+                .getMessageArgs()[3]).asString().contains("bold:").contains("regular:"));
       }
     }
   }

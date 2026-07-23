@@ -22,6 +22,7 @@ import java.util.List;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.enums.NoDataString;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.HeaderCellIsBlankException;
 import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -252,9 +253,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
         if (val == null || val.isEmpty()) {
           int excelRow = poiBasisHeaderStartRow + rowIdx + 1;
           int excelCol = tableStartColumnNumber + colIdx;
-          throw new ExcelTableException(
-              "jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message",
-              getSheetName(), Integer.toString(excelRow), Integer.toString(excelCol));
+          throw new HeaderCellIsBlankException(getSheetName(), excelRow, excelCol);
         }
       }
     }

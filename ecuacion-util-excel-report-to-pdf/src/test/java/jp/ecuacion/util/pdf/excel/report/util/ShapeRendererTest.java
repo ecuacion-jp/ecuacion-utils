@@ -20,12 +20,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import javax.imageio.ImageIO;
-import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
 import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -161,7 +161,7 @@ public class ShapeRendererTest {
     prstGeom.setPrst(type);
   }
 
-  private static int generatePdfAndCount(Path excel) throws PdfGenerateException {
+  private static int generatePdfAndCount(Path excel) throws IOException {
     // The PDF is rendered to memory only via in-memory path — but ExcelToPdfUtil.generate()
     // needs a file path. Use a sibling file.
     Path pdf = excel.resolveSibling("out.pdf");
