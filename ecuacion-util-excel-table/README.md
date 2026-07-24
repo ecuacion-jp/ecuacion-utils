@@ -46,6 +46,7 @@ That's all. Name the sheet, list the expected headers, and get a typed list back
 
 ## Documentation
 
+- [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home) — Official reference documentation
 - [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-table/latest/jp.ecuacion.util.excel/module-summary.html)
 
 ## Sample Code
@@ -73,36 +74,3 @@ The description of dependent `ecuacion` modules is as follows.
     <version>x.x.x</version>
 </dependency>
 ```
-
-## Features
-
-We'll use the following table as an example. Let's say this table is in `Sheet1` sheet of `sample.xlsx`, the position of the top left cell of the table is `A1`.
-
-| name | age  | phone number   |
-| ---- | ---- | ----           |
-| John | 30   | (+01)123456789 |
-| Ken  | 40   | (+81)987654321 |
-
-### Read Values In Excel Cells As String
-
-The following features read values of cells in the excel file and change into `String` datatype. Even if the value is defined as a number (like 12.3) in excel file, obtained values becomes `String`.  
-
-#### Read table values as strings
-
-```java
-List<List<String>> rows = new StringOneLineHeaderExcelTableReader(
-    "Sheet1", new String[]{"name", "age", "phone number"})
-    .read("sample.xlsx");
-```
-
-Each inner list contains the values of one data row in the header order.
-
-#### Read table values into Java beans
-
-```java
-List<PersonBean> people = new StringOneLineHeaderExcelTableToBeanReader<>(PersonBean.class,
-    "Sheet1", new String[]{"name", "age", "phone number"})
-    .readToBean("sample.xlsx");
-```
-
-For more examples — free-format tables, cell-level access, writing — see [Sample Code](#sample-code) above.
