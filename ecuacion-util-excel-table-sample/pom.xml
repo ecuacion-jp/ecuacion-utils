@@ -45,14 +45,14 @@
 		<dependency>
 			<groupId>jp.ecuacion.lib</groupId>
 			<artifactId>ecuacion-lib-core</artifactId>
-			<version>16.0.0-rc.3</version>
+			<version>16.0.0-rc.8</version>
 		</dependency>
 
 		<!-- ecuacion-util -->
 		<dependency>
 			<groupId>jp.ecuacion.util</groupId>
 			<artifactId>ecuacion-util-excel-table</artifactId>
-			<version>5.0.0-beta.2</version>
+			<version>5.0.0-rc.1</version>
 		</dependency>
 
 		<!-- logging -->

@@ -30,10 +30,9 @@ public class InvoiceToPdfSample {
         InvoiceToPdfSample.class.getResource("/fonts/NotoSansJP/NotoSansJP-Regular.ttf"));
     var bold = Objects.requireNonNull(
         InvoiceToPdfSample.class.getResource("/fonts/NotoSansJP/NotoSansJP-Bold.ttf"));
-    PdfGenerateOptions options = PdfGenerateOptions.builder()
-        .useSystemFonts(true)
-        .regularFontPath(Path.of(reg.toURI()))  // fallback when no system font is found
-        .boldFontPath(Path.of(bold.toURI()))
+    PdfGenerateOptions options = PdfGenerateOptions.builderForSystemFonts()
+        .addRegularFontPath(Path.of(reg.toURI()))  // fallback when no system font is found
+        .addBoldFontPath(Path.of(bold.toURI()))
         .build();
 
     ExcelToPdfUtil.generate(Path.of("test-data/invoice-1.xlsx"), List.of("invoice"),
