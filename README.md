@@ -16,7 +16,11 @@
 - `ecuacion-util-excel-table` — Read/write Excel tables with header or free-format layouts (`List<List<String>>`, Bean mapping, POI Cell access)
 - `ecuacion-util-excel-report-to-pdf` — Generate PDF reports from Excel templates
 
-This library depends on `ecuacion-lib`.
+This library depends on `ecuacion-lib`. Major versions are compatible as follows:
+
+| ecuacion-utils | ecuacion-lib |
+| --- | --- |
+| 5.x | 16.x |
 
 ## Versioning
 
@@ -52,6 +56,11 @@ This project follows the spirit of [Semantic Versioning](https://semver.org/). M
         <version>x.x.x</version>
     </dependency>
     ```
+
+    > **Note:** `ecuacion-lib-validation` is listed here rather than the directly-required
+    > `ecuacion-lib-core`, so that `ecuacion-lib-validation`'s custom validators are usable
+    > out of the box with no extra setup. `ecuacion-lib-core` is included transitively
+    > (`ecuacion-lib-validation` depends on it).
 
 2. Add the required external modules to your `pom.xml`.
    (Check the `Dependent External Libraries > Manual Load Needed Libraries` section of the `README` in the module you want to add to your project.)
