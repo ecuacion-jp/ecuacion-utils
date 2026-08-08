@@ -71,6 +71,22 @@
 
 	</dependencies>
 
+	<!-- Imports version pins for the unversioned dependencies above (hibernate-validator,
+		jakarta.el). See ecuacion-lib-bom's own pom.xml (in the ecuacion-lib repository) for why
+		this is a BOM import here rather than a pin in ecuacion-lib-dependencies (an ancestor of
+		this module's <parent>). -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>jp.ecuacion.lib</groupId>
+				<artifactId>ecuacion-lib-bom</artifactId>
+				<version>${ecuacion-lib.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
 		<resources>
 			<!-- version_ecuacion-utils.properties: @project.version@ is replaced with the build version. -->
