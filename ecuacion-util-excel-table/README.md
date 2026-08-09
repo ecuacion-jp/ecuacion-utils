@@ -41,7 +41,8 @@ That's all. Name the sheet, list the expected headers, and get a typed list back
 
 ### Manual Load Needed Libraries
 
-- (any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
+- (If you use validation features, any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation is needed. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
+- (If you use `MailUtil`, any `jakarta.mail:jakarta.mail-api` compatible Jakarta Mail implementation is needed. `org.eclipse.angus:angus-mail` is recommended.)
 - (any `org.slf4j:slf4j-api` compatible logging implementation. `ch.qos.logback:logback-classic` is recommended.)
 
 ## Documentation
