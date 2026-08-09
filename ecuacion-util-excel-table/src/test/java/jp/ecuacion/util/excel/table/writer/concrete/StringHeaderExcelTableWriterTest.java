@@ -55,11 +55,11 @@ public class StringHeaderExcelTableWriterTest {
   }
 
   @Nested
-  @DisplayName("ヘッダー行の検証と書き込み")
+  @DisplayName("Header row validation and writing")
   class HeaderWrite {
 
     @Test
-    @DisplayName("ヘッダー一致 → ヘッダーは上書きされず、データがヘッダー行の次から書き込まれる")
+    @DisplayName("header matches → header not overwritten, data written starting after the header row")
     void writesAfterHeader() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -78,7 +78,7 @@ public class StringHeaderExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("ヘッダー不一致 → ExcelTableException（書き込みは行われない）")
+    @DisplayName("header mismatch → ExcelTableException (no write performed)")
     void headerMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -95,30 +95,30 @@ public class StringHeaderExcelTableWriterTest {
   }
 
   @Nested
-  @DisplayName("複数行ヘッダーの書き込み")
+  @DisplayName("Multi-row header writing")
   class MultiRowHeaderWrite {
 
     @Test
-    @DisplayName("2行ヘッダーが書き込まれる")
+    @DisplayName("two-row header is written")
     void writeTwoRowHeaders() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         // pre-write template header matching what we'll validate against
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1)
             .write(wb, List.of(List.of("1", "Alice", "25")));
 
         // header rows are preserved
-        assertThat(getCellValue(sheet, 0, 1)).isEqualTo("個人情報");
-        assertThat(getCellValue(sheet, 1, 1)).isEqualTo("名前");
+        assertThat(getCellValue(sheet, 0, 1)).isEqualTo("PersonalInfo");
+        assertThat(getCellValue(sheet, 1, 1)).isEqualTo("Name");
         // data row written after 2 header rows
         assertThat(getCellValue(sheet, 2, 0)).isEqualTo("1");
         assertThat(getCellValue(sheet, 2, 1)).isEqualTo("Alice");
@@ -127,17 +127,17 @@ public class StringHeaderExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("writeHeaders で同行連続セルが横結合される")
+    @DisplayName("writeHeaders horizontally merges consecutive same-value cells in a row")
     void horizontalMergeOnSameValues() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1)
             .writeHeaders(sheet);
 
-        // "個人情報" spans cols 1-2 in row 0 → merged
+        // "PersonalInfo" spans cols 1-2 in row 0 → merged
         boolean merged = sheet.getMergedRegions().stream()
             .anyMatch(r -> r.getFirstRow() == 0 && r.getLastRow() == 0
                 && r.getFirstColumn() == 1 && r.getLastColumn() == 2);
@@ -146,13 +146,13 @@ public class StringHeaderExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("writeHeaders で全行同値の列が縦結合される")
+    @DisplayName("writeHeaders vertically merges a column with the same value across all rows")
     void verticalMergeOnAllRowsSameValue() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
 
         new StringHeaderExcelTableWriter("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1)
             .writeHeaders(sheet);
 

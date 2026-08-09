@@ -113,8 +113,8 @@ public class StringHeaderExcelTableFromBeanWriterTest {
 
   static class MultiHeaderBean extends StringExcelTableBean {
     @ExcelColumn({"#", "#"}) @Nullable Integer rowNum;
-    @ExcelColumn({"個人情報", "名前"}) @Nullable String name;
-    @ExcelColumn({"個人情報", "年齢"}) @Nullable Integer age;
+    @ExcelColumn({"PersonalInfo", "Name"}) @Nullable String name;
+    @ExcelColumn({"PersonalInfo", "Age"}) @Nullable Integer age;
 
     MultiHeaderBean(List<String> colList) {
       super(colList);
@@ -146,11 +146,11 @@ public class StringHeaderExcelTableFromBeanWriterTest {
   // --- tests ---
 
   @Nested
-  @DisplayName("フィールド順マッピング (getFieldNameArray)")
+  @DisplayName("Field-order mapping (getFieldNameArray)")
   class FieldNameArrayMapping {
 
     @Test
-    @DisplayName("writeFromBean → フィールド順にセルへ書き込まれる")
+    @DisplayName("writeFromBean → fields are written to cells in field order")
     void writesFieldsInOrder() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -179,11 +179,11 @@ public class StringHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("@ExcelColumn アノテーション")
+  @DisplayName("@ExcelColumn annotation")
   class ExcelColumnAnnotation {
 
     @Test
-    @DisplayName("@ExcelColumn でラベル一致 → 正しいフィールドへマッピング")
+    @DisplayName("@ExcelColumn label match → maps to the correct field")
     void annotatedBeanMappedByLabel() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -208,7 +208,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("Excel の列順がヘッダーと逆でも @ExcelColumn でラベル一致マッピング")
+    @DisplayName("even when Excel column order is reversed from the header, @ExcelColumn maps by label")
     void columnOrderIndependent() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -233,7 +233,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("スーパークラスの @ExcelColumn フィールドも継承してマッピング")
+    @DisplayName("superclass @ExcelColumn fields are also inherited and mapped")
     void inheritedAnnotation() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -259,11 +259,11 @@ public class StringHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("日時フォーマット")
+  @DisplayName("Date/time formatting")
   class DateTimeFormatting {
 
     @Test
-    @DisplayName("LocalDate → デフォルト ISO フォーマット (yyyy-MM-dd) で書き込まれる")
+    @DisplayName("LocalDate → written in default ISO format (yyyy-MM-dd)")
     void localDateDefaultFormat() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -286,7 +286,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("defaultDateTimeFormat 指定 → カスタムフォーマットで書き込まれる")
+    @DisplayName("defaultDateTimeFormat specified → written in custom format")
     void localDateCustomFormat() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -310,7 +310,7 @@ public class StringHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("LocalDateTime は dateTimeFormatter で、LocalTime は toString() で書き込まれる")
+    @DisplayName("LocalDateTime is written via dateTimeFormatter, LocalTime via toString()")
     void localDateTimeAndLocalTime() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -339,27 +339,27 @@ public class StringHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("複数行ヘッダー (StringHeaderExcelTableFromBeanWriter)")
+  @DisplayName("Multi-row header (StringHeaderExcelTableFromBeanWriter)")
   class MultiRowHeader {
 
     @Test
-    @DisplayName("2行ヘッダーと @ExcelColumn({group, col}) → 正しくマッピングして書き込まれる")
+    @DisplayName("two-row header with @ExcelColumn({group, col}) → maps correctly and writes")
     void twoRowHeaderWithExcelColumn() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         template = buildTemplate(wb);
       }
       Path output = tempDir.resolve("output.xlsx");
 
       var writer = new StringHeaderExcelTableFromBeanWriter<MultiHeaderBean>("Sheet1",
-          new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}});
+          new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}});
       writer.tableStartRowNumber(1);
       writer.writeFromBean(template.toString(), output.toString(),
           List.of(new MultiHeaderBean(List.of("1", "Alice", "25"))));

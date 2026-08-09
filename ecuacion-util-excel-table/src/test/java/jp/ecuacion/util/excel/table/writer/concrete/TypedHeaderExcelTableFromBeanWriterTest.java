@@ -131,11 +131,11 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
   // --- tests ---
 
   @Nested
-  @DisplayName("フィールド順マッピング (getFieldNameArray)")
+  @DisplayName("Field-order mapping (getFieldNameArray)")
   class FieldNameArrayMapping {
 
     @Test
-    @DisplayName("writeFromBean → 各フィールドがネイティブ型のままセルへ書き込まれる")
+    @DisplayName("writeFromBean → each field is written to the cell in its native type")
     void writesNativeTypedValues() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -166,11 +166,11 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("@ExcelColumn アノテーション")
+  @DisplayName("@ExcelColumn annotation")
   class ExcelColumnAnnotation {
 
     @Test
-    @DisplayName("Excel の列順がヘッダーと逆でも @ExcelColumn でラベル一致マッピングして書き込まれる")
+    @DisplayName("even when Excel column order is reversed from the header, @ExcelColumn maps by label and writes correctly")
     void columnOrderIndependent() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -197,11 +197,11 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("日付セルの書式保証")
+  @DisplayName("Date cell format guarantee")
   class DateCellFormatting {
 
     @Test
-    @DisplayName("テンプレートのセルに日付書式が無い → デフォルト書式 (yyyy-mm-dd) が適用され日付として書き込まれる")
+    @DisplayName("template cell has no date format → default format (yyyy-mm-dd) is applied and written as a date")
     void appliesDefaultDateFormatWhenAbsent() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -226,7 +226,7 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("テンプレートのセルに既に日付書式がある → その書式を変更せず値のみ書き込まれる")
+    @DisplayName("template cell already has a date format → only the value is written without changing the format")
     void keepsExistingDateFormat() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -254,7 +254,7 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("LocalDateTime かつ書式なし → デフォルト書式 (yyyy-mm-dd hh:mm:ss) が適用される")
+    @DisplayName("LocalDateTime with no format → default format (yyyy-mm-dd hh:mm:ss) is applied")
     void appliesDefaultDateTimeFormatWhenAbsent() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -279,7 +279,7 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("defaultDateFormat 指定 → 書式の無いセルにはカスタム書式が適用される")
+    @DisplayName("defaultDateFormat specified → custom format is applied to cells without a format")
     void customDefaultDateFormat() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
@@ -304,13 +304,13 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
   }
 
   @Nested
-  @DisplayName("複数行ヘッダー (TypedHeaderExcelTableFromBeanWriter)")
+  @DisplayName("Multi-row header (TypedHeaderExcelTableFromBeanWriter)")
   class MultiRowHeader {
 
     static class MultiHeaderBean extends TypedExcelTableBean {
       @ExcelColumn({"#", "#"}) @Nullable Integer rowNum;
-      @ExcelColumn({"個人情報", "名前"}) @Nullable String name;
-      @ExcelColumn({"個人情報", "年齢"}) @Nullable Integer age;
+      @ExcelColumn({"PersonalInfo", "Name"}) @Nullable String name;
+      @ExcelColumn({"PersonalInfo", "Age"}) @Nullable Integer age;
 
       public MultiHeaderBean(List<Object> colList) {
         super(colList);
@@ -318,23 +318,23 @@ public class TypedHeaderExcelTableFromBeanWriterTest {
     }
 
     @Test
-    @DisplayName("2行ヘッダーと @ExcelColumn({group, col}) → 正しくマッピングして書き込まれる")
+    @DisplayName("two-row header with @ExcelColumn({group, col}) → maps correctly and writes")
     void twoRowHeaderWithExcelColumn() throws Exception {
       Path template;
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setStringCell(sheet, 0, 0, "#");
-        setStringCell(sheet, 0, 1, "個人情報");
-        setStringCell(sheet, 0, 2, "個人情報");
+        setStringCell(sheet, 0, 1, "PersonalInfo");
+        setStringCell(sheet, 0, 2, "PersonalInfo");
         setStringCell(sheet, 1, 0, "#");
-        setStringCell(sheet, 1, 1, "名前");
-        setStringCell(sheet, 1, 2, "年齢");
+        setStringCell(sheet, 1, 1, "Name");
+        setStringCell(sheet, 1, 2, "Age");
         template = buildTemplate(wb);
       }
       Path output = tempDir.resolve("output.xlsx");
 
       var writer = new TypedHeaderExcelTableFromBeanWriter<MultiHeaderBean>("Sheet1",
-          new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}});
+          new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}});
       writer.tableStartRowNumber(1);
       writer.writeFromBean(template.toString(), output.toString(),
           List.of(new MultiHeaderBean(List.of(1.0, "Alice", 25.0))));

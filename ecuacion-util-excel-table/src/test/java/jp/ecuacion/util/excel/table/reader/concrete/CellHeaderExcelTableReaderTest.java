@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
 // SheetNotExist, etc.) are covered by StringFreeExcelTableReaderTest.
 // Header validation behaviors are covered by StringHeaderExcelTableReaderTest.
 @DisplayName("CellOneLineHeaderExcelTableReader"
-    + " ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照"
-    + "、ヘッダー検証は StringHeaderExcelTableReaderTest 参照")
+    + " (Note: see StringFreeExcelTableReaderTest for common base-class behavior"
+    + ", and StringHeaderExcelTableReaderTest for header validation)")
 public class CellHeaderExcelTableReaderTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, @Nullable String value) {
@@ -49,11 +49,11 @@ public class CellHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("Cell 型固有の振る舞い")
+  @DisplayName("Cell-type-specific behavior")
   class CellSpecific {
 
     @Test
-    @DisplayName("ヘッダー行 + データ行 → ヘッダーは除外され Cell オブジェクトのリストで返る")
+    @DisplayName("header row + data rows → header excluded, returns a list of Cell objects")
     void returnsCellObjectsWithoutHeader() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");

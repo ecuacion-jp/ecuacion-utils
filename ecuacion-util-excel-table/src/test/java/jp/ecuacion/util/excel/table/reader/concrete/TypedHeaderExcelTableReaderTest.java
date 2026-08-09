@@ -109,11 +109,11 @@ public class TypedHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("セルの型変換")
+  @DisplayName("Cell type conversion")
   class CellTypeConversion {
 
     @Test
-    @DisplayName("文字列セル → String")
+    @DisplayName("string cell → String")
     void stringCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -126,7 +126,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("空文字列セル → null")
+    @DisplayName("empty string cell → null")
     void emptyStringCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -141,7 +141,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("数値セル（日付書式なし） → Double")
+    @DisplayName("numeric cell (no date format) → Double")
     void numericCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -154,7 +154,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("日付書式の数値セル（時刻が0時0分） → LocalDate")
+    @DisplayName("date-formatted numeric cell (time is midnight) → LocalDate")
     void dateFormattedCellAtMidnight() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -167,7 +167,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("日付書式の数値セル（時刻あり） → LocalDateTime")
+    @DisplayName("date-formatted numeric cell (with time) → LocalDateTime")
     void dateFormattedCellWithTime() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -181,7 +181,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("真偽値セル → Boolean")
+    @DisplayName("boolean cell → Boolean")
     void booleanCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -194,7 +194,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("空白セル → null")
+    @DisplayName("blank cell → null")
     void blankCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -209,7 +209,7 @@ public class TypedHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("エラーセル → ExcelTableException")
+    @DisplayName("error cell → ExcelTableException")
     void errorCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -226,11 +226,11 @@ public class TypedHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("正常取得")
+  @DisplayName("normal read")
   class NormalRead {
 
     @Test
-    @DisplayName("複数列・複数行 → ヘッダーは除外され型変換済みの値で返る")
+    @DisplayName("multiple columns and rows → header excluded, returns type-converted values")
     void multiColumnMultiRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
