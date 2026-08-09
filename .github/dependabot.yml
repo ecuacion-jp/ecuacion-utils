@@ -3,7 +3,9 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "cron"
+      cronjob: "0 9 20 * *"
+      timezone: "Asia/Tokyo"
     target-branch: "develop"
     groups:
       dependencies:
