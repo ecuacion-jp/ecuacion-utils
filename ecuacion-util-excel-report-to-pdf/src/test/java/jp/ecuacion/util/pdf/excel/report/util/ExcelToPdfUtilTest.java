@@ -1159,7 +1159,7 @@ public class ExcelToPdfUtilTest {
     @DisplayName("text color is reflected in the PDF")
     void textColorIsReflected(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
-      Path excel = createTextWorkbook(tempDir, "test.xlsx", "色", 20, false, false,
+      Path excel = createTextWorkbook(tempDir, "test.xlsx", "C", 20, false, false,
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840);
       Path pdf = tempDir.resolve("out.pdf");
@@ -1471,7 +1471,7 @@ public class ExcelToPdfUtilTest {
     void formulaStringResultIsLeftAligned(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
-      Path excel = createFormulaWorkbook(tempDir, "test.xlsx", "\"請求\"", true, blue);
+      Path excel = createFormulaWorkbook(tempDir, "test.xlsx", "\"AB\"", true, blue);
       Path pdf = tempDir.resolve("out.pdf");
       ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS);
 
@@ -1694,7 +1694,7 @@ public class ExcelToPdfUtilTest {
     @DisplayName("vertical text (rotation=255) renders characters stacked top to bottom")
     void verticalTextIsRendered(@TempDir Path tempDir) throws IOException, PdfGenerateException {
       XSSFColor blue = new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null);
-      Path excel = createTextWorkbook(tempDir, "test.xlsx", "縦", 14, false, false,
+      Path excel = createTextWorkbook(tempDir, "test.xlsx", "V", 14, false, false,
           false, false, false, false, blue, HorizontalAlignment.LEFT,
           VerticalAlignment.TOP, 60, 3840, false, (short) 255);
       Path pdf = tempDir.resolve("out.pdf");
@@ -2531,7 +2531,7 @@ public class ExcelToPdfUtilTest {
         assertThat(isReddish(rendered.getRGB(IM_CX, IM_CY)))
             .as("image should be rendered").isTrue();
         // Cell text should be extractable
-        assertThat(new PDFTextStripper().getText(doc)).contains("内容");
+        assertThat(new PDFTextStripper().getText(doc)).contains("Content");
       }
     }
 
@@ -3247,7 +3247,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("フォールバック時にfitToPageのスケールが正しく1ページに収まる")
+    @DisplayName("fallback: fitToPage scale correctly fits content on one page")
     void fallback_fitToPageFitsOnOnePage(@TempDir Path tempDir) throws Exception {
       // Create a workbook with an unknown font (not available on any system) + Fit to Page.
       // Columns are deliberately wider than the printable area so fitScale must be < 1.
@@ -3372,7 +3372,7 @@ public class ExcelToPdfUtilTest {
   class FitToPageScale {
 
     @Test
-    @DisplayName("列幅がページ幅を超える場合に1ページに収まる")
+    @DisplayName("content fits on one page when column widths exceed the page width")
     void wideContent_fitsOnOnePage(@TempDir Path tmp) throws Exception {
       try (XSSFWorkbook wb = new XSSFWorkbook()) {
         var sheet = wb.createSheet("S");
@@ -3409,7 +3409,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("行数が多い場合に高さ制約で1ページに収まる")
+    @DisplayName("content fits on one page under the height constraint when there are many rows")
     void tallContent_fitsOnOnePageByHeightConstraint(@TempDir Path tmp) throws Exception {
       try (XSSFWorkbook wb = new XSSFWorkbook()) {
         var sheet = wb.createSheet("S");
@@ -3444,7 +3444,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("行高がfitScaleでスケールされる（fitScale < 1 なら行高は縮小される）")
+    @DisplayName("row height is scaled by fitScale (row height shrinks when fitScale < 1)")
     void rowHeightScaledAccurately(@TempDir Path tmp) throws Exception {
       // Use 3 wide columns to force fitScale in the range [0.85, 0.99] — narrow
       // enough that cells remain tall enough to render text, wide enough to need scaling.
@@ -3495,11 +3495,11 @@ public class ExcelToPdfUtilTest {
   // ---------------------------------------------------------------------------
 
   @Nested
-  @DisplayName("テキストオーバーフロー")
+  @DisplayName("text overflow")
   class TextOverflow {
 
     @Test
-    @DisplayName("GENERAL配置の数値セルは隣の空セルにはみ出さずセル幅内に収まる")
+    @DisplayName("a GENERAL-aligned numeric cell stays within its own width instead of overflowing into an adjacent empty cell")
     void numericCellWithGeneralAlignmentDoesNotOverflowIntoAdjacentEmptyCells(
         @TempDir Path tmp) throws Exception {
       // Col A: 8 chars wide — contains numeric 12345 with GENERAL alignment (→ right-aligned).
@@ -3582,7 +3582,7 @@ public class ExcelToPdfUtilTest {
   // (naturalRowHeight × fitScale) with a 1 pt tolerance.
 
   @Nested
-  @DisplayName("ページスケール（Layer 1: プラットフォーム非依存）")
+  @DisplayName("page scale (Layer 1: platform-independent)")
   class PageScaleLayer1 {
 
     // ---- shared constants ----
@@ -3726,7 +3726,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("adjustTo=100%: 行高は自然な高さのまま")
+    @DisplayName("adjustTo=100%: row height stays at its natural height")
     void adjustTo100_rowHeightIsNatural(@TempDir Path tmp) throws Exception {
       try (XSSFWorkbook wb = buildWorkbook()) {
         var sheet = (org.apache.poi.xssf.usermodel.XSSFSheet) wb.getSheet("S");
@@ -3746,7 +3746,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("adjustTo=85%: 行高が85%に縮小される")
+    @DisplayName("adjustTo=85%: row height is scaled down to 85%")
     void adjustTo85_rowHeightScaledDown(@TempDir Path tmp) throws Exception {
       try (XSSFWorkbook wb = buildWorkbook()) {
         var sheet = (org.apache.poi.xssf.usermodel.XSSFSheet) wb.getSheet("S");
@@ -3762,7 +3762,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("fitToPage(幅1×高1): 列幅がページ幅を超え、幅制約でfitScaleが決まる")
+    @DisplayName("fitToPage(width1×height1): column widths exceed the page width, so fitScale is determined by the width constraint")
     void fitToPage_1x1_rowHeightScaledByWidthConstraint(@TempDir Path tmp) throws Exception {
       // WIDE layout: naturalColTotal(720pt) > PRINT_W_PT(523pt) → width IS the binding constraint.
       // Previous setup (5cols×15chars=450pt) never fired width constraint → test was misleading.
@@ -3792,7 +3792,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("fitToPage(幅1×高さ0): 列幅がページ幅を超え、幅制約のみでscaleが決まる")
+    @DisplayName("fitToPage(width1×height0): column widths exceed the page width, so scale is determined by the width constraint alone")
     void fitToPage_1xUnlimited_rowHeightByWidthOnly(@TempDir Path tmp) throws Exception {
       // WIDE layout: naturalColTotal(720pt) > PRINT_W_PT → width constraint fires.
       // fitToHeight=0 means height is unlimited → only width constraint applies.
@@ -3814,7 +3814,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("fitToPage: 列幅合計がページ幅以下 → fitScale=1.0（縮小なし）")
+    @DisplayName("fitToPage: total column width is within the page width → fitScale=1.0 (no shrinking)")
     void fitToPage_contentFitsNaturally_noScaling(@TempDir Path tmp) throws Exception {
       try (XSSFWorkbook wb = buildWorkbook()) {
         var sheet = (org.apache.poi.xssf.usermodel.XSSFSheet) wb.getSheet("S");
@@ -3836,7 +3836,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("fitToPage(幅0×高1): 高さ制約のみでfitScaleが決まる（幅は自由）")
+    @DisplayName("fitToPage(width0×height1): fitScale is determined by the height constraint alone (width is unconstrained)")
     void fitToPage_unlimitedWidth_heightConstraintDrivesScale(@TempDir Path tmp) throws Exception {
       // 50 rows × 20 pt = 1000 pt > PRINT_H_PT (~769 pt) → height constraint fires
       // fitToWidth=0 means no width constraint → fitScale driven purely by height
@@ -3876,7 +3876,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("fitToPage(幅1): スケール後のコンテンツがページ幅いっぱいに収まる（左右余白の検証）")
+    @DisplayName("fitToPage(width1): scaled content fills the page width (verifies left/right margins)")
     void fitToPage_widthConstraint_scaledContentFillsPageWidth(@TempDir Path tmp) throws Exception {
       // This test catches the bug where content does NOT fill the page width after scaling.
       // Scenario: WIDE_NUM_COLS columns of WIDE_COL_CHARS chars each, fitToWidth=1.
@@ -3929,7 +3929,7 @@ public class ExcelToPdfUtilTest {
             }
           }
           assertThat(reachesRightEdge)
-              .as("fitToPage(幅1): スケール後コンテンツがページ右マージン付近(5px以内)に到達すること")
+              .as("fitToPage(width1): scaled content should reach near the page's right margin (within 5px)")
               .isTrue();
 
           // Coloured fill must NOT overflow beyond the right printable margin.
@@ -3941,7 +3941,7 @@ public class ExcelToPdfUtilTest {
             }
           }
           assertThat(overflows)
-              .as("fitToPage(幅1): スケール後コンテンツがページ右マージンをはみ出さないこと")
+              .as("fitToPage(width1): scaled content should not overflow the page's right margin")
               .isFalse();
         }
       }
@@ -4006,7 +4006,7 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
-    @DisplayName("adjustTo=85%: グリフ（文字）の視覚的な高さも85%に縮小される")
+    @DisplayName("adjustTo=85%: the visual glyph height is also scaled down to 85%")
     void adjustTo85_glyphHeightScaledDown(@TempDir Path tmp) throws Exception {
       int fontSizePt = 14;
       Path naturalExcel = buildGlyphWorkbook(tmp, "glyph-natural.xlsx", fontSizePt, false, false, 100);
@@ -4040,13 +4040,13 @@ public class ExcelToPdfUtilTest {
         assertThat(scaledH).as("85%% scaled glyph height > 0").isGreaterThan(0);
         double ratio = (double) scaledH / naturalH;
         assertThat(ratio)
-            .as("85%%スケール時のグリフ高さは自然高の85%%(±8%%)")
+            .as("glyph height at 85%% scale is 85%% of the natural height (±8%%)")
             .isBetween(0.77, 0.93);
       }
     }
 
     @Test
-    @DisplayName("fitToPage(幅1): グリフ高さもfitScaleで縮小される")
+    @DisplayName("fitToPage(width1): glyph height is also scaled down by fitScale")
     void fitToPage_widthConstraint_glyphHeightScaledWithFitScale(@TempDir Path tmp) throws Exception {
       int fontSizePt = 14;
       // Wide layout: 10 cols × 12 chars → naturalColTotal > PRINT_W_PT → fitScale ≈ 0.726
@@ -4088,7 +4088,7 @@ public class ExcelToPdfUtilTest {
         assertThat(scaledH).as("fitToPage scaled glyph height > 0").isGreaterThan(0);
         double ratio = (double) scaledH / naturalH;
         assertThat(ratio)
-            .as("fitToPage幅制約のfitScale(%.3f)でグリフ高さが縮小されること(±8%%)", (double) fitScale)
+            .as("glyph height should be scaled down by fitToPage's width-constraint fitScale (%.3f) (±8%%)", (double) fitScale)
             .isBetween(fitScale - 0.08, fitScale + 0.08);
       }
     }
@@ -4120,7 +4120,7 @@ public class ExcelToPdfUtilTest {
   //   rather than hard-coded, making the comparison robust across platforms.
 
   @Nested
-  @DisplayName("ページスケール（Layer 2: Excel PDF との実測比較）")
+  @DisplayName("page scale (Layer 2: measured comparison against Excel's PDF)")
   class PageScaleLayer2 {
 
     /** Tolerance: ±2% of scale (e.g. 0.02 means ±2pp for a 1.00 scale). */
@@ -4268,19 +4268,19 @@ public class ExcelToPdfUtilTest {
     @Test @DisplayName("adjust_100_explicit: fitScale=1.0")
     void adjust100Explicit(@TempDir Path tmp) throws Exception { runSheetTest("adjust_100_explicit", 0, tmp); }
 
-    @Test @DisplayName("adjust_100_implicit: pageSetup未設定でもfitScale=1.0")
+    @Test @DisplayName("adjust_100_implicit: fitScale=1.0 even when pageSetup is not configured")
     void adjust100Implicit(@TempDir Path tmp) throws Exception { runSheetTest("adjust_100_implicit", 1, tmp); }
 
     @Test @DisplayName("adjust_85: fitScale=0.85")
     void adjust85(@TempDir Path tmp) throws Exception { runSheetTest("adjust_85", 2, tmp); }
 
-    @Test @DisplayName("fit_1x1: ExcelのfitScaleと一致する")
+    @Test @DisplayName("fit_1x1: matches Excel's fitScale")
     void fit1x1(@TempDir Path tmp) throws Exception { runSheetTest("fit_1x1", 3, tmp); }
 
-    @Test @DisplayName("fit_1xN: 高さ制約なし、幅のみのfitScaleと一致する")
+    @Test @DisplayName("fit_1xN: no height constraint, matches the width-only fitScale")
     void fit1xN(@TempDir Path tmp) throws Exception { runSheetTest("fit_1xN", 4, tmp); }
 
-    @Test @DisplayName("fit_narrow: 幅が収まるためfitScale=1.0")
+    @Test @DisplayName("fit_narrow: fitScale=1.0 because the width fits")
     void fitNarrow(@TempDir Path tmp) throws Exception { runSheetTest("fit_narrow", 5, tmp); }
   }
 
@@ -5176,7 +5176,7 @@ public class ExcelToPdfUtilTest {
       style.setFillForegroundColor(new XSSFColor(new byte[] {0x00, 0x70, (byte) 0xC0}, null));
       var cell = sheet.getRow(3).createCell(0);
       cell.setCellStyle(style);
-      cell.setCellValue("内容");
+      cell.setCellValue("Content");
       // Image at rows 0-2
       var drawing = sheet.createDrawingPatriarch();
       drawing.createPicture(drawing.createAnchor(0, 0, 0, 0, 0, 0, 2, 2),

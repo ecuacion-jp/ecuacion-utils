@@ -31,11 +31,11 @@ import org.junit.jupiter.api.Test;
 public class StringFreeExcelTableWriterTest {
 
   @Nested
-  @DisplayName("正常書き込み")
+  @DisplayName("normal write")
   class NormalWrite {
 
     @Test
-    @DisplayName("通常書き込み（2行×3列）→ 指定セルに String 値が書き込まれる")
+    @DisplayName("normal write (2 rows x 3 columns) → String values are written to the specified cells")
     void normalWrite() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
@@ -57,11 +57,11 @@ public class StringFreeExcelTableWriterTest {
   }
 
   @Nested
-  @DisplayName("開始位置")
+  @DisplayName("start position")
   class StartPosition {
 
     @Test
-    @DisplayName("tableStartRowNumber=3, tableStartColumnNumber=2 → 指定位置から書き込まれる")
+    @DisplayName("tableStartRowNumber=3, tableStartColumnNumber=2 → writes from the specified position")
     void offsetPosition() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
@@ -84,7 +84,7 @@ public class StringFreeExcelTableWriterTest {
   class VerticalTable {
 
     @Test
-    @DisplayName("isVerticalAndHorizontalOpposite=true → 縦向きに書き込まれる")
+    @DisplayName("isVerticalAndHorizontalOpposite=true → written in the vertical direction")
     void verticalWrite() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
@@ -107,11 +107,11 @@ public class StringFreeExcelTableWriterTest {
   }
 
   @Nested
-  @DisplayName("異常系")
+  @DisplayName("error cases")
   class ErrorCases {
 
     @Test
-    @DisplayName("存在しないシート名 → ExcelTableException（SheetNotExist）")
+    @DisplayName("nonexistent sheet name → ExcelTableException (SheetNotExist)")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
@@ -131,7 +131,7 @@ public class StringFreeExcelTableWriterTest {
   class IterableWriterTests {
 
     @Test
-    @DisplayName("getIterable(Workbook) → write() で1行ずつ書き込まれる")
+    @DisplayName("getIterable(Workbook) → write() writes one row at a time")
     void writeRowByRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");

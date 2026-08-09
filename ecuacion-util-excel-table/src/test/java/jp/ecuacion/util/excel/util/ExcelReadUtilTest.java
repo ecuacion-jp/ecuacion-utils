@@ -44,12 +44,12 @@ public class ExcelReadUtilTest {
   class GetNoDataStringIfNoData {
 
     @Nested
-    @DisplayName("value が null または空文字のとき")
+    @DisplayName("when value is null or an empty string")
     class WhenValueIsNullOrEmpty {
 
       @ParameterizedTest(name = "[{index}] value={0}, noDataString={1} → {2}")
       @MethodSource
-      @DisplayName("noDataString をそのまま返す")
+      @DisplayName("returns noDataString as is")
       void returnsNoDataString(@Nullable String value, @Nullable String noDataString,
           @Nullable String expected) {
         assertThat(ExcelReadUtil.getNoDataStringIfNoData(value, noDataString))
@@ -68,12 +68,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("value が通常文字列のとき")
+    @DisplayName("when value is a normal string")
     class WhenValueIsNotEmpty {
 
       @ParameterizedTest(name = "[{index}] value={0}, noDataString={1} → {2}")
       @MethodSource
-      @DisplayName("value をそのまま返す（noDataString は無視）")
+      @DisplayName("returns value as is (noDataString is ignored)")
       void returnsValue(@Nullable String value, @Nullable String noDataString,
           @Nullable String expected) {
         assertThat(ExcelReadUtil.getNoDataStringIfNoData(value, noDataString))
@@ -95,12 +95,12 @@ public class ExcelReadUtilTest {
   class GetStringFromCell {
 
     @Nested
-    @DisplayName("cell が null のとき")
+    @DisplayName("when cell is null")
     class WhenCellIsNull {
 
       @ParameterizedTest(name = "[{index}] noDataString={0} → {1}")
       @MethodSource
-      @DisplayName("noDataString を返す")
+      @DisplayName("returns noDataString")
       void returnsNoDataString(@Nullable String noDataString, @Nullable String expected)
           throws ExcelTableException {
         assertThat(ExcelReadUtil.getStringFromCell(null, null, null, noDataString))
@@ -115,12 +115,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("BLANK セルのとき")
+    @DisplayName("when cell type is BLANK")
     class WhenCellTypeIsBlank {
 
       @ParameterizedTest(name = "[{index}] noDataString={0} → {1}")
       @MethodSource
-      @DisplayName("noDataString を返す")
+      @DisplayName("returns noDataString")
       void returnsNoDataString(@Nullable String noDataString, @Nullable String expected)
           throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
@@ -138,12 +138,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("STRING セルのとき")
+    @DisplayName("when cell type is STRING")
     class WhenCellTypeIsString {
 
       @ParameterizedTest(name = "[{index}] value={0}, noDataString={1} → {2}")
       @MethodSource
-      @DisplayName("文字列または noDataString を返す")
+      @DisplayName("returns the string value or noDataString")
       void returnsExpected(@Nullable String value, @Nullable String noDataString,
           @Nullable String expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
@@ -164,12 +164,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("NUMERIC セル（表示形式：標準）のとき")
+    @DisplayName("when cell type is NUMERIC (format: General)")
     class WhenCellTypeIsNumericWithGeneralFormat {
 
       @ParameterizedTest(name = "[{index}] value={0} → {1}")
       @MethodSource
-      @DisplayName("数値文字列を返す")
+      @DisplayName("returns the numeric string")
       void returnsExpected(double value, String expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -187,12 +187,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("NUMERIC セル（数値表示形式）のとき")
+    @DisplayName("when cell type is NUMERIC (number format)")
     class WhenCellTypeIsNumericWithNumberFormat {
 
       @ParameterizedTest(name = "[{index}] value={0}, format={1} → {2}")
       @MethodSource
-      @DisplayName("数値書式で整形された文字列を返す")
+      @DisplayName("returns the string formatted with the number format")
       void returnsExpected(double value, String format, String expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -213,12 +213,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("NUMERIC セル（日付表示形式）のとき")
+    @DisplayName("when cell type is NUMERIC (date format)")
     class WhenCellTypeIsNumericWithDateFormat {
 
       @ParameterizedTest(name = "[{index}] dateTimeFormat={0} → {1}")
       @MethodSource
-      @DisplayName("dateTimeFormat で整形された日付文字列を返す")
+      @DisplayName("returns the date string formatted with dateTimeFormat")
       void dateOnly(@Nullable DateTimeFormatter dateTimeFormat, String expected)
           throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
@@ -239,7 +239,7 @@ public class ExcelReadUtilTest {
       }
 
       @Test
-      @DisplayName("日付＋時刻セルを dateTimeFormat で整形して返す")
+      @DisplayName("formats a date+time cell with dateTimeFormat and returns it")
       void dateTime() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -255,11 +255,11 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("ERROR セルのとき")
+    @DisplayName("when cell type is ERROR")
     class WhenCellTypeIsError {
 
       @Test
-      @DisplayName("ExcelTableException がスローされる")
+      @DisplayName("throws ExcelTableException")
       void throwsExcelTableException() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet("Sheet1").createRow(0).createCell(0);
@@ -271,12 +271,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("BOOLEAN セルのとき")
+    @DisplayName("when cell type is BOOLEAN")
     class WhenCellTypeIsBoolean {
 
       @ParameterizedTest(name = "[{index}] value={0} → {1}")
       @MethodSource
-      @DisplayName("\"TRUE\" または \"FALSE\" を返す")
+      @DisplayName("returns \"TRUE\" or \"FALSE\"")
       void returnsExpected(boolean value, String expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -293,12 +293,12 @@ public class ExcelReadUtilTest {
     }
 
     @Nested
-    @DisplayName("FORMULA セルのとき")
+    @DisplayName("when cell type is FORMULA")
     class WhenCellTypeIsFormula {
 
       @ParameterizedTest(name = "[{index}] formula={0} → {2}")
       @MethodSource
-      @DisplayName("キャッシュ結果に応じた値を返す")
+      @DisplayName("returns the value based on the cached result")
       void returnsExpected(String formula, @Nullable String noDataString,
           @Nullable String expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
@@ -318,7 +318,7 @@ public class ExcelReadUtilTest {
       }
 
       @Test
-      @DisplayName("数式がエラー（#DIV/0! など）のとき ExcelTableException がスローされる")
+      @DisplayName("throws ExcelTableException when the formula is an error (e.g. #DIV/0!)")
       void whenFormulaReturnsError() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);

@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
 // SheetNotExist, etc.) are covered by StringFreeExcelTableWriterTest.
 // Header validation behaviors are covered by StringHeaderExcelTableWriterTest.
 @DisplayName("CellOneLineHeaderExcelTableWriter"
-    + " ※基底クラス共通の振る舞いは StringFreeExcelTableWriterTest 参照"
-    + "、ヘッダー検証は StringHeaderExcelTableWriterTest 参照")
+    + " (Note: see StringFreeExcelTableWriterTest for common base-class behavior"
+    + ", and StringHeaderExcelTableWriterTest for header validation)")
 public class CellHeaderExcelTableWriterTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, String value) {
@@ -45,11 +45,11 @@ public class CellHeaderExcelTableWriterTest {
   }
 
   @Nested
-  @DisplayName("Cell 型固有の振る舞い")
+  @DisplayName("Cell-type-specific behavior")
   class CellSpecific {
 
     @Test
-    @DisplayName("ヘッダー一致 → ヘッダーは上書きされず、Cell データがヘッダー行の次から書き込まれる")
+    @DisplayName("header matches → header is not overwritten, Cell data is written starting after the header row")
     void writesCellsAfterHeader() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet src = wb.createSheet("source");

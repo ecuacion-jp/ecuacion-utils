@@ -50,7 +50,7 @@ public class ExcelWriteUtilTest {
   class CreateWorkbookWithSheet {
 
     @Test
-    @DisplayName("指定した名前のシートを持つ Workbook を返す")
+    @DisplayName("returns a Workbook with a sheet of the given name")
     void createsWorkbookWithNamedSheet() throws Exception {
       try (Workbook wb = ExcelWriteUtil.createWorkbookWithSheet("MySheet")) {
         assertThat(wb.getSheet("MySheet")).isNotNull();
@@ -63,11 +63,11 @@ public class ExcelWriteUtilTest {
   class GetReadyToEvaluateFormula {
 
     @Nested
-    @DisplayName("STRING でないセルのとき")
+    @DisplayName("when cell type is not STRING")
     class WhenCellTypeIsNotString {
 
       @Test
-      @DisplayName("変更なし")
+      @DisplayName("no change")
       void unchanged() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -80,11 +80,11 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("STRING セル × changesNumberString")
+    @DisplayName("STRING cell × changesNumberString")
     class WhenChangesNumberString {
 
       @Test
-      @DisplayName("changesNumberString=false → STRING のまま")
+      @DisplayName("changesNumberString=false → stays STRING")
       void staysStringWhenFlagIsFalse() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -97,7 +97,7 @@ public class ExcelWriteUtilTest {
 
       @ParameterizedTest(name = "[{index}] value={0} → NUMERIC {1}")
       @MethodSource
-      @DisplayName("changesNumberString=true → NUMERIC に変換される")
+      @DisplayName("changesNumberString=true → converted to NUMERIC")
       void convertsToNumeric(String value, double expected) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -117,7 +117,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("changesNumberString=true、数値でない文字列 → STRING のまま")
+      @DisplayName("changesNumberString=true, non-numeric string → stays STRING")
       void staysStringWhenNotParseable() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -130,11 +130,11 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("STRING セル × changesDateString")
+    @DisplayName("STRING cell × changesDateString")
     class WhenChangesDateString {
 
       @Test
-      @DisplayName("changesDateString=false → STRING のまま")
+      @DisplayName("changesDateString=false → stays STRING")
       void staysStringWhenFlagIsFalse() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -148,7 +148,7 @@ public class ExcelWriteUtilTest {
 
       @ParameterizedTest(name = "[{index}] formats={1}")
       @MethodSource
-      @DisplayName("changesDateString=true → NUMERIC（日付シリアル値）に変換される")
+      @DisplayName("changesDateString=true → converted to NUMERIC (date serial value)")
       void convertsToDateSerial(String value, String[] formats) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -167,7 +167,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("changesDateString=true、フォーマット不一致 → STRING のまま")
+      @DisplayName("changesDateString=true, no format match → stays STRING")
       void staysStringWhenNoMatch() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -181,12 +181,12 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("テキストフォーマット（format==49）のとき")
+    @DisplayName("when using the text format (format==49)")
     class WhenTextDataFormat {
 
       @ParameterizedTest(name = "[{index}] changesCellsWithTextDataFormat={0} → {1}")
       @MethodSource
-      @DisplayName("changesCellsWithTextDataFormat に応じた動作")
+      @DisplayName("behavior depends on changesCellsWithTextDataFormat")
       void behavior(boolean changesCells, CellType expectedType) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -208,11 +208,11 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("changesNumberString と changesDateString の両方 true のとき")
+    @DisplayName("when both changesNumberString and changesDateString are true")
     class WhenBothFlagsTrue {
 
       @Test
-      @DisplayName("value が数値文字列 → 数値変換が先に成功、日付変換はスキップされる")
+      @DisplayName("value is a numeric string → number conversion succeeds first, date conversion is skipped")
       void numberStringConverts() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -225,7 +225,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("value が日付文字列 → 数値変換が失敗、日付変換が成功する")
+      @DisplayName("value is a date string → number conversion fails, date conversion succeeds")
       void dateStringConverts() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -249,7 +249,7 @@ public class ExcelWriteUtilTest {
     class CellLevel {
 
       @Test
-      @DisplayName("非数式セル（NUMERIC）→ 例外なし")
+      @DisplayName("non-formula cell (NUMERIC) → no exception")
       void nonFormulaCell() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -260,7 +260,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("通常の数式 → 例外なし")
+      @DisplayName("normal formula → no exception")
       void normalFormula() throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
@@ -271,7 +271,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("未実装関数 → ExcelTableException（NotImplementedException が原因）")
+      @DisplayName("unimplemented function → ExcelTableException (caused by NotImplementedException)")
       void unimplementedFunction() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
@@ -285,7 +285,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("外部ブック参照 → ExcelTableException（WorkbookNotFoundException が原因）")
+      @DisplayName("external workbook reference → ExcelTableException (caused by WorkbookNotFoundException)")
       void externalWorkbookRef() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
@@ -299,7 +299,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("#NAME? → ExcelTableException（DetailUnknown、原因は FormulaParseException）")
+      @DisplayName("#NAME? → ExcelTableException (DetailUnknown, caused by FormulaParseException)")
       void namePound() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
@@ -315,9 +315,9 @@ public class ExcelWriteUtilTest {
         }
       }
 
-      @ParameterizedTest(name = "[{index}] 行 {0} のエラー値セル → 例外なし")
+      @ParameterizedTest(name = "[{index}] error value cell at row {0} → no exception")
       @MethodSource
-      @DisplayName("エラー値（#VALUE! / #DIV/0! / #N/A）→ 例外なし")
+      @DisplayName("error value (#VALUE! / #DIV/0! / #N/A) → no exception")
       void errorValues(int rowIndex) throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(rowIndex).getCell(1);
@@ -334,7 +334,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("その他の例外 → ExcelTableException（DetailUnknown、原因は ClassCastException）")
+      @DisplayName("other exceptions → ExcelTableException (DetailUnknown, caused by ClassCastException)")
       void otherException() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
@@ -356,7 +356,7 @@ public class ExcelWriteUtilTest {
     class WorkbookLevel {
 
       @Test
-      @DisplayName("breaksOnError=true → 最初のエラーで即 ExcelTableException")
+      @DisplayName("breaksOnError=true → immediately throws ExcelTableException on the first error")
       void breaksOnErrorTrue() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", true))
@@ -365,7 +365,7 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("breaksOnError=false → 全エラーを収集して ViolationException")
+      @DisplayName("breaksOnError=false → collects all errors into a ViolationException")
       void breaksOnErrorFalse() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", false))
@@ -382,7 +382,7 @@ public class ExcelWriteUtilTest {
     class WorkbookWithSheetsOverload {
 
       @Test
-      @DisplayName("対象外シートのエラー数式は評価されない")
+      @DisplayName("error formulas in non-target sheets are not evaluated")
       void ignoresErrorsInNonTargetSheets() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatCode(() -> ExcelWriteUtil.evaluateFormula(

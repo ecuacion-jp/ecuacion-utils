@@ -46,11 +46,11 @@ public class CellFreeExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("Cell 型固有の振る舞い")
+  @DisplayName("Cell-type-specific behavior")
   class CellSpecific {
 
     @Test
-    @DisplayName("通常テーブル → Cell オブジェクトのリストで返る")
+    @DisplayName("normal table → returns a list of Cell objects")
     void returnsCellObjects() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -71,7 +71,7 @@ public class CellFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("セルが存在しない位置 → null が返る（noDataString の概念がない）")
+    @DisplayName("position where the cell does not exist → returns null (no concept of noDataString)")
     void absentCellReturnsNull() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");

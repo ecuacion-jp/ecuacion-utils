@@ -633,8 +633,8 @@ public class StringHeaderExcelTableToBeanReaderTest {
     /** Bean for 2-row header: group + column. */
     static class MultiHeaderBean extends StringExcelTableBean {
       @ExcelColumn({"#", "#"}) @Nullable Integer rowNum;
-      @ExcelColumn({"個人情報", "名前"}) @Nullable String name;
-      @ExcelColumn({"個人情報", "年齢"}) @Nullable Integer age;
+      @ExcelColumn({"PersonalInfo", "Name"}) @Nullable String name;
+      @ExcelColumn({"PersonalInfo", "Age"}) @Nullable Integer age;
 
       public MultiHeaderBean(List<String> colList) {
         super(colList);
@@ -647,11 +647,11 @@ public class StringHeaderExcelTableToBeanReaderTest {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
@@ -659,7 +659,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 
@@ -676,11 +676,11 @@ public class StringHeaderExcelTableToBeanReaderTest {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         // Excel order: age, name, # (reversed from bean declaration)
-        setCell(sheet, 0, 0, "個人情報");
-        setCell(sheet, 0, 1, "個人情報");
+        setCell(sheet, 0, 0, "PersonalInfo");
+        setCell(sheet, 0, 1, "PersonalInfo");
         setCell(sheet, 0, 2, "#");
-        setCell(sheet, 1, 0, "年齢");
-        setCell(sheet, 1, 1, "名前");
+        setCell(sheet, 1, 0, "Age");
+        setCell(sheet, 1, 1, "Name");
         setCell(sheet, 1, 2, "#");
         setCell(sheet, 2, 0, "25");
         setCell(sheet, 2, 1, "Alice");
@@ -689,7 +689,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"個人情報", "個人情報", "#"}, {"年齢", "名前", "#"}})
+            new String[][] {{"PersonalInfo", "PersonalInfo", "#"}, {"Age", "Name", "#"}})
             .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 
@@ -705,10 +705,10 @@ public class StringHeaderExcelTableToBeanReaderTest {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
@@ -717,7 +717,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
 
         var reader = new StringHeaderExcelTableToBeanReader<MultiHeaderBean>(
             MultiHeaderBean.class, "Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         List<MultiHeaderBean> result = reader.readToBean(file.toString(), false);
 

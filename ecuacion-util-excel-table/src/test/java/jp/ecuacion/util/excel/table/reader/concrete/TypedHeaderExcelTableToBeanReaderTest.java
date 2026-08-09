@@ -128,11 +128,11 @@ public class TypedHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("正常系：ネイティブ型でBeanへ格納")
+  @DisplayName("normal case: stored into the Bean with native types")
   class Normal {
 
     @Test
-    @DisplayName("String / Double / LocalDate / Boolean フィールドへそれぞれの型で格納される")
+    @DisplayName("String / Double / LocalDate / Boolean fields are each stored with their own type")
     void nativeTypesStoredAsIs() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -165,7 +165,7 @@ public class TypedHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("LocalDateTime フィールドは時刻付きの日付セルからそのまま格納される")
+    @DisplayName("LocalDateTime field is stored as-is from a date cell with a time component")
     void localDateTimeField() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -187,11 +187,11 @@ public class TypedHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("数値→整数フィールドの丸め変換")
+  @DisplayName("numeric-to-integer field rounding conversion")
   class IntegerRounding {
 
     @Test
-    @DisplayName("Excel上の整数値（実体は1.0） → Integer フィールドへ 1 として格納される")
+    @DisplayName("whole number value in Excel (actually 1.0) → stored as 1 in an Integer field")
     void wholeNumberDouble() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -222,7 +222,7 @@ public class TypedHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("小数値 → Integer フィールドへ Math.round で丸めて格納される")
+    @DisplayName("fractional value → stored in an Integer field rounded via Math.round")
     void roundsFractionalValue() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -251,11 +251,12 @@ public class TypedHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("@ExcelColumn アノテーション")
+  @DisplayName("@ExcelColumn annotation")
   class ExcelColumnAnnotation {
 
     @Test
-    @DisplayName("Excel の列順がヘッダーと逆でも @ExcelColumn でラベル一致マッピングされる")
+    @DisplayName("even when the Excel column order is reversed from the header, "
+        + "@ExcelColumn maps by matching label")
     void columnOrderIndependent() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -276,11 +277,11 @@ public class TypedHeaderExcelTableToBeanReaderTest {
   }
 
   @Nested
-  @DisplayName("バリデーション")
+  @DisplayName("validation")
   class Validation {
 
     @Test
-    @DisplayName("@Min(1) 違反 → ViolationException がスローされる")
+    @DisplayName("@Min(1) violation → throws ViolationException")
     void violationThrowsException() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -299,7 +300,7 @@ public class TypedHeaderExcelTableToBeanReaderTest {
     }
 
     @Test
-    @DisplayName("validates=false → 違反があっても例外はスローされない")
+    @DisplayName("validates=false → no exception is thrown even if there is a violation")
     void validatesFalseSkipsValidation() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
