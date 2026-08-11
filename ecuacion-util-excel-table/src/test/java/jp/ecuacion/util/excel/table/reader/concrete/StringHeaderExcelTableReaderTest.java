@@ -38,7 +38,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 // withVerticalAndHorizontalOpposite, SheetNotExist, etc.) are covered by StringFreeExcelTableReaderTest.
 // This test class covers only behaviors specific to this reader.
 @DisplayName("StringOneLineHeaderExcelTableReader / StringHeaderExcelTableReader"
-    + " ※基底クラス共通の振る舞いは StringFreeExcelTableReaderTest 参照")
+    + " Note: see StringFreeExcelTableReaderTest for common base-class behavior")
 public class StringHeaderExcelTableReaderTest {
 
   private static void setCell(Sheet sheet, int poiRow, int poiCol, @Nullable String value) {
@@ -54,11 +54,11 @@ public class StringHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("正常取得")
+  @DisplayName("Normal read")
   class NormalRead {
 
     @Test
-    @DisplayName("ヘッダー行 + データ行 → ヘッダーは除外されデータのみ返る")
+    @DisplayName("header row + data rows → header excluded, only data returned")
     void normalTable() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -83,7 +83,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("tableStartRowNumber=null → ヘッダーラベルで行位置を自動検索して取得")
+    @DisplayName("tableStartRowNumber=null → auto-detects row position by header label")
     void autoDetectStartRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -105,11 +105,11 @@ public class StringHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("ヘッダー検証")
+  @DisplayName("Header validation")
   class HeaderValidation {
 
     @Test
-    @DisplayName("Excel の列数 > 期待列数、ignores=false → ExcelTableException")
+    @DisplayName("Excel column count > expected column count, ignores=false → ExcelTableException")
     void tooManyColumnsIgnoresFalse() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -129,7 +129,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("Excel の列数 > 期待列数、ignores=true → データは期待列数分のみ取得")
+    @DisplayName("Excel column count > expected column count, ignores=true → only expected columns of data are retrieved")
     void tooManyColumnsIgnoresTrue() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -153,7 +153,7 @@ public class StringHeaderExcelTableReaderTest {
 
     @ParameterizedTest(name = "[{index}] ignores={0} → ExcelTableException")
     @MethodSource
-    @DisplayName("Excel の列数 < 期待列数 → ignores 設定に関係なく ExcelTableException")
+    @DisplayName("Excel column count < expected column count → ExcelTableException regardless of ignores setting")
     void tooFewColumns(boolean ignores) throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -178,7 +178,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("ヘッダーラベルのテキスト不一致 → ExcelTableException（TableHeaderTitleWrong）")
+    @DisplayName("header label text mismatch → ExcelTableException (TableHeaderTitleWrong)")
     void labelMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -197,11 +197,11 @@ public class StringHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("異常系")
+  @DisplayName("Error cases")
   class ErrorCases {
 
     @Test
-    @DisplayName("tableStartRowNumber=null、ヘッダーラベルが見つからない → ExcelTableException")
+    @DisplayName("tableStartRowNumber=null, header label not found → ExcelTableException")
     void headerLabelNotFound() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -220,29 +220,29 @@ public class StringHeaderExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("複数行ヘッダー")
+  @DisplayName("Multi-row header")
   class MultiLineHeader {
 
     @Test
-    @DisplayName("2行ヘッダー → ヘッダーを除外してデータのみ返る")
+    @DisplayName("two-row header → header excluded, only data returned")
     void twoRowHeader() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         // header row 0: group labels
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
         // header row 1: column labels
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         // data
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
@@ -251,19 +251,19 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("全ヘッダー行が検証される（1行目不一致 → ExcelTableException）")
+    @DisplayName("all header rows are validated (row 1 mismatch → ExcelTableException)")
     void firstRowMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "WRONG"); // expected "個人情報"
-        setCell(sheet, 0, 2, "個人情報");
+        setCell(sheet, 0, 1, "WRONG"); // expected "PersonalInfo"
+        setCell(sheet, 0, 2, "PersonalInfo");
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
 
         var reader = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelTableException.class)
@@ -274,24 +274,24 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("横結合セルが展開されて正しく検証される")
+    @DisplayName("horizontally merged cell is expanded and validated correctly")
     void horizontalMergedCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
-        // "個人情報" merged over cols 1-2
+        // "PersonalInfo" merged over cols 1-2
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報"); // master cell
+        setCell(sheet, 0, 1, "PersonalInfo"); // master cell
         // col 2 is empty because it's part of the merge
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 2));
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
@@ -300,24 +300,24 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("縦結合セル（# 列）が展開されて正しく検証される")
+    @DisplayName("vertically merged cell (# column) is expanded and validated correctly")
     void verticalMergedCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         // "#" merged vertically over rows 0-1
         setCell(sheet, 0, 0, "#"); // master
         // row 1 col 0 empty (part of vertical merge)
-        setCell(sheet, 0, 1, "個人情報");
-        setCell(sheet, 0, 2, "個人情報");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 0, 1, "PersonalInfo");
+        setCell(sheet, 0, 2, "PersonalInfo");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
         sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
 
         List<List<String>> result = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1).read(wb);
 
         assertThat(result).hasSize(1);
@@ -326,22 +326,22 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("結合なし空欄ヘッダーセル → ExcelTableException")
+    @DisplayName("blank header cell with no merge → ExcelTableException")
     void blankNonMergedHeaderCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
         setCell(sheet, 0, 0, "#");
-        setCell(sheet, 0, 1, "個人情報");
+        setCell(sheet, 0, 1, "PersonalInfo");
         // col 2 is blank but NOT part of any merge
         setCell(sheet, 1, 0, "#");
-        setCell(sheet, 1, 1, "名前");
-        setCell(sheet, 1, 2, "年齢");
+        setCell(sheet, 1, 1, "Name");
+        setCell(sheet, 1, 2, "Age");
         setCell(sheet, 2, 0, "1");
         setCell(sheet, 2, 1, "Alice");
         setCell(sheet, 2, 2, "25");
 
         var reader = new StringHeaderExcelTableReader("Sheet1",
-            new String[][] {{"#", "個人情報", "個人情報"}, {"#", "名前", "年齢"}})
+            new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
             .isInstanceOf(ExcelTableException.class)

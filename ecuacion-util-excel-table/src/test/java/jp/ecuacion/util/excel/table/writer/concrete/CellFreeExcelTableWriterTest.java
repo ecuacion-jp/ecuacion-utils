@@ -35,11 +35,11 @@ import org.junit.jupiter.api.Test;
 public class CellFreeExcelTableWriterTest {
 
   @Nested
-  @DisplayName("Cell コピーの振る舞い")
+  @DisplayName("Cell copy behavior")
   class CellCopy {
 
     @Test
-    @DisplayName("Cell 値が正しくコピーされる")
+    @DisplayName("the Cell value is copied correctly")
     void copiesCellValue() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet src = wb.createSheet("source");
@@ -60,7 +60,7 @@ public class CellFreeExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("copiesDataFormatOnly=false → ソースのフルスタイル（フォント等）がコピーされる")
+    @DisplayName("copiesDataFormatOnly=false → the source's full style (font, etc.) is copied")
     void copiesFullStyle() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet src = wb.createSheet("source");
@@ -86,7 +86,7 @@ public class CellFreeExcelTableWriterTest {
     }
 
     @Test
-    @DisplayName("copiesDataFormatOnly=true → データフォーマットのみコピー、フォント等はコピーされない")
+    @DisplayName("copiesDataFormatOnly=true → only the data format is copied, font etc. is not copied")
     void copiesDataFormatOnly() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet src = wb.createSheet("source");

@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.Set;
 import jp.ecuacion.lib.core.constant.EclibCoreConstants;
 import jp.ecuacion.lib.core.logging.DetailLogger;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.exception.ColumnSizeIsZeroException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.exception.LoopBreakException;
@@ -126,7 +125,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    * @throws EncryptedDocumentException EncryptedDocumentException
    */
   public List<List<T>> read(String filePath) throws EncryptedDocumentException, IOException {
-    ObjectsUtil.requireNonNull(filePath);
+    Objects.requireNonNull(filePath);
 
     try (Workbook excel = ExcelReadUtil.openForRead(filePath);) {
       return read(excel);
@@ -200,7 +199,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   public IterableReader<T> getIterable(String filePath)
       throws EncryptedDocumentException, IOException {
-    ObjectsUtil.requireNonNull(filePath);
+    Objects.requireNonNull(filePath);
 
     Workbook workbook = ExcelReadUtil.openForRead(filePath);
     boolean ownershipTransferred = false;
@@ -280,7 +279,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   public Integer getTableColumnSize(Sheet sheet, int poiBasisDeterminedTableStartRowNumber,
       int poiBasisDeterminedTableStartColumnNumber, boolean ignoresColumnSizeSetInReader) {
-    ObjectsUtil.requireNonNull(sheet);
+    Objects.requireNonNull(sheet);
 
     if (tableColumnSizeGivenByConstructor != null && !ignoresColumnSizeSetInReader) {
       return Objects.requireNonNull(tableColumnSizeGivenByConstructor);

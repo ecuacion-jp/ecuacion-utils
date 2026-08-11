@@ -56,11 +56,11 @@ public class StringFreeExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("正常取得")
+  @DisplayName("normal read")
   class NormalRead {
 
     @Test
-    @DisplayName("通常テーブル（2行×3列、全セル有値）→ 全データを取得できる")
+    @DisplayName("normal table (2 rows x 3 columns, all cells have values) → all data can be retrieved")
     void normalTable() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -80,9 +80,9 @@ public class StringFreeExcelTableReaderTest {
       }
     }
 
-    @ParameterizedTest(name = "[{index}] noDataString={0} → 空セルが {1} で返る")
+    @ParameterizedTest(name = "[{index}] noDataString={0} → empty cell returns as {1}")
     @MethodSource
-    @DisplayName("空セルの返り値は noDataString に従う")
+    @DisplayName("the return value for an empty cell follows noDataString")
     void noDataString(NoDataString noDataString, @Nullable String expected) throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -110,7 +110,7 @@ public class StringFreeExcelTableReaderTest {
   class TableRowSizeTests {
 
     @Test
-    @DisplayName("tableRowSize 指定あり、データ行が指定数より少ない → 不足分は空リスト")
+    @DisplayName("tableRowSize is specified, and there are fewer data rows than specified → the shortfall is an empty list")
     void fixedRowSizeExceedsData() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -132,7 +132,7 @@ public class StringFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("tableRowSize=null → 最初の全空行で読み取り終了")
+    @DisplayName("tableRowSize=null → reading ends at the first fully empty row")
     void autoRowSizeStopsAtEmptyRow() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -155,7 +155,7 @@ public class StringFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("tableRowSize 指定あり、途中に空行 → 空リストとして含まれ打ち切りにならない")
+    @DisplayName("tableRowSize is specified, with an empty row in the middle → included as an empty list, not truncated")
     void emptyRowWithinFixedSize() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -182,7 +182,7 @@ public class StringFreeExcelTableReaderTest {
   class TableColumnSizeTests {
 
     @Test
-    @DisplayName("tableColumnSize 指定あり → 指定列数のみ取得、それ以降は無視")
+    @DisplayName("tableColumnSize is specified → only the specified number of columns is retrieved, the rest is ignored")
     void fixedColumnSize() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -201,7 +201,7 @@ public class StringFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("tableColumnSize=null → 最初の行の非空セル連続数で自動決定")
+    @DisplayName("tableColumnSize=null → automatically determined by the run of non-empty cells in the first row")
     void autoColumnSize() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -225,11 +225,11 @@ public class StringFreeExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("開始位置")
+  @DisplayName("start position")
   class StartPosition {
 
     @Test
-    @DisplayName("tableStartRowNumber=3, tableStartColumnNumber=2 → 指定位置からデータ取得")
+    @DisplayName("tableStartRowNumber=3, tableStartColumnNumber=2 → retrieves data from the specified position")
     void offsetPosition() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -256,7 +256,7 @@ public class StringFreeExcelTableReaderTest {
   class VerticalTable {
 
     @Test
-    @DisplayName("isVerticalAndHorizontalOpposite=true → 縦向きテーブルを行列入れ替えて取得")
+    @DisplayName("isVerticalAndHorizontalOpposite=true → retrieves a vertical table with rows and columns swapped")
     void verticalTable() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -280,11 +280,11 @@ public class StringFreeExcelTableReaderTest {
   }
 
   @Nested
-  @DisplayName("異常系")
+  @DisplayName("error cases")
   class ErrorCases {
 
     @Test
-    @DisplayName("存在しないシート名 → ExcelTableException（SheetNotExist）")
+    @DisplayName("nonexistent sheet name → ExcelTableException (SheetNotExist)")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
@@ -298,7 +298,7 @@ public class StringFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("テーブル開始位置にデータがない → ExcelTableException（ColumnSizeIsZero）")
+    @DisplayName("no data at the table start position → ExcelTableException (ColumnSizeIsZero)")
     void columnSizeIsZero() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1"); // empty sheet
@@ -317,7 +317,7 @@ public class StringFreeExcelTableReaderTest {
   class IterableReaderTests {
 
     @Test
-    @DisplayName("getIterable(Workbook) → for-each で全行を順番に取得できる")
+    @DisplayName("getIterable(Workbook) → all rows can be retrieved in order with a for-each loop")
     void iterateAllRows() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -342,7 +342,7 @@ public class StringFreeExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("全行消費後は hasNext() が false になり next() を呼ぶと NoSuchElementException")
+    @DisplayName("after all rows are consumed, hasNext() becomes false and calling next() throws NoSuchElementException")
     void exhaustedIterator() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");

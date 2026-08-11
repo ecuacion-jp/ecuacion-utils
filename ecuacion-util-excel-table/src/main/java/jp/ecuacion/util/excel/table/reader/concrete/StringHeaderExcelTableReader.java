@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.enums.NoDataString;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
@@ -75,7 +76,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    */
   public StringHeaderExcelTableReader(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
+    this.headerLabels2d = Objects.requireNonNull(headerLabels);
     this.noDataString = NoDataString.NULL;
     setTableColumnSize(getHeaderLabels().length);
   }
@@ -113,7 +114,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
   @Override
   public String getFarLeftAndTopHeaderLabel() {
     ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
-    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
+    return Objects.requireNonNull(headerLabels2d[0][0]);
   }
 
   @Override
@@ -189,7 +190,7 @@ public class StringHeaderExcelTableReader extends StringExcelTableReader
    * @param headerData the raw header data to expand in place
    */
   private void expandMergedCells(List<List<String>> headerData) {
-    Sheet sheet = ObjectsUtil.requireNonNull(currentSheet);
+    Sheet sheet = Objects.requireNonNull(currentSheet);
     int numHeaderRows = headerLabels2d.length;
     int poiBasisStartCol = tableStartColumnNumber - 1;
     int numCols = getHeaderLabels().length;
