@@ -18,6 +18,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfFormatHeaderExcelTable;
@@ -60,7 +61,7 @@ public class CellHeaderExcelTableWriter extends ExcelTableWriter<Cell>
    */
   public CellHeaderExcelTableWriter(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
+    this.headerLabels2d = Objects.requireNonNull(headerLabels);
   }
 
   @Override
@@ -81,7 +82,7 @@ public class CellHeaderExcelTableWriter extends ExcelTableWriter<Cell>
   @Override
   public String getFarLeftAndTopHeaderLabel() {
     ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
-    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
+    return Objects.requireNonNull(headerLabels2d[0][0]);
   }
 
   @Override

@@ -16,7 +16,7 @@
 package jp.ecuacion.util.excel.table.reader;
 
 import java.util.List;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
+import java.util.Objects;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.exception.NumberOfTableHeadersDifferException;
 import jp.ecuacion.util.excel.exception.TableHeaderTitleWrongException;
@@ -43,7 +43,7 @@ public interface IfExcelTableReader<T> extends IfExcelTable<T> {
    */
   public default void validateHeaderData(List<List<T>> headerData) throws ExcelTableException {
 
-    for (int i = 0; i < ObjectsUtil.requireNonNull(headerData).size(); i++) {
+    for (int i = 0; i < Objects.requireNonNull(headerData).size(); i++) {
       List<T> headerList = headerData.get(i);
       String[] headerLabels = getHeaderLabelData()[i];
 

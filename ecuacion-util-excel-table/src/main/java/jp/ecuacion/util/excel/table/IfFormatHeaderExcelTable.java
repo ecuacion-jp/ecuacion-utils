@@ -15,6 +15,7 @@
  */
 package jp.ecuacion.util.excel.table;
 
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 
 /**
@@ -53,6 +54,6 @@ public interface IfFormatHeaderExcelTable<T>
     ObjectsUtil.requireSizeNonZero(headerLabels);
     
     String farLeftHeaderLabel = headerLabels[0];
-    return ObjectsUtil.requireNonNull(farLeftHeaderLabel);
+    return Objects.requireNonNull(farLeftHeaderLabel);
   }
 }
