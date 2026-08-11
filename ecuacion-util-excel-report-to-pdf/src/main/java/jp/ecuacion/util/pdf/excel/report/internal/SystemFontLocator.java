@@ -57,13 +57,6 @@ public class SystemFontLocator {
    * Searches system font directories for a font file whose family name matches
    * {@code fontName}.
    *
-   * @param fontName font family name (e.g. {@code "Meiryo UI"}, {@code "Calibri"})
-   * @return path to the matching font file, or empty if not found
-   */
-  /**
-   * Searches system font directories for a font file whose family name matches
-   * {@code fontName}.
-   *
    * <p>Matching is attempted in two passes to ensure the most specific result:
    * <ol>
    *   <li><b>Exact match</b>: a file that contains a font whose family name (nameId=1, 4, or 16)
@@ -404,12 +397,6 @@ public class SystemFontLocator {
     }
   }
 
-  /**
-   * Loads the {@link TrueTypeFont} matching {@code fontName} from the given file.
-   * Handles both plain TTF files and TrueType Collections (TTC).
-   *
-   * @return the font, or {@code null} if the font could not be loaded
-   */
   /**
    * Loads the {@link TrueTypeFont} matching {@code fontName} from the given file.
    * Handles both plain TTF files and TrueType Collections (TTC).
