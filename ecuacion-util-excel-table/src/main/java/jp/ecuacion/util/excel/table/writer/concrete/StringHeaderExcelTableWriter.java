@@ -59,7 +59,7 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
    */
   public StringHeaderExcelTableWriter(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
+    this.headerLabels2d = Objects.requireNonNull(headerLabels);
   }
 
   /**
@@ -94,7 +94,7 @@ public class StringHeaderExcelTableWriter extends ExcelTableWriter<String>
   @Override
   public String getFarLeftAndTopHeaderLabel() {
     ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
-    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
+    return Objects.requireNonNull(headerLabels2d[0][0]);
   }
 
   /**

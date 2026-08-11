@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.table.ExcelTable;
 import jp.ecuacion.util.excel.table.IfExcelTable;
 import jp.ecuacion.util.excel.util.ExcelWriteUtil;
@@ -71,8 +70,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    */
   public void write(String templateFilePath, String destFilePath, List<List<T>> data)
       throws EncryptedDocumentException, IOException {
-    ObjectsUtil.requireNonNull(templateFilePath);
-    ObjectsUtil.requireNonNull(destFilePath);
+    Objects.requireNonNull(templateFilePath);
+    Objects.requireNonNull(destFilePath);
 
     try (Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
         FileOutputStream out = new FileOutputStream(destFilePath);) {
@@ -164,8 +163,8 @@ public abstract class ExcelTableWriter<T> extends ExcelTable<T> implements IfExc
    */
   public IterableWriter<T> getIterable(String templateFilePath, String destFilePath)
       throws EncryptedDocumentException, IOException {
-    ObjectsUtil.requireNonNull(templateFilePath);
-    ObjectsUtil.requireNonNull(destFilePath);
+    Objects.requireNonNull(templateFilePath);
+    Objects.requireNonNull(destFilePath);
 
     Workbook workbook = ExcelWriteUtil.openForWrite(templateFilePath);
     boolean ownershipTransferred = false;

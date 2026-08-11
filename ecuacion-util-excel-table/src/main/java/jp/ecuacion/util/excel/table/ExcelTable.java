@@ -18,7 +18,6 @@ package jp.ecuacion.util.excel.table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.exception.FarLeftHeaderLabelNotFoundException;
 import jp.ecuacion.util.excel.table.reader.IfExcelTableReader;
@@ -95,7 +94,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   public ExcelTable(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
-    this.sheetName = ObjectsUtil.requireNonNull(sheetName);
+    this.sheetName = Objects.requireNonNull(sheetName);
     this.tableStartRowNumber = tableStartRowNumber;
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
@@ -107,7 +106,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   @Override
   public String getSheetName() {
-    return ObjectsUtil.requireNonNull(sheetName);
+    return Objects.requireNonNull(sheetName);
   }
 
   /**
@@ -130,7 +129,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   public int getPoiBasisDeterminedTableStartRowNumber(Sheet sheet,
       int excelBasisTableStartColumnNumber) throws ExcelTableException {
-    ObjectsUtil.requireNonNull(sheet);
+    Objects.requireNonNull(sheet);
     int poiBasisTableStartColumnNumber = excelBasisTableStartColumnNumber - 1;
 
     if (tableStartRowNumber != null) {

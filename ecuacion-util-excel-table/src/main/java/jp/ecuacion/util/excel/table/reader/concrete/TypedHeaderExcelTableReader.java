@@ -17,6 +17,7 @@ package jp.ecuacion.util.excel.table.reader.concrete;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import jp.ecuacion.lib.core.util.ObjectsUtil;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
 import jp.ecuacion.util.excel.table.reader.ExcelTableReader;
@@ -56,14 +57,14 @@ public class TypedHeaderExcelTableReader extends ExcelTableReader<Object>
    */
   public TypedHeaderExcelTableReader(String sheetName, String[][] headerLabels) {
     super(sheetName);
-    this.headerLabels2d = ObjectsUtil.requireNonNull(headerLabels);
+    this.headerLabels2d = Objects.requireNonNull(headerLabels);
     setTableColumnSize(getHeaderLabels().length);
   }
 
   @Override
   public String getFarLeftAndTopHeaderLabel() {
     ObjectsUtil.requireSizeNonZero(headerLabels2d[0]);
-    return ObjectsUtil.requireNonNull(headerLabels2d[0][0]);
+    return Objects.requireNonNull(headerLabels2d[0][0]);
   }
 
   @Override
