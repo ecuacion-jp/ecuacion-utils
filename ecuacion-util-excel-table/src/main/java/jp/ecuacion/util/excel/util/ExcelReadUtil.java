@@ -138,13 +138,13 @@ public class ExcelReadUtil {
       cellTypeString = cell.getCellType().toString();
     }
 
-    detailLog.debug("-----");
-    detailLog.debug("cellType: " + cellTypeString);
+    detailLog.trace("-----");
+    detailLog.trace("cellType: " + cellTypeString);
 
     String value = internalGetStringFromCell(cell, filename, dateTimeFormat, noDataString);
 
     // Escape line breaks so a crafted cell value cannot forge extra log lines.
-    detailLog.debug("value: "
+    detailLog.trace("value: "
         + (value == null ? "(null)" : value.replace("\r", "\\r").replace("\n", "\\n")));
 
     return value;
@@ -217,7 +217,7 @@ public class ExcelReadUtil {
       DataFormatter fmter = new DataFormatter();
       Format fmt = fmter.createFormat(cell);
 
-      detailLog.debug("Format: " + ((fmt == null) ? "(null)" : fmt.getClass().getSimpleName()));
+      detailLog.trace("Format: " + ((fmt == null) ? "(null)" : fmt.getClass().getSimpleName()));
 
       if (fmt == null) {
         // DataFormatter#createFormat(Cell) is nullable.
@@ -242,7 +242,7 @@ public class ExcelReadUtil {
         }
 
         if (warning) {
-          detailLog.debug("The number actual and displayed in excel differs. actual: " + toStrVal
+          detailLog.trace("The number actual and displayed in excel differs. actual: " + toStrVal
               + ", displayed: " + fmtVal);
         }
 
