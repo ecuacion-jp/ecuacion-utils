@@ -31,6 +31,6 @@ public class HeaderCellIsBlankException extends ExcelTableException {
    */
   public HeaderCellIsBlankException(String sheetName, int row, int column) {
     super("jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message", sheetName,
-        Integer.toString(row), Integer.toString(column));
+        cellPositionArg(row, column));
   }
 }

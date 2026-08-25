@@ -252,7 +252,7 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
-          cell.getAddress().formatAsString(), filename);
+          cell.getRowIndex() + 1, cell.getColumnIndex() + 1, filename);
 
     } else if (cellType == CellType.BOOLEAN) {
       return cell.getBooleanCellValue() ? "TRUE" : "FALSE";

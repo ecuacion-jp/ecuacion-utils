@@ -32,6 +32,6 @@ public class ColumnSizeIsZeroException extends ExcelTableException {
    */
   public ColumnSizeIsZeroException(String sheetName, int row, int column) {
     super("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message", sheetName,
-        Integer.toString(row), Integer.toString(column));
+        cellPositionArg(row, column));
   }
 }
