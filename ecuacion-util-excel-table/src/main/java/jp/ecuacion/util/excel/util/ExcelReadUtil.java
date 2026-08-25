@@ -73,57 +73,38 @@ public class ExcelReadUtil {
    * @throws ExcelTableException when an Excel parsing error occurs
    */
   public static @Nullable String getStringFromCell(@Nullable Cell cell) throws ExcelTableException {
-    return getStringFromCell(cell, null, defaultDateTimeFormat);
+    return getStringFromCell(cell, defaultDateTimeFormat);
   }
 
   /**
    * Returns {@code String} format cell value
-   * in spite of the format or value kind of the cell.
-   *
-   * @param filename Used for error message, 
-   *     may be {@code null} in which case the error message shows no filename.
-   * @param cell the cell of the excel file
-   * @return the string which expresses the value of the cell.
-   * @throws ExcelTableException when an Excel parsing error occurs
-   */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename)
-      throws ExcelTableException {
-    return getStringFromCell(cell, filename, defaultDateTimeFormat);
-  }
-
-  /**
-   * Returns {@code String} format cell value 
    *     in spite of the format or value kind of the cell.
-   * 
+   *
    * <p>return value when row is null or cell is null, etc... is null.</p>
-   * 
-   * @param filename Used for error message, 
-   *     may be {@code null} in which case the error message shows no filename.
+   *
    * @param cell the cell of the excel file
-   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   * @param dateTimeFormat dateTimeFormat, may be {@code null}
    *     in which case {@code defaultDateTimeFormat} is used.
    * @return the string which expresses the value of the cell.
    * @throws ExcelTableException when an Excel parsing error occurs
    */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
+  public static @Nullable String getStringFromCell(@Nullable Cell cell,
       @Nullable DateTimeFormatter dateTimeFormat) throws ExcelTableException {
-    return getStringFromCell(cell, filename, dateTimeFormat, null);
+    return getStringFromCell(cell, dateTimeFormat, null);
   }
 
   /**
-   * Returns {@code String} format cell value 
+   * Returns {@code String} format cell value
    *     in spite of the format or value kind of the cell.
-   * 
-   * @param filename Used for error message, 
-   *     may be {@code null} in which case the error message shows no filename.
+   *
    * @param cell the cell of the excel file
-   * @param dateTimeFormat dateTimeFormat, may be {@code null} 
+   * @param dateTimeFormat dateTimeFormat, may be {@code null}
    *     in which case {@code defaultDateTimeFormat} is used.
    * @param noDataString return value when row is null or cell is null, etc...
    * @return the string which expresses the value of the cell.
    * @throws ExcelTableException when an Excel parsing error occurs
    */
-  public static @Nullable String getStringFromCell(@Nullable Cell cell, @Nullable String filename,
+  public static @Nullable String getStringFromCell(@Nullable Cell cell,
       @Nullable DateTimeFormatter dateTimeFormat, @Nullable String noDataString)
       throws ExcelTableException {
     if (dateTimeFormat == null) {
@@ -141,7 +122,7 @@ public class ExcelReadUtil {
     detailLog.trace("-----");
     detailLog.trace("cellType: " + cellTypeString);
 
-    String value = internalGetStringFromCell(cell, filename, dateTimeFormat, noDataString);
+    String value = internalGetStringFromCell(cell, dateTimeFormat, noDataString);
 
     // Escape line breaks so a crafted cell value cannot forge extra log lines.
     detailLog.trace("value: "
@@ -152,17 +133,14 @@ public class ExcelReadUtil {
 
   /**
    * Returns the value of the cell.
-   * 
-   * @param filename Used for error message, 
-   *     may be {@code null} in which case the error message shows no filename.
+   *
    * @param cell cell, may be {@code null}.
    * @param dateTimeFormat dateTimeFormat
    * @return the string value of the cell, may be {@code null}.
    * @throws ExcelTableException when an Excel parsing error occurs
    */
   private static @Nullable String internalGetStringFromCell(@Nullable Cell cell,
-      @Nullable String filename, @Nullable DateTimeFormatter dateTimeFormat,
-      @Nullable String noDataString)
+      @Nullable DateTimeFormatter dateTimeFormat, @Nullable String noDataString)
       throws ExcelTableException {
 
     if (cell == null) {
@@ -172,11 +150,11 @@ public class ExcelReadUtil {
     CellType cellType = cell.getCellType();
 
     if (cellType == CellType.FORMULA) {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename,
+      return internalGetStringFromCellOtherThanFormulaCellType(cell,
           cell.getCachedFormulaResultType(), noDataString, dateTimeFormat);
 
     } else {
-      return internalGetStringFromCellOtherThanFormulaCellType(cell, filename, cell.getCellType(),
+      return internalGetStringFromCellOtherThanFormulaCellType(cell, cell.getCellType(),
           noDataString, dateTimeFormat);
     }
   }
@@ -192,8 +170,6 @@ public class ExcelReadUtil {
    *
    * <p>{@code BOOLEAN} cells return {@code "TRUE"} or {@code "FALSE"}.</p>
    * 
-   * @param filename Used for error message, 
-   *     may be {@code null} in which case the error message shows no filename.
    * @param cell cell
    * @param cellType cellType
    * @param dateTimeFormat dateTimeFormat
@@ -202,7 +178,7 @@ public class ExcelReadUtil {
    */
   @SuppressWarnings("null")
   private static @Nullable String internalGetStringFromCellOtherThanFormulaCellType(
-      Cell cell, @Nullable String filename, @Nullable CellType cellType,
+      Cell cell, @Nullable CellType cellType,
       @Nullable String noDataString, @Nullable DateTimeFormatter dateTimeFormat)
       throws ExcelTableException {
 
@@ -252,7 +228,7 @@ public class ExcelReadUtil {
     } else if (cellType == CellType.ERROR) {
       // We've got this when the cell says "#NUM!" in excel.
       throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
-          cell.getRowIndex() + 1, cell.getColumnIndex() + 1, filename);
+          cell.getRowIndex() + 1, cell.getColumnIndex() + 1);
 
     } else if (cellType == CellType.BOOLEAN) {
       return cell.getBooleanCellValue() ? "TRUE" : "FALSE";

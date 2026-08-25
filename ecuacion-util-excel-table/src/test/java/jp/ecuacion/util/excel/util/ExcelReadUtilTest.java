@@ -103,7 +103,7 @@ public class ExcelReadUtilTest {
       @DisplayName("returns noDataString")
       void returnsNoDataString(@Nullable String noDataString, @Nullable String expected)
           throws ExcelTableException {
-        assertThat(ExcelReadUtil.getStringFromCell(null, null, null, noDataString))
+        assertThat(ExcelReadUtil.getStringFromCell(null, null, noDataString))
             .isEqualTo(expected);
       }
 
@@ -125,7 +125,7 @@ public class ExcelReadUtilTest {
           throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
-          assertThat(ExcelReadUtil.getStringFromCell(cell, null, null, noDataString))
+          assertThat(ExcelReadUtil.getStringFromCell(cell, null, noDataString))
               .isEqualTo(expected);
         }
       }
@@ -149,7 +149,7 @@ public class ExcelReadUtilTest {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
           cell.setCellValue(value);
-          assertThat(ExcelReadUtil.getStringFromCell(cell, null, null, noDataString))
+          assertThat(ExcelReadUtil.getStringFromCell(cell, null, noDataString))
               .isEqualTo(expected);
         }
       }
@@ -227,7 +227,7 @@ public class ExcelReadUtilTest {
           CellStyle style = wb.createCellStyle();
           style.setDataFormat(wb.createDataFormat().getFormat("yyyy/mm/dd"));
           cell.setCellStyle(style);
-          assertThat(ExcelReadUtil.getStringFromCell(cell, null, dateTimeFormat, null))
+          assertThat(ExcelReadUtil.getStringFromCell(cell, dateTimeFormat, null))
               .isEqualTo(expected);
         }
       }
@@ -247,7 +247,7 @@ public class ExcelReadUtilTest {
           CellStyle style = wb.createCellStyle();
           style.setDataFormat(wb.createDataFormat().getFormat("yyyy/mm/dd hh:mm:ss"));
           cell.setCellStyle(style);
-          assertThat(ExcelReadUtil.getStringFromCell(cell, null,
+          assertThat(ExcelReadUtil.getStringFromCell(cell,
               DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"), null))
               .isEqualTo("2000-01-23 12:34:56");
         }
@@ -305,7 +305,7 @@ public class ExcelReadUtilTest {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
           cell.setCellFormula(formula);
           wb.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
-          assertThat(ExcelReadUtil.getStringFromCell(cell, null, null, noDataString))
+          assertThat(ExcelReadUtil.getStringFromCell(cell, null, noDataString))
               .isEqualTo(expected);
         }
       }
