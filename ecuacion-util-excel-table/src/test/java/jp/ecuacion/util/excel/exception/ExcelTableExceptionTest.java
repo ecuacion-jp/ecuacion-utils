@@ -100,7 +100,7 @@ public class ExcelTableExceptionTest {
     @Test
     @DisplayName("converts 1-based row/column to the expected A1 address")
     void convertsRowColumnToExpectedA1Address() {
-      CellContainsErrorException ex = new CellContainsErrorException("Sheet1", 3, 27, null);
+      CellContainsErrorException ex = new CellContainsErrorException("Sheet1", 3, 27);
 
       assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
           .contains("target cell: AA3");

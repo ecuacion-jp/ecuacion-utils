@@ -15,10 +15,6 @@
  */
 package jp.ecuacion.util.excel.exception;
 
-import jp.ecuacion.lib.core.util.PropertiesFileUtil.Arg;
-import org.apache.commons.lang3.StringUtils;
-import org.jspecify.annotations.Nullable;
-
 /**
  * Thrown when a cell contains an error value (e.g. {@code #NUM!}, {@code #DIV/0!}).
  */
@@ -32,19 +28,9 @@ public class CellContainsErrorException extends ExcelTableException {
    * @param sheetName the sheet name
    * @param row the 1-based Excel row of the cell that contains an error
    * @param column the 1-based Excel column of the cell that contains an error
-   * @param filename filename or file path of the Excel file to add to the message, or
-   *     {@code null} when unavailable
    */
-  public CellContainsErrorException(String sheetName, int row, int column,
-      @Nullable String filename) {
+  public CellContainsErrorException(String sheetName, int row, int column) {
     super("jp.ecuacion.util.excel.CellContainsError.message", sheetName,
-        cellPositionArg(row, column),
-        StringUtils.isEmpty(filename) ? "" : messageItemSeparator(),
-        StringUtils.isEmpty(filename) ? "" : Arg.message("jp.ecuacion.util.excel.common.filename",
-            filename));
-  }
-
-  private static Arg messageItemSeparator() {
-    return Arg.message("jp.ecuacion.util.excel.common.messageItemSeparator");
+        cellPositionArg(row, column));
   }
 }

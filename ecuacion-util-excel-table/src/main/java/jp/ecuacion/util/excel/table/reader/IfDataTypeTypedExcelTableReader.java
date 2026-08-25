@@ -65,7 +65,7 @@ public interface IfDataTypeTypedExcelTableReader
       return cell.getBooleanCellValue();
     } else if (cellType == CellType.ERROR) {
       throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
-          cell.getRowIndex() + 1, cell.getColumnIndex() + 1, null);
+          cell.getRowIndex() + 1, cell.getColumnIndex() + 1);
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType);
     }
