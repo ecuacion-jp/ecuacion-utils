@@ -27,15 +27,16 @@ public class ExcelFeatureNotImplementedException extends ExcelTableException {
    * Constructs an instance.
    *
    * @param sheetName the sheet name
-   * @param cellAddress the address of the cell containing the unsupported formula
+   * @param row the 1-based Excel row of the cell containing the unsupported formula
+   * @param column the 1-based Excel column of the cell containing the unsupported formula
    * @param reason a description of the unsupported feature (e.g. an unimplemented function name),
    *     or a localized "(unknown)" label when the reason cannot be determined
    * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
    *     "(none)" label when unavailable
    */
-  public ExcelFeatureNotImplementedException(String sheetName, String cellAddress, Object reason,
+  public ExcelFeatureNotImplementedException(String sheetName, int row, int column, Object reason,
       Object fileInfoArg) {
     super("jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message", sheetName,
-        cellAddress, reason, fileInfoArg);
+        cellPositionArg(row, column), reason, fileInfoArg);
   }
 }

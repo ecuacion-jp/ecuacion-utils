@@ -27,14 +27,15 @@ public class ExternalWorkbookNotFoundException extends ExcelTableException {
    * Constructs an instance.
    *
    * @param sheetName the sheet name
-   * @param cellAddress the address of the cell containing the formula
+   * @param row the 1-based Excel row of the cell containing the formula
+   * @param column the 1-based Excel column of the cell containing the formula
    * @param formula the formula referencing the missing external workbook
    * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
    *     "(none)" label when unavailable
    */
-  public ExternalWorkbookNotFoundException(String sheetName, String cellAddress, String formula,
+  public ExternalWorkbookNotFoundException(String sheetName, int row, int column, String formula,
       Object fileInfoArg) {
     super("jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message", sheetName,
-        cellAddress, formula, fileInfoArg);
+        cellPositionArg(row, column), formula, fileInfoArg);
   }
 }

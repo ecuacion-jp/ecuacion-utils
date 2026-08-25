@@ -30,13 +30,15 @@ public class CellContainsErrorException extends ExcelTableException {
    * Constructs an instance.
    *
    * @param sheetName the sheet name
-   * @param cellAddress the address of the cell that contains an error, e.g. {@code "A1"}
+   * @param row the 1-based Excel row of the cell that contains an error
+   * @param column the 1-based Excel column of the cell that contains an error
    * @param filename filename or file path of the Excel file to add to the message, or
    *     {@code null} when unavailable
    */
-  public CellContainsErrorException(String sheetName, String cellAddress,
+  public CellContainsErrorException(String sheetName, int row, int column,
       @Nullable String filename) {
-    super("jp.ecuacion.util.excel.CellContainsError.message", sheetName, cellAddress,
+    super("jp.ecuacion.util.excel.CellContainsError.message", sheetName,
+        cellPositionArg(row, column),
         StringUtils.isEmpty(filename) ? "" : messageItemSeparator(),
         StringUtils.isEmpty(filename) ? "" : Arg.message("jp.ecuacion.util.excel.common.filename",
             filename));
