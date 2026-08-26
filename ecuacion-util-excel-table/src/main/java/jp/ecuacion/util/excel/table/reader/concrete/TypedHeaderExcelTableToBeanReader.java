@@ -78,7 +78,7 @@ public class TypedHeaderExcelTableToBeanReader<T extends TypedExcelTableBean>
    * @throws IOException IOException
    */
   public List<T> readToBean(String filePath) throws EncryptedDocumentException, IOException {
-    return readToBean(filePath, true);
+    return readToBean(filePath, false);
   }
 
   /**
