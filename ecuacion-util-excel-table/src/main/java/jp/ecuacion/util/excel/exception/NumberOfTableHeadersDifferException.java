@@ -19,7 +19,7 @@ package jp.ecuacion.util.excel.exception;
  * Thrown when the number of header columns found in the Excel table differs from the number
  * of expected header labels.
  */
-public class NumberOfTableHeadersDifferException extends ExcelTableException {
+public final class NumberOfTableHeadersDifferException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

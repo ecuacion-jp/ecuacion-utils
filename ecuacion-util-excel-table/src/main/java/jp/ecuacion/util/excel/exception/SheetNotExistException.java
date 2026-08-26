@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.exception;
 /**
  * Thrown when the specified sheet name does not exist in the Excel file.
  */
-public class SheetNotExistException extends ExcelTableException {
+public final class SheetNotExistException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

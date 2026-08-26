@@ -22,7 +22,10 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 import jp.ecuacion.lib.core.exception.ViolationException;
+import jp.ecuacion.util.excel.exception.ExcelFeatureNotImplementedException;
 import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.ExternalWorkbookNotFoundException;
+import jp.ecuacion.util.excel.exception.FormulaEvaluationUnknownErrorException;
 import org.apache.poi.ss.formula.FormulaParseException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -30,7 +33,6 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -271,47 +273,36 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("unimplemented function → ExcelTableException (caused by NotImplementedException)")
+      @DisplayName("unimplemented function → ExcelFeatureNotImplementedException"
+          + " (caused by NotImplementedException)")
       void unimplementedFunction() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelTableException.class)
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-              .isEqualTo(
-                  "jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message");
+              .isInstanceOf(ExcelFeatureNotImplementedException.class);
         }
       }
 
       @Test
-      @DisplayName("external workbook reference → ExcelTableException (caused by WorkbookNotFoundException)")
+      @DisplayName("external workbook reference → ExternalWorkbookNotFoundException"
+          + " (caused by WorkbookNotFoundException)")
       void externalWorkbookRef() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .isInstanceOf(ExcelTableException.class)
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-              .isEqualTo(
-                  "jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message");
+              .isInstanceOf(ExternalWorkbookNotFoundException.class);
         }
       }
 
       @Test
-      @DisplayName("#NAME? → ExcelTableException (DetailUnknown, caused by FormulaParseException)")
+      @DisplayName("#NAME? → FormulaEvaluationUnknownErrorException"
+          + " (caused by FormulaParseException)")
       void namePound() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-              .satisfies(e -> {
-                assertThat(e.getMessageId())
-                    .isEqualTo(
-                        "jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message");
-                assertThat(e.getCause())
-                    .isInstanceOf(FormulaParseException.class);
-              });
+              .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
+              .hasCauseInstanceOf(FormulaParseException.class);
         }
       }
 
@@ -334,19 +325,14 @@ public class ExcelWriteUtilTest {
       }
 
       @Test
-      @DisplayName("other exceptions → ExcelTableException (DetailUnknown, caused by ClassCastException)")
+      @DisplayName("other exceptions → FormulaEvaluationUnknownErrorException"
+          + " (caused by ClassCastException)")
       void otherException() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
-              .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-              .satisfies(e -> {
-                assertThat(e.getMessageId())
-                    .isEqualTo(
-                        "jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message");
-                assertThat(e.getCause())
-                    .isInstanceOf(ClassCastException.class);
-              });
+              .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
+              .hasCauseInstanceOf(ClassCastException.class);
         }
       }
     }

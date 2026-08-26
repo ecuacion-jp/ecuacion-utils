@@ -15,28 +15,27 @@
  */
 package jp.ecuacion.util.excel.exception;
 
+import org.apache.poi.ss.usermodel.Cell;
+
 /**
  * Thrown when the underlying Excel manipulation library (Apache POI) does not support a
  * feature used by a formula being evaluated.
  */
-public class ExcelFeatureNotImplementedException extends ExcelTableException {
+public final class ExcelFeatureNotImplementedException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 
   /**
    * Constructs an instance.
    *
-   * @param sheetName the sheet name
-   * @param row the 1-based Excel row of the cell containing the unsupported formula
-   * @param column the 1-based Excel column of the cell containing the unsupported formula
+   * @param cell the cell containing the unsupported formula
    * @param reason a description of the unsupported feature (e.g. an unimplemented function name),
    *     or a localized "(unknown)" label when the reason cannot be determined
    * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
    *     "(none)" label when unavailable
    */
-  public ExcelFeatureNotImplementedException(String sheetName, int row, int column, Object reason,
-      Object fileInfoArg) {
-    super("jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message", sheetName,
-        cellPositionArg(row, column), reason, fileInfoArg);
+  public ExcelFeatureNotImplementedException(Cell cell, Object reason, Object fileInfoArg) {
+    super("jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message",
+        cell.getSheet().getSheetName(), cellPositionArg(cell), reason, fileInfoArg);
   }
 }

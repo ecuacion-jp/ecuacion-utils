@@ -15,27 +15,26 @@
  */
 package jp.ecuacion.util.excel.exception;
 
+import org.apache.poi.ss.usermodel.Cell;
+
 /**
  * Thrown when a formula references an external Excel file that cannot be found while
  * evaluating it.
  */
-public class ExternalWorkbookNotFoundException extends ExcelTableException {
+public final class ExternalWorkbookNotFoundException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 
   /**
    * Constructs an instance.
    *
-   * @param sheetName the sheet name
-   * @param row the 1-based Excel row of the cell containing the formula
-   * @param column the 1-based Excel column of the cell containing the formula
+   * @param cell the cell containing the formula
    * @param formula the formula referencing the missing external workbook
    * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
    *     "(none)" label when unavailable
    */
-  public ExternalWorkbookNotFoundException(String sheetName, int row, int column, String formula,
-      Object fileInfoArg) {
-    super("jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message", sheetName,
-        cellPositionArg(row, column), formula, fileInfoArg);
+  public ExternalWorkbookNotFoundException(Cell cell, String formula, Object fileInfoArg) {
+    super("jp.ecuacion.util.excel.ExcelWriteUtil.WorkbookNotFoundException.message",
+        cell.getSheet().getSheetName(), cellPositionArg(cell), formula, fileInfoArg);
   }
 }

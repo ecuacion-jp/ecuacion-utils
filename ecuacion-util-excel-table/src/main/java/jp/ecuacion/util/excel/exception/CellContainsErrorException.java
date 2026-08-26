@@ -15,22 +15,22 @@
  */
 package jp.ecuacion.util.excel.exception;
 
+import org.apache.poi.ss.usermodel.Cell;
+
 /**
  * Thrown when a cell contains an error value (e.g. {@code #NUM!}, {@code #DIV/0!}).
  */
-public class CellContainsErrorException extends ExcelTableException {
+public final class CellContainsErrorException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 
   /**
    * Constructs an instance.
    *
-   * @param sheetName the sheet name
-   * @param row the 1-based Excel row of the cell that contains an error
-   * @param column the 1-based Excel column of the cell that contains an error
+   * @param cell the cell that contains an error
    */
-  public CellContainsErrorException(String sheetName, int row, int column) {
-    super("jp.ecuacion.util.excel.CellContainsError.message", sheetName,
-        cellPositionArg(row, column));
+  public CellContainsErrorException(Cell cell) {
+    super("jp.ecuacion.util.excel.CellContainsError.message", cell.getSheet().getSheetName(),
+        cellPositionArg(cell));
   }
 }

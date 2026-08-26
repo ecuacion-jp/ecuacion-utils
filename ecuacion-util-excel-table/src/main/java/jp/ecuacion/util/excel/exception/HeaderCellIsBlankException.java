@@ -18,7 +18,7 @@ package jp.ecuacion.util.excel.exception;
 /**
  * Thrown when a header cell is blank without being part of a merged region.
  */
-public class HeaderCellIsBlankException extends ExcelTableException {
+public final class HeaderCellIsBlankException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

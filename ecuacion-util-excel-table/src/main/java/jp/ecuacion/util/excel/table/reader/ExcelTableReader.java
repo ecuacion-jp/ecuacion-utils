@@ -320,8 +320,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     if (size == 0) {
       throw new ColumnSizeIsZeroException(sheet.getSheetName(),
-          poiBasisDeterminedTableStartRowNumber + 1, poiBasisDeterminedTableStartColumnNumber + 1)
-          .sheet(sheet);
+          poiBasisDeterminedTableStartRowNumber + 1, poiBasisDeterminedTableStartColumnNumber + 1);
     }
 
     return size;
