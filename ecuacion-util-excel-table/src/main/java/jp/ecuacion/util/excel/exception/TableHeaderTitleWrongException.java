@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
  * Thrown when a header cell's label in the Excel table differs from the expected label at
  * that position.
  */
-public class TableHeaderTitleWrongException extends ExcelTableException {
+public final class TableHeaderTitleWrongException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

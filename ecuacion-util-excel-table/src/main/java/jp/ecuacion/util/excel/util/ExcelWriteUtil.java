@@ -358,9 +358,6 @@ public class ExcelWriteUtil {
   public static void evaluateFormula(Cell cell, String fileInfo) {
     Object fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
-    String sheetName = cell.getSheet().getSheetName();
-    int row = cell.getRowIndex() + 1;
-    int column = cell.getColumnIndex() + 1;
 
     try {
       workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
@@ -378,15 +375,14 @@ public class ExcelWriteUtil {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
 
-      throw new ExcelFeatureNotImplementedException(sheetName, row, column, reason, fileInfoArg)
-          .cell(cell).cause(ex);
+      throw new ExcelFeatureNotImplementedException(cell, reason, fileInfoArg).cause(ex);
 
     } catch (IllegalStateException ex) {
       if (ex.getCause() != null && Objects.requireNonNull(ex.getCause()).getCause() != null
           && Objects.requireNonNull(ex.getCause())
               .getCause() instanceof WorkbookNotFoundException) {
-        throw new ExternalWorkbookNotFoundException(sheetName, row, column,
-            cell.getCellFormula(), fileInfoArg).cell(cell).cause(ex);
+        throw new ExternalWorkbookNotFoundException(cell, cell.getCellFormula(), fileInfoArg)
+            .cause(ex);
 
       } else {
         throwExceptionForUnknownException(ex, cell, fileInfo);
@@ -405,8 +401,8 @@ public class ExcelWriteUtil {
     sb.deleteCharAt(sb.length() - 1);
     Object fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell.getSheet().getSheetName(),
-        cell.getRowIndex() + 1, cell.getColumnIndex() + 1, sb.toString()).cell(cell).cause(ex);
+    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell, sb.toString())
+        .cause(ex);
   }
 
   private static Object getFileInfoString(String fileInfo) {

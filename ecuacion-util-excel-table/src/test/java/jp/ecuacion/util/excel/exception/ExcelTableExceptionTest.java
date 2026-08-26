@@ -17,7 +17,6 @@ package jp.ecuacion.util.excel.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -28,43 +27,6 @@ import org.junit.jupiter.api.Test;
 
 @DisplayName("ExcelTableException")
 public class ExcelTableExceptionTest {
-
-  @Nested
-  @DisplayName("cell(Cell)")
-  class CellMethod {
-
-    @Test
-    @DisplayName("cell() sets cell, sheet, and workbook from the given Cell object")
-    void cellSetsCellSheetAndWorkbook() {
-      Workbook wb = new XSSFWorkbook();
-      Sheet sheet = wb.createSheet("Sheet1");
-      Row row = sheet.createRow(0);
-      Cell cell = row.createCell(0);
-      cell.setCellValue("test");
-
-      ExcelTableException ex = new SheetNotExistException("Sheet1");
-      ex.cell(cell);
-
-      assertThat(ex.getCell()).isSameAs(cell);
-      assertThat(ex.getSheet()).isSameAs(sheet);
-      assertThat(ex.getWorkbook()).isSameAs(wb);
-    }
-
-    @Test
-    @DisplayName("cell() returns self for method chaining")
-    @SuppressWarnings("resource")
-    void cellReturnsSelf() {
-      Workbook wb = new XSSFWorkbook();
-      Sheet sheet = wb.createSheet("Sheet1");
-      Row row = sheet.createRow(0);
-      Cell cell = row.createCell(0);
-
-      ExcelTableException ex = new SheetNotExistException("Sheet1");
-      ExcelTableException result = ex.cell(cell);
-
-      assertThat(result).isSameAs(ex);
-    }
-  }
 
   @Nested
   @DisplayName("cell position format (jp.ecuacion.util.excel.cell-format-r1c1)")
@@ -99,11 +61,17 @@ public class ExcelTableExceptionTest {
 
     @Test
     @DisplayName("converts 1-based row/column to the expected A1 address")
-    void convertsRowColumnToExpectedA1Address() {
-      CellContainsErrorException ex = new CellContainsErrorException("Sheet1", 3, 27);
+    void convertsRowColumnToExpectedA1Address() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet sheet = wb.createSheet("Sheet1");
+        // 0-based row 2 / column 26 == 1-based row 3 / column 27 (AA)
+        Cell cell = sheet.createRow(2).createCell(26);
 
-      assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
-          .contains("target cell: AA3");
+        CellContainsErrorException ex = new CellContainsErrorException(cell);
+
+        assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
+            .contains("target cell: AA3");
+      }
     }
   }
 }

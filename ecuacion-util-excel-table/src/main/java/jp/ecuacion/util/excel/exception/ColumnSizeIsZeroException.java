@@ -19,7 +19,7 @@ package jp.ecuacion.util.excel.exception;
  * Thrown when the auto-detected column size of the table is zero, i.e. no header data was
  * found at the presumed table start position.
  */
-public class ColumnSizeIsZeroException extends ExcelTableException {
+public final class ColumnSizeIsZeroException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

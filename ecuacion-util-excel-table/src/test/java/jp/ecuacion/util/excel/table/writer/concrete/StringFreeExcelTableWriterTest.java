@@ -18,8 +18,7 @@ package jp.ecuacion.util.excel.table.writer.concrete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
-import jp.ecuacion.util.excel.exception.ExcelTableException;
-import org.assertj.core.api.InstanceOfAssertFactories;
+import jp.ecuacion.util.excel.exception.SheetNotExistException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -111,17 +110,14 @@ public class StringFreeExcelTableWriterTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("nonexistent sheet name → ExcelTableException (SheetNotExist)")
+    @DisplayName("nonexistent sheet name → SheetNotExistException")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableWriter writer =
             new StringFreeExcelTableWriter("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> writer.write(wb, List.of(List.of("a"))))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
+            .isInstanceOf(SheetNotExistException.class);
       }
     }
   }

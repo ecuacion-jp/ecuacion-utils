@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import jp.ecuacion.util.excel.enums.NoDataString;
-import jp.ecuacion.util.excel.exception.ExcelTableException;
+import jp.ecuacion.util.excel.exception.ColumnSizeIsZeroException;
+import jp.ecuacion.util.excel.exception.SheetNotExistException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -284,30 +284,26 @@ public class StringFreeExcelTableReaderTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("nonexistent sheet name → ExcelTableException (SheetNotExist)")
+    @DisplayName("nonexistent sheet name → SheetNotExistException")
     void sheetNotExist() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1");
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("NotExist").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.SheetNotExist.message");
+            .isInstanceOf(SheetNotExistException.class);
       }
     }
 
     @Test
-    @DisplayName("no data at the table start position → ExcelTableException (ColumnSizeIsZero)")
+    @DisplayName("no data at the table start position → ColumnSizeIsZeroException")
     void columnSizeIsZero() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         wb.createSheet("Sheet1"); // empty sheet
         StringFreeExcelTableReader reader =
             new StringFreeExcelTableReader("Sheet1").tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.reader.ColumnSizeIsZero.message");
+            .isInstanceOf(ColumnSizeIsZeroException.class);
       }
     }
   }
