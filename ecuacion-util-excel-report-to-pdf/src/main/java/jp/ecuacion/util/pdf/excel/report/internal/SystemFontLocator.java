@@ -419,17 +419,28 @@ public class SystemFontLocator {
   public static TrueTypeFont loadTrueTypeFont(Path fontFile, String fontName) throws IOException {
     String lower = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
     if (lower.endsWith(".ttc")) {
-      try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
-        // 1. Try PostScript name match (getFontByName uses nameId=6)
-        try {
-          TrueTypeFont found = ttc.getFontByName(fontName);
-          if (found != null) {
-            return found;
-          }
-        } catch (IOException ignored) {
-          // getFontByName throws if the named font is not in the collection
-        }
+      // None of the TrueTypeCollection instances below are closed when they end up supplying
+      // the returned font: a TrueTypeFont obtained from a collection reads its glyph/table
+      // data lazily from the collection's underlying stream (e.g. when PDFBox embeds the font
+      // into the output PDF later), so closing the collection would invalidate the handle
+      // returned here. Fonts are cached for the process lifetime (see class Javadoc), so the
+      // underlying file descriptors are released only at JVM exit.
+
+      // 1. Try PostScript name match (getFontByName uses nameId=6)
+      TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile());
+      TrueTypeFont foundByName = null;
+      try {
+        foundByName = ttc.getFontByName(fontName);
+      } catch (IOException ignored) {
+        // getFontByName throws if the named font is not in the collection
       }
+      if (foundByName != null) {
+        return foundByName;
+      } else {
+        // No match: safe to close since no returned font depends on this instance's stream.
+        ttc.close();
+      }
+
       // 2a. Exact family/full name match (nameId=1, 4, 16 must equal target exactly).
       //     Must come before prefix matching: "Meiryo" is a prefix of "Meiryo UI",
       //     so prefix matching would incorrectly return "Meiryo" for the target "Meiryo UI".
