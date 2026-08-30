@@ -248,6 +248,12 @@ public class ExcelReadUtil {
    *     appropriate JVM heap settings on the caller side, since a legitimately-formatted xlsx
    *     with a huge number of cells can still exhaust available memory.</p>
    *
+   * <p>Opened with {@code readOnly = true}, which per {@link WorkbookFactory}'s Javadoc avoids
+   *     writing changes back into {@code filePath} when the workbook is closed. This is why the
+   *     {@code File}-based overload is safe to use here, unlike in {@link
+   *     ExcelWriteUtil#openForWrite(String)} (see its Javadoc for why that one uses a stream
+   *     instead).</p>
+   *
    * @param filePath filePath
    * @return workbook
    * @throws EncryptedDocumentException EncryptedDocumentException
