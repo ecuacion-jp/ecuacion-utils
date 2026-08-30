@@ -243,6 +243,11 @@ public class ExcelReadUtil {
    * <p><strong>Security note:</strong> {@code filePath} is used as-is without validation.
    * Only pass paths from trusted sources; never pass user-supplied input directly.</p>
    *
+   * <p><strong>Security note:</strong> the whole workbook is loaded into heap memory. When
+   *     processing untrusted (e.g. user-uploaded) files, enforce a file size limit and
+   *     appropriate JVM heap settings on the caller side, since a legitimately-formatted xlsx
+   *     with a huge number of cells can still exhaust available memory.</p>
+   *
    * @param filePath filePath
    * @return workbook
    * @throws EncryptedDocumentException EncryptedDocumentException
