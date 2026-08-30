@@ -47,6 +47,11 @@ import org.jspecify.annotations.Nullable;
  * <p><strong>Font licensing notice:</strong> when {@link #builderForSystemFonts()} is used, the
  * system font is embedded in the output PDF. Ensure that the font's licence permits embedding
  * and distribution before enabling this option.</p>
+ *
+ * <p><strong>Security note:</strong> {@code excelPassword}, {@code pdfPassword} and {@code
+ * pdfOwnerPassword} are held as plain {@code String}s for the lifetime of this instance, since
+ * the underlying POI/PDFBox APIs require {@code String} passwords. They remain in heap memory
+ * (unredacted, e.g. in a heap dump) until garbage collected.</p>
  */
 public class PdfGenerateOptions {
 
