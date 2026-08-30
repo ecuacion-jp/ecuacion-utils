@@ -187,7 +187,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
@@ -212,7 +212,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
@@ -236,7 +236,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(3);
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
@@ -261,7 +261,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"});
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
@@ -285,7 +285,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             TestBean.class, "EmployeeSheet", new String[] {"name", "age"})
             .tableStartRowNumber(1);
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class)
             .satisfies(ex -> {
               Arg postfix = Objects.requireNonNull(getPostfix(ex));
@@ -316,7 +316,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         }
       }.tableStartRowNumber(1);
 
-      assertThatThrownBy(() -> reader.readToBean("dummy"))
+      assertThatThrownBy(() -> reader.readToBean("dummy", true))
           .isInstanceOf(RuntimeException.class)
           .hasMessage("afterReading error");
     }
@@ -494,7 +494,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
-          reader.readToBean(input.toString());
+          reader.readToBean(input.toString(), true);
         } catch (ViolationException ex) {
           reader.highlightErrors(input.toString(), ex.getViolations(), output.toString());
         }
@@ -524,7 +524,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
-          reader.readToBean(input.toString());
+          reader.readToBean(input.toString(), true);
         } catch (ViolationException ex) {
           reader.highlightErrors(input.toString(), ex.getViolations(), output.toString());
         }
@@ -554,7 +554,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
             AnnotatedBean.class, "Sheet1", new String[] {"name", "age"})
             .tableStartRowNumber(1).tableStartColumnNumber(2);
         try {
-          reader.readToBean(input.toString());
+          reader.readToBean(input.toString(), true);
         } catch (ViolationException ex) {
           reader.highlightErrors(input.toString(), ex.getViolations(), output.toString());
         }
@@ -582,7 +582,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<AnnotatedSubBean>(
             AnnotatedSubBean.class, "Sheet1", new String[] {"id", "name"}).tableStartRowNumber(1);
         try {
-          reader.readToBean(input.toString());
+          reader.readToBean(input.toString(), true);
         } catch (ViolationException ex) {
           reader.highlightErrors(input.toString(), ex.getViolations(), output.toString());
         }
@@ -611,7 +611,7 @@ public class StringHeaderExcelTableToBeanReaderTest {
         var reader = new StringOneLineHeaderExcelTableToBeanReader<TestBean>(
             TestBean.class, "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
         try {
-          reader.readToBean(input.toString());
+          reader.readToBean(input.toString(), true);
         } catch (ViolationException ex) {
           reader.highlightErrors(input.toString(), ex.getViolations(), output.toString());
         }
