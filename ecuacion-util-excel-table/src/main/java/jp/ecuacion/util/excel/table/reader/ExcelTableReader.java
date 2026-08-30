@@ -180,7 +180,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     // get the IteratorReader
     ContextContainer context = getReadyToReadTableData(this, workbook, getSheetName(),
-        tableStartColumnNumber, null, false);
+        tableStartColumnNumber, null, false, true);
 
     return new IterableReader<T>(this, context, getNumberOfHeaderLines());
   }
@@ -255,8 +255,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       // do nothing, just finish the loop.
     }
 
-    detailLog.debug("finishing to read excel file. sheet name :" + getSheetName());
-    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
+    detailLog.info("finishing to read excel file (" + (readsHeaderOnly ? "header only" : "data")
+        + "). Sheet name : " + getSheetName());
+    detailLog.info(EclibCoreConstants.PARTITION_LARGE);
 
     return rowList;
   }
@@ -319,8 +320,7 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
     if (size == 0) {
       throw new ColumnSizeIsZeroException(sheet.getSheetName(),
-          poiBasisDeterminedTableStartRowNumber + 1, poiBasisDeterminedTableStartColumnNumber + 1)
-          .sheet(sheet);
+          poiBasisDeterminedTableStartRowNumber + 1, poiBasisDeterminedTableStartColumnNumber + 1);
     }
 
     return size;
@@ -354,8 +354,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
    */
   static <T> List<T> readTableLine(ExcelTableReader<T> reader, ContextContainer context,
       int rowNumber) throws ExcelTableException {
-    detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
-    detailLog.debug("row number: " + rowNumber);
+    detailLog.trace(EclibCoreConstants.PARTITION_MEDIUM);
+    detailLog.debug("Read row number: " + rowNumber);
 
     if (rowNumber == ContextContainer.max) {
       throw new RuntimeException("'max':" + ContextContainer.max + " exceeded.");
@@ -405,8 +405,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
     }
 
     if (isEmptyRow) {
-      detailLog.debug("(no data in the line)");
-      detailLog.debug(EclibCoreConstants.PARTITION_MEDIUM);
+      detailLog.trace("(no data in the line)");
+      detailLog.trace(EclibCoreConstants.PARTITION_MEDIUM);
 
       if (context.tableRowSize == null) {
         throw new LoopBreakException();
@@ -422,8 +422,8 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
 
   /**
    * Gets ready to read table data.
-   * 
-   * @param ignoresColumnSizeSetInReader It is {@code true} means 
+   *
+   * @param ignoresColumnSizeSetInReader It is {@code true} means
    *     that even if the reader determines the column size,
    *     this method obtains all the columns as long as the header column exists.
    */
@@ -431,9 +431,27 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       Workbook workbook, String sheetName, int tableStartColumnNumber,
       @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
       boolean ignoresColumnSizeSetInReader) throws ExcelTableException {
-    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
-    detailLog.debug("starting to read excel file.");
-    detailLog.debug("sheet name :" + sheetName);
+    return getReadyToReadTableData(reader, workbook, sheetName, tableStartColumnNumber,
+        numberOfHeaderLinesIfReadsHeaderOnlyOrNull, ignoresColumnSizeSetInReader, false);
+  }
+
+  /*
+   * forIteratorSetup == true means this call only builds the ContextContainer
+   * used by IteratorReader, which then reads rows one by one without logging.
+   * So it must not be logged as a "starting/finishing" pair like an eager read is.
+   */
+  private static <T> ContextContainer getReadyToReadTableData(ExcelTableReader<T> reader,
+      Workbook workbook, String sheetName, int tableStartColumnNumber,
+      @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
+      boolean ignoresColumnSizeSetInReader, boolean forIteratorSetup) throws ExcelTableException {
+    boolean readsHeaderOnly = numberOfHeaderLinesIfReadsHeaderOnlyOrNull != null;
+    detailLog.info(EclibCoreConstants.PARTITION_LARGE);
+    if (forIteratorSetup) {
+      detailLog.info("preparing to iterate over excel file. Sheet name : " + sheetName);
+    } else {
+      detailLog.info("starting to read excel file (" + (readsHeaderOnly ? "header only" : "data")
+          + "). Sheet name : " + sheetName);
+    }
 
     Sheet sheet = workbook.getSheet(sheetName);
 

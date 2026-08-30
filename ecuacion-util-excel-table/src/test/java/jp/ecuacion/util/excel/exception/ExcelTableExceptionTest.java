@@ -17,10 +17,10 @@ package jp.ecuacion.util.excel.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,39 +29,49 @@ import org.junit.jupiter.api.Test;
 public class ExcelTableExceptionTest {
 
   @Nested
-  @DisplayName("cell(Cell)")
-  class CellMethod {
+  @DisplayName("cell position format (jp.ecuacion.util.excel.cell-format-r1c1)")
+  class CellPositionFormat {
 
-    @Test
-    @DisplayName("cell() sets cell, sheet, and workbook from the given Cell object")
-    void cellSetsCellSheetAndWorkbook() {
-      Workbook wb = new XSSFWorkbook();
-      Sheet sheet = wb.createSheet("Sheet1");
-      Row row = sheet.createRow(0);
-      Cell cell = row.createCell(0);
-      cell.setCellValue("test");
+    private static final String KEY = "jp.ecuacion.util.excel.cell-format-r1c1";
 
-      ExcelTableException ex = new SheetNotExistException("Sheet1");
-      ex.cell(cell);
-
-      assertThat(ex.getCell()).isSameAs(cell);
-      assertThat(ex.getSheet()).isSameAs(sheet);
-      assertThat(ex.getWorkbook()).isSameAs(wb);
+    @AfterEach
+    void clearProperty() {
+      System.clearProperty(KEY);
     }
 
     @Test
-    @DisplayName("cell() returns self for method chaining")
-    @SuppressWarnings("resource")
-    void cellReturnsSelf() {
-      Workbook wb = new XSSFWorkbook();
-      Sheet sheet = wb.createSheet("Sheet1");
-      Row row = sheet.createRow(0);
-      Cell cell = row.createCell(0);
+    @DisplayName("defaults to A1-style address when the property is not set")
+    void defaultsToA1Format() {
+      HeaderCellIsBlankException ex = new HeaderCellIsBlankException("Sheet1", 1, 2);
 
-      ExcelTableException ex = new SheetNotExistException("Sheet1");
-      ExcelTableException result = ex.cell(cell);
+      assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
+          .contains("target cell: B1");
+    }
 
-      assertThat(result).isSameAs(ex);
+    @Test
+    @DisplayName("resolves as row/column numbers when the property is \"true\"")
+    void resolvesAsRowColumnWhenPropertyIsTrue() {
+      System.setProperty(KEY, "true");
+
+      HeaderCellIsBlankException ex = new HeaderCellIsBlankException("Sheet1", 1, 2);
+
+      assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
+          .contains("row number: 1, column number: 2");
+    }
+
+    @Test
+    @DisplayName("converts 1-based row/column to the expected A1 address")
+    void convertsRowColumnToExpectedA1Address() throws Exception {
+      try (Workbook wb = new XSSFWorkbook()) {
+        Sheet sheet = wb.createSheet("Sheet1");
+        // 0-based row 2 / column 26 == 1-based row 3 / column 27 (AA)
+        Cell cell = sheet.createRow(2).createCell(26);
+
+        CellContainsErrorException ex = new CellContainsErrorException(cell);
+
+        assertThat(ex.getViolations().getBusinessViolations().get(0).toString())
+            .contains("target cell: AA3");
+      }
     }
   }
 }

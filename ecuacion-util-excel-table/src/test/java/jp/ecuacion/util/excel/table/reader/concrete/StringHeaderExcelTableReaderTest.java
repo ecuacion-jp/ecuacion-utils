@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import java.util.stream.Stream;
-import jp.ecuacion.util.excel.exception.ExcelTableException;
-import org.assertj.core.api.InstanceOfAssertFactories;
+import jp.ecuacion.util.excel.exception.FarLeftHeaderLabelNotFoundException;
+import jp.ecuacion.util.excel.exception.HeaderCellIsBlankException;
+import jp.ecuacion.util.excel.exception.NumberOfTableHeadersDifferException;
+import jp.ecuacion.util.excel.exception.TableHeaderTitleWrongException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -109,7 +111,8 @@ public class StringHeaderExcelTableReaderTest {
   class HeaderValidation {
 
     @Test
-    @DisplayName("Excel column count > expected column count, ignores=false → ExcelTableException")
+    @DisplayName("Excel column count > expected column count, ignores=false"
+        + " → NumberOfTableHeadersDifferException")
     void tooManyColumnsIgnoresFalse() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -121,10 +124,7 @@ public class StringHeaderExcelTableReaderTest {
         StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
+            .isInstanceOf(NumberOfTableHeadersDifferException.class);
       }
     }
 
@@ -151,9 +151,10 @@ public class StringHeaderExcelTableReaderTest {
       }
     }
 
-    @ParameterizedTest(name = "[{index}] ignores={0} → ExcelTableException")
+    @ParameterizedTest(name = "[{index}] ignores={0} → NumberOfTableHeadersDifferException")
     @MethodSource
-    @DisplayName("Excel column count < expected column count → ExcelTableException regardless of ignores setting")
+    @DisplayName("Excel column count < expected column count"
+        + " → NumberOfTableHeadersDifferException regardless of ignores setting")
     void tooFewColumns(boolean ignores) throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -164,10 +165,7 @@ public class StringHeaderExcelTableReaderTest {
             "Sheet1", new String[]{"h1", "h2", "h3"}).tableStartRowNumber(1)
             .withIgnoresAdditionalColumnsOfHeaderData(ignores);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.NumberOfTableHeadersDiffer.message");
+            .isInstanceOf(NumberOfTableHeadersDifferException.class);
       }
     }
 
@@ -178,7 +176,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("header label text mismatch → ExcelTableException (TableHeaderTitleWrong)")
+    @DisplayName("header label text mismatch → TableHeaderTitleWrongException")
     void labelMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -188,10 +186,7 @@ public class StringHeaderExcelTableReaderTest {
         StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"h1", "h2"}).tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
+            .isInstanceOf(TableHeaderTitleWrongException.class);
       }
     }
   }
@@ -201,7 +196,8 @@ public class StringHeaderExcelTableReaderTest {
   class ErrorCases {
 
     @Test
-    @DisplayName("tableStartRowNumber=null, header label not found → ExcelTableException")
+    @DisplayName("tableStartRowNumber=null, header label not found"
+        + " → FarLeftHeaderLabelNotFoundException")
     void headerLabelNotFound() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -210,11 +206,7 @@ public class StringHeaderExcelTableReaderTest {
         StringOneLineHeaderExcelTableReader reader = new StringOneLineHeaderExcelTableReader(
             "Sheet1", new String[]{"header1", "header2"});
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo(
-                "jp.ecuacion.util.excel.reader.FarLeftHeaderLabelNotFound.message");
+            .isInstanceOf(FarLeftHeaderLabelNotFoundException.class);
       }
     }
   }
@@ -251,7 +243,8 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("all header rows are validated (row 1 mismatch → ExcelTableException)")
+    @DisplayName("all header rows are validated (row 1 mismatch"
+        + " → TableHeaderTitleWrongException)")
     void firstRowMismatch() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -266,10 +259,7 @@ public class StringHeaderExcelTableReaderTest {
             new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.TableHeaderTitleWrong.message");
+            .isInstanceOf(TableHeaderTitleWrongException.class);
       }
     }
 
@@ -326,7 +316,7 @@ public class StringHeaderExcelTableReaderTest {
     }
 
     @Test
-    @DisplayName("blank header cell with no merge → ExcelTableException")
+    @DisplayName("blank header cell with no merge → HeaderCellIsBlankException")
     void blankNonMergedHeaderCell() throws Exception {
       try (Workbook wb = new XSSFWorkbook()) {
         Sheet sheet = wb.createSheet("Sheet1");
@@ -344,10 +334,7 @@ public class StringHeaderExcelTableReaderTest {
             new String[][] {{"#", "PersonalInfo", "PersonalInfo"}, {"#", "Name", "Age"}})
             .tableStartRowNumber(1);
         assertThatThrownBy(() -> reader.read(wb))
-            .isInstanceOf(ExcelTableException.class)
-            .asInstanceOf(InstanceOfAssertFactories.throwable(ExcelTableException.class))
-            .extracting(ExcelTableException::getMessageId)
-            .isEqualTo("jp.ecuacion.util.excel.reader.HeaderCellIsBlank.message");
+            .isInstanceOf(HeaderCellIsBlankException.class);
       }
     }
   }

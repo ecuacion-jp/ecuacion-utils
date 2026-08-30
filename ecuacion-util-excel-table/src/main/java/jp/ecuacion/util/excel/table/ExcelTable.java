@@ -94,7 +94,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   public ExcelTable(String sheetName, @Nullable Integer tableStartRowNumber,
       int tableStartColumnNumber) {
-    this.sheetName = Objects.requireNonNull(sheetName);
+    this.sheetName = sheetName;
     this.tableStartRowNumber = tableStartRowNumber;
     this.tableStartColumnNumber = tableStartColumnNumber;
   }
@@ -106,7 +106,7 @@ public abstract class ExcelTable<T> implements IfExcelTable<T> {
    */
   @Override
   public String getSheetName() {
-    return Objects.requireNonNull(sheetName);
+    return sheetName;
   }
 
   /**

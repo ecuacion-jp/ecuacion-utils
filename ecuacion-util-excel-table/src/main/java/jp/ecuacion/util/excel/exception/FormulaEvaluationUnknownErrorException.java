@@ -15,11 +15,13 @@
  */
 package jp.ecuacion.util.excel.exception;
 
+import org.apache.poi.ss.usermodel.Cell;
+
 /**
  * Thrown when an unrecognized error occurs while evaluating a formula, wrapping whatever
  * exception the underlying Excel manipulation library (Apache POI) raised.
  */
-public class FormulaEvaluationUnknownErrorException extends ExcelTableException {
+public final class FormulaEvaluationUnknownErrorException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 
@@ -28,13 +30,11 @@ public class FormulaEvaluationUnknownErrorException extends ExcelTableException 
    *
    * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
    *     "(none)" label when unavailable
-   * @param sheetName the sheet name
-   * @param cellAddress the address of the cell containing the formula
+   * @param cell the cell containing the formula
    * @param detail a newline-joined dump of the underlying exception's message chain
    */
-  public FormulaEvaluationUnknownErrorException(Object fileInfoArg, String sheetName,
-      String cellAddress, String detail) {
-    super("jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message", fileInfoArg, sheetName,
-        cellAddress, detail);
+  public FormulaEvaluationUnknownErrorException(Object fileInfoArg, Cell cell, String detail) {
+    super("jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message", fileInfoArg,
+        cell.getSheet().getSheetName(), cellPositionArg(cell), detail);
   }
 }

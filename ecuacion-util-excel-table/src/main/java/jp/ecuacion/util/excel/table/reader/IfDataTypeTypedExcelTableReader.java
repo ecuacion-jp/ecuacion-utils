@@ -64,8 +64,7 @@ public interface IfDataTypeTypedExcelTableReader
     } else if (cellType == CellType.BOOLEAN) {
       return cell.getBooleanCellValue();
     } else if (cellType == CellType.ERROR) {
-      throw new CellContainsErrorException(cell.getRow().getSheet().getSheetName(),
-          cell.getAddress().formatAsString(), null);
+      throw new CellContainsErrorException(cell);
     } else {
       throw new RuntimeException("cell type not found. cellType: " + cellType);
     }

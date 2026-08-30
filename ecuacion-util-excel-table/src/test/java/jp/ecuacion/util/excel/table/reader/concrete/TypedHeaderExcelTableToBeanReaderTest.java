@@ -294,7 +294,7 @@ public class TypedHeaderExcelTableToBeanReaderTest {
         var reader = new TypedOneLineHeaderExcelTableToBeanReader<AnnotatedBean>(AnnotatedBean.class,
             "Sheet1", new String[] {"name", "age"}).tableStartRowNumber(1);
 
-        assertThatThrownBy(() -> reader.readToBean(file.toString()))
+        assertThatThrownBy(() -> reader.readToBean(file.toString(), true))
             .isInstanceOf(ViolationException.class);
       }
     }

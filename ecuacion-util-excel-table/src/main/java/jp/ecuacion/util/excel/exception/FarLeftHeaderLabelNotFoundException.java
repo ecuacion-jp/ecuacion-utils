@@ -19,7 +19,7 @@ package jp.ecuacion.util.excel.exception;
  * Thrown when auto-detecting the table's start row, scanning down the specified start column
  * fails to find a cell matching the expected far-left header label.
  */
-public class FarLeftHeaderLabelNotFoundException extends ExcelTableException {
+public final class FarLeftHeaderLabelNotFoundException extends ExcelTableException {
 
   private static final long serialVersionUID = 1L;
 

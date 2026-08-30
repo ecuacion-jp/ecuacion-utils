@@ -104,7 +104,8 @@ public abstract class TypedExcelTableBean {
       throw new RuntimeException(
           "Number of elements in fieldNameArray and colList differ.\n" + "fieldNameArray ("
               + fieldNameArray.length + " elements) = " + Arrays.toString(getFieldNameArray())
-              + ",\n" + "colList (" + colList.size() + " elements) = " + colList.toString());
+              + ",\n" + "colList (" + colList.size() + " elements) = "
+              + ExcelTableBeanMessageUtil.toSafeMessagePart(colList));
     }
 
     try {
@@ -244,7 +245,8 @@ public abstract class TypedExcelTableBean {
     if (fieldType == Boolean.class || fieldType == boolean.class) {
       return Boolean.valueOf(s);
     }
-    throw new RuntimeException("Cannot convert String value '" + s
+    throw new RuntimeException("Cannot convert String value '"
+        + ExcelTableBeanMessageUtil.toSafeMessagePart(s)
         + "' to field type " + fieldType.getSimpleName() + " for field '" + fieldName + "'.");
   }
 

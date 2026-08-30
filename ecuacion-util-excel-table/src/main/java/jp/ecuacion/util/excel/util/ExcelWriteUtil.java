@@ -80,6 +80,13 @@ public class ExcelWriteUtil {
    * <p><strong>Security note:</strong> {@code filePath} is used as-is without validation.
    * Only pass paths from trusted sources; never pass user-supplied input directly.</p>
    *
+   * <p>Intentionally opened via {@link FileInputStream} rather than {@link
+   * WorkbookFactory#create(java.io.File, String, boolean)}: the {@code File} overload without
+   * {@code readOnly = true} opens the workbook in write-back mode, meaning closing it can write
+   * changes back into {@code filePath} itself. Since the intended output destination is a
+   * separate file written via {@link #saveToFile(Workbook, FileOutputStream)}, the source file
+   * at {@code filePath} must not be modified as a side effect of opening it.</p>
+   *
    * @param filePath filePath
    * @return workbook
    * @throws EncryptedDocumentException EncryptedDocumentException
@@ -227,7 +234,7 @@ public class ExcelWriteUtil {
     boolean skipsBecauseOfDataFormat =
         !changesCellsWithTextDataFormat && cell.getCellStyle().getDataFormat() == 49;
 
-    if (cell != null && cell.getCellType() == CellType.STRING && !skipsBecauseOfDataFormat) {
+    if (cell.getCellType() == CellType.STRING && !skipsBecauseOfDataFormat) {
 
       if (changesNumberString) {
         try {
@@ -358,8 +365,6 @@ public class ExcelWriteUtil {
   public static void evaluateFormula(Cell cell, String fileInfo) {
     Object fileInfoArg = getFileInfoString(fileInfo);
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
-    String sheetName = cell.getSheet().getSheetName();
-    String cellAddress = cell.getAddress().formatAsString();
 
     try {
       workbook.getCreationHelper().createFormulaEvaluator().evaluateFormulaCell(cell);
@@ -377,15 +382,14 @@ public class ExcelWriteUtil {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
 
-      throw new ExcelFeatureNotImplementedException(sheetName, cellAddress, reason, fileInfoArg)
-          .cell(cell).cause(ex);
+      throw new ExcelFeatureNotImplementedException(cell, reason, fileInfoArg).cause(ex);
 
     } catch (IllegalStateException ex) {
       if (ex.getCause() != null && Objects.requireNonNull(ex.getCause()).getCause() != null
           && Objects.requireNonNull(ex.getCause())
               .getCause() instanceof WorkbookNotFoundException) {
-        throw new ExternalWorkbookNotFoundException(sheetName, cellAddress,
-            cell.getCellFormula(), fileInfoArg).cell(cell).cause(ex);
+        throw new ExternalWorkbookNotFoundException(cell, cell.getCellFormula(), fileInfoArg)
+            .cause(ex);
 
       } else {
         throwExceptionForUnknownException(ex, cell, fileInfo);
@@ -404,8 +408,8 @@ public class ExcelWriteUtil {
     sb.deleteCharAt(sb.length() - 1);
     Object fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell.getSheet().getSheetName(),
-        cell.getAddress().formatAsString(), sb.toString()).cell(cell).cause(ex);
+    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell, sb.toString())
+        .cause(ex);
   }
 
   private static Object getFileInfoString(String fileInfo) {
