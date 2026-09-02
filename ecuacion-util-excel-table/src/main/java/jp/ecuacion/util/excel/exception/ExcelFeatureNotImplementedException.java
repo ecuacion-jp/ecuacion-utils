@@ -31,11 +31,9 @@ public final class ExcelFeatureNotImplementedException extends ExcelTableExcepti
    * @param cell the cell containing the unsupported formula
    * @param reason a description of the unsupported feature (e.g. an unimplemented function name),
    *     or a localized "(unknown)" label when the reason cannot be determined
-   * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
-   *     "(none)" label when unavailable
    */
-  public ExcelFeatureNotImplementedException(Cell cell, Object reason, Object fileInfoArg) {
+  public ExcelFeatureNotImplementedException(Cell cell, Object reason) {
     super("jp.ecuacion.util.excel.ExcelWriteUtil.NotImplementedException.message",
-        cell.getSheet().getSheetName(), cellPositionArg(cell), reason, fileInfoArg);
+        cell.getSheet().getSheetName(), cellPositionArg(cell), reason);
   }
 }
