@@ -114,18 +114,18 @@ public class StringHeaderExcelTableToBeanReader<T extends StringExcelTableBean>
     final String msgId = "jp.ecuacion.util.excel.reader.ValidationMessagePostfix.message";
     List<T> rtnList = excelTableToBeanList(filePath);
 
-    if (validates) {
-      for (int i = 0; i < rtnList.size(); i++) {
-        T bean = rtnList.get(i);
+    for (int i = 0; i < rtnList.size(); i++) {
+      T bean = rtnList.get(i);
+      if (validates) {
         int excelRowNumber = dataStartExcelRowNumber + i;
         new Violations()
             .addAll(Validation.buildDefaultValidatorFactory().getValidator().validate(bean))
             .messageParameters(Violations.newMessageParameters().isMessageWithItemName(true)
                 .messagePostfix(Arg.message(msgId, getSheetName(), String.valueOf(excelRowNumber))))
             .throwIfAny();
-
-        bean.afterReading();
       }
+
+      bean.afterReading();
     }
 
     return rtnList;
