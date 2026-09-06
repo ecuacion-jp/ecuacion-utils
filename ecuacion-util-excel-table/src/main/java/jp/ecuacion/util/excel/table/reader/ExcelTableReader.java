@@ -255,9 +255,9 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       // do nothing, just finish the loop.
     }
 
-    detailLog.info("finishing to read excel file (" + (readsHeaderOnly ? "header only" : "data")
+    detailLog.debug("finishing to read excel file (" + (readsHeaderOnly ? "header only" : "data")
         + "). Sheet name : " + getSheetName());
-    detailLog.info(EclibCoreConstants.PARTITION_LARGE);
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
 
     return rowList;
   }
@@ -445,11 +445,11 @@ public abstract class ExcelTableReader<T> extends ExcelTable<T> implements IfExc
       @Nullable Integer numberOfHeaderLinesIfReadsHeaderOnlyOrNull,
       boolean ignoresColumnSizeSetInReader, boolean forIteratorSetup) throws ExcelTableException {
     boolean readsHeaderOnly = numberOfHeaderLinesIfReadsHeaderOnlyOrNull != null;
-    detailLog.info(EclibCoreConstants.PARTITION_LARGE);
+    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
     if (forIteratorSetup) {
-      detailLog.info("preparing to iterate over excel file. Sheet name : " + sheetName);
+      detailLog.debug("preparing to iterate over excel file. Sheet name : " + sheetName);
     } else {
-      detailLog.info("starting to read excel file (" + (readsHeaderOnly ? "header only" : "data")
+      detailLog.debug("starting to read excel file (" + (readsHeaderOnly ? "header only" : "data")
           + "). Sheet name : " + sheetName);
     }
 
