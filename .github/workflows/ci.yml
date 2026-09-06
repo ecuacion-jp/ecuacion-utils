@@ -16,7 +16,14 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v5
         with:
@@ -25,12 +32,14 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: ecuacion-jp/ecuacion-lib
+          ref: ${{ github.event_name == 'pull_request' && github.base_ref || (github.ref_name == 'main' && 'main' || 'develop') }}
           path: ecuacion-lib
 
       - uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
@@ -45,12 +54,18 @@ jobs:
           mvn validate
           git checkout -- .
 
-      - name: Verify
+      - name: Verify (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         working-directory: ecuacion-utils
         run: mvn verify -Dwagon.skip=true -e
 
+      - name: Test (windows)
+        if: matrix.os == 'windows-latest'
+        working-directory: ecuacion-utils
+        run: mvn test -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -e
+
       - name: Upload coverage to Codecov
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main')
+        if: matrix.os == 'ubuntu-latest' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main'))
         # Third-party action pinned to a commit SHA (tags are mutable): v5
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac
         with:
