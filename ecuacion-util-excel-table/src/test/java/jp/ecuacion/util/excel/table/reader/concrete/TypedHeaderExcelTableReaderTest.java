@@ -189,7 +189,7 @@ public class TypedHeaderExcelTableReaderTest {
         setBooleanCell(sheet, 1, 0, true);
         Path file = writeTempExcel(wb);
 
-        assertThat(readSingleCell(file)).isEqualTo(Boolean.TRUE);
+        assertThat(readSingleCell(file)).isEqualTo(true);
       }
     }
 
