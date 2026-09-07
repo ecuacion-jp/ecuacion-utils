@@ -9,7 +9,10 @@ on:
       - main
 
 env:
-  MAVEN_OPTS: -Xmx2g
+  # allure.install.directory: share one Node.js/allure install across all reactor
+  # modules instead of the plugin's per-module default (${project.basedir}/.allure),
+  # which would otherwise re-download it for every module in the build.
+  MAVEN_OPTS: -Xmx2g -Dallure.install.directory=${{ github.workspace }}/.allure-shared
 
 permissions:
   contents: read
@@ -50,7 +53,7 @@ jobs:
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
-        run: mvn install -DskipTests -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true
+        run: mvn install -DskipTests -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dallure.report.skip=true
 
       - name: Validate POM after version update
         working-directory: ecuacion-utils
