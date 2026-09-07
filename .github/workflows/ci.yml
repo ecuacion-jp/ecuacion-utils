@@ -9,10 +9,10 @@ on:
       - main
 
 env:
-  # allure.install.directory: share one Node.js/allure install across all reactor
-  # modules instead of the plugin's per-module default (${project.basedir}/.allure),
-  # which would otherwise re-download it for every module in the build.
-  MAVEN_OPTS: -Xmx2g -Dallure.install.directory=${{ github.workspace }}/.allure-shared
+  MAVEN_OPTS: -Xmx2g
+  # Codecov only ingests coverage for main pushes and PRs targeting main; jacoco's
+  # report generation is skipped everywhere else since nothing would consume it.
+  UPLOAD_COVERAGE: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main') }}
 
 permissions:
   contents: read
@@ -53,9 +53,10 @@ jobs:
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
-        run: mvn install -DskipTests -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dallure.report.skip=true
+        run: mvn install -Dmaven.test.skip=true -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dallure.report.skip=true
 
       - name: Validate POM after version update
+        if: matrix.os == 'ubuntu-latest'
         working-directory: ecuacion-utils
         run: |
           mvn versions:set -DnewVersion=0.0.0-CI-TEST -DgenerateBackupPoms=false
@@ -67,7 +68,12 @@ jobs:
       - name: Verify (ubuntu)
         if: matrix.os == 'ubuntu-latest'
         working-directory: ecuacion-utils
-        run: mvn verify -Dwagon.skip=true -e
+        run: |
+          if [ "$UPLOAD_COVERAGE" = "true" ]; then
+            mvn verify -Dwagon.skip=true -Dallure.report.skip=true -Dlicense.skip=true -e
+          else
+            mvn verify -Dwagon.skip=true -Dallure.report.skip=true -Dlicense.skip=true -Djacoco.skip=true -e
+          fi
 
       - name: Test (windows)
         if: matrix.os == 'windows-latest'
@@ -75,7 +81,7 @@ jobs:
         run: mvn test -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -e
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.base_ref == 'main'))
+        if: matrix.os == 'ubuntu-latest' && env.UPLOAD_COVERAGE == 'true'
         # Third-party action pinned to a commit SHA (tags are mutable): v5
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac
         with:
