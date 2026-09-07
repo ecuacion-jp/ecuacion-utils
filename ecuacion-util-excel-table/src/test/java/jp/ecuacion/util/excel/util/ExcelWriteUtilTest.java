@@ -247,7 +247,7 @@ public class ExcelWriteUtilTest {
   class EvaluateFormula {
 
     @Nested
-    @DisplayName("evaluateFormula(Cell, String)")
+    @DisplayName("evaluateFormula(Cell)")
     class CellLevel {
 
       @Test
@@ -256,7 +256,7 @@ public class ExcelWriteUtilTest {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
           cell.setCellValue(123.0);
-          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell))
               .doesNotThrowAnyException();
         }
       }
@@ -267,7 +267,7 @@ public class ExcelWriteUtilTest {
         try (Workbook wb = new XSSFWorkbook()) {
           Cell cell = wb.createSheet().createRow(0).createCell(0);
           cell.setCellFormula("1+1");
-          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell))
               .doesNotThrowAnyException();
         }
       }
@@ -278,7 +278,7 @@ public class ExcelWriteUtilTest {
       void unimplementedFunction() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(3).getCell(1);
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
               .isInstanceOf(ExcelFeatureNotImplementedException.class);
         }
       }
@@ -289,7 +289,7 @@ public class ExcelWriteUtilTest {
       void externalWorkbookRef() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(5).getCell(1);
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
               .isInstanceOf(ExternalWorkbookNotFoundException.class);
         }
       }
@@ -300,7 +300,7 @@ public class ExcelWriteUtilTest {
       void namePound() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(4).getCell(1);
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
               .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
               .hasCauseInstanceOf(FormulaParseException.class);
         }
@@ -312,7 +312,7 @@ public class ExcelWriteUtilTest {
       void errorValues(int rowIndex) throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(rowIndex).getCell(1);
-          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatCode(() -> ExcelWriteUtil.evaluateFormula(cell))
               .doesNotThrowAnyException();
         }
       }
@@ -330,7 +330,7 @@ public class ExcelWriteUtilTest {
       void otherException() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell, "file"))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
               .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
               .hasCauseInstanceOf(ClassCastException.class);
         }
@@ -338,14 +338,14 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("evaluateFormula(Workbook, String, boolean)")
+    @DisplayName("evaluateFormula(Workbook, boolean)")
     class WorkbookLevel {
 
       @Test
       @DisplayName("breaksOnError=true → immediately throws ExcelTableException on the first error")
       void breaksOnErrorTrue() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", true))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, true))
               .isInstanceOf(ExcelTableException.class);
         }
       }
@@ -354,7 +354,7 @@ public class ExcelWriteUtilTest {
       @DisplayName("breaksOnError=false → collects all errors into a ViolationException")
       void breaksOnErrorFalse() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
-          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, "file", false))
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(wb, false))
               .isInstanceOf(ViolationException.class)
               .satisfies(e -> assertThat(
                   ((ViolationException) e).getViolations().getBusinessViolations())
@@ -364,7 +364,7 @@ public class ExcelWriteUtilTest {
     }
 
     @Nested
-    @DisplayName("evaluateFormula(Workbook, String, boolean, String...)")
+    @DisplayName("evaluateFormula(Workbook, boolean, String...)")
     class WorkbookWithSheetsOverload {
 
       @Test
@@ -372,7 +372,7 @@ public class ExcelWriteUtilTest {
       void ignoresErrorsInNonTargetSheets() throws Exception {
         try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
           assertThatCode(() -> ExcelWriteUtil.evaluateFormula(
-              wb, "file", false, "getReadyToEvaluateFormulaTest"))
+              wb, false, "getReadyToEvaluateFormulaTest"))
               .doesNotThrowAnyException();
         }
       }

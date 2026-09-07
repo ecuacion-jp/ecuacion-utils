@@ -28,13 +28,11 @@ public final class FormulaEvaluationUnknownErrorException extends ExcelTableExce
   /**
    * Constructs an instance.
    *
-   * @param fileInfoArg filename or file path of the Excel file being evaluated, or a localized
-   *     "(none)" label when unavailable
    * @param cell the cell containing the formula
    * @param detail a newline-joined dump of the underlying exception's message chain
    */
-  public FormulaEvaluationUnknownErrorException(Object fileInfoArg, Cell cell, String detail) {
-    super("jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message", fileInfoArg,
+  public FormulaEvaluationUnknownErrorException(Cell cell, String detail) {
+    super("jp.ecuacion.util.excel.ExcelWriteUtil.DetailUnknown.message",
         cell.getSheet().getSheetName(), cellPositionArg(cell), detail);
   }
 }

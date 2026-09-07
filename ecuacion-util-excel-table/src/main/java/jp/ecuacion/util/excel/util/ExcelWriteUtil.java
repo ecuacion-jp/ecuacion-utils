@@ -129,9 +129,9 @@ public class ExcelWriteUtil {
   public static <T> ContextContainer getReadyToWriteTableData(ExcelTableWriter<T> writer,
       Workbook workbook, String sheetName, int tableStartColumnNumber) {
 
-    detailLog.debug(EclibCoreConstants.PARTITION_LARGE);
-    detailLog.debug("starting to write excel file.");
-    detailLog.debug("sheet name :" + sheetName);
+    detailLog.trace(EclibCoreConstants.PARTITION_LARGE);
+    detailLog.trace("starting to write excel file.");
+    detailLog.trace("sheet name :" + sheetName);
 
     Sheet sheet = workbook.getSheet(sheetName);
 
@@ -283,14 +283,12 @@ public class ExcelWriteUtil {
    *     and appropriate JVM memory limits.</p>
    *
    * @param workbook workbook
-   * @param fileInfo filename or file path of the excel file to add to the message
-   * @throws ExcelTableException ExcelTableException
    */
-  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError) {
+  public static void evaluateFormula(Workbook workbook, boolean breaksOnError) {
     Iterator<Sheet> sheetIt = workbook.sheetIterator();
     while (sheetIt.hasNext()) {
       Sheet sheet = sheetIt.next();
-      evaluateFormula(sheet, fileInfo, breaksOnError);
+      evaluateFormula(sheet, breaksOnError);
     }
   }
 
@@ -309,20 +307,19 @@ public class ExcelWriteUtil {
    *     and appropriate JVM memory limits.</p>
    *
    * @param workbook workbook
-   * @param fileInfo filename or file path of the excel file to add to the message
    * @param sheetNames array of sheet names you want to evaluate
    * @throws ExcelTableException ExcelTableException
    */
-  public static void evaluateFormula(Workbook workbook, String fileInfo, boolean breaksOnError,
+  public static void evaluateFormula(Workbook workbook, boolean breaksOnError,
       String... sheetNames) {
 
     for (String sheetName : sheetNames) {
       Sheet sheet = workbook.getSheet(sheetName);
-      evaluateFormula(sheet, fileInfo, breaksOnError);
+      evaluateFormula(sheet, breaksOnError);
     }
   }
 
-  private static void evaluateFormula(Sheet sheet, String fileInfo, boolean breaksOnError) {
+  private static void evaluateFormula(Sheet sheet, boolean breaksOnError) {
     Violations violations = new Violations();
     Iterator<Row> rowIt = sheet.rowIterator();
     while (rowIt.hasNext()) {
@@ -333,7 +330,7 @@ public class ExcelWriteUtil {
         Cell cell = cellIt.next();
 
         try {
-          evaluateFormula(cell, fileInfo);
+          evaluateFormula(cell);
 
         } catch (ExcelTableException ex) {
           if (breaksOnError) {
@@ -359,11 +356,9 @@ public class ExcelWriteUtil {
    *     should be understandable to the users.</p>
    * 
    * @param cell target cell you want to evaluate
-   * @param fileInfo filename or file path of the excel file to add to the message
    * @throws ExcelTableException ExcelTableException
    */
-  public static void evaluateFormula(Cell cell, String fileInfo) {
-    Object fileInfoArg = getFileInfoString(fileInfo);
+  public static void evaluateFormula(Cell cell) {
     Workbook workbook = cell.getRow().getSheet().getWorkbook();
 
     try {
@@ -382,38 +377,30 @@ public class ExcelWriteUtil {
         reason = Arg.message(MSG_PREFIX + "NotImplementedException.ReasonUnknown.message");
       }
 
-      throw new ExcelFeatureNotImplementedException(cell, reason, fileInfoArg).cause(ex);
+      throw new ExcelFeatureNotImplementedException(cell, reason).cause(ex);
 
     } catch (IllegalStateException ex) {
       if (ex.getCause() != null && Objects.requireNonNull(ex.getCause()).getCause() != null
           && Objects.requireNonNull(ex.getCause())
               .getCause() instanceof WorkbookNotFoundException) {
-        throw new ExternalWorkbookNotFoundException(cell, cell.getCellFormula(), fileInfoArg)
-            .cause(ex);
+        throw new ExternalWorkbookNotFoundException(cell, cell.getCellFormula()).cause(ex);
 
       } else {
-        throwExceptionForUnknownException(ex, cell, fileInfo);
+        throwExceptionForUnknownException(ex, cell);
       }
 
     } catch (Exception ex) {
-      throwExceptionForUnknownException(ex, cell, fileInfo);
+      throwExceptionForUnknownException(ex, cell);
     }
   }
 
-  private static void throwExceptionForUnknownException(Exception ex, Cell cell, String fileInfo)
+  private static void throwExceptionForUnknownException(Exception ex, Cell cell)
       throws ExcelTableException {
     StringBuilder sb = new StringBuilder();
     ExceptionUtil.getMessageList(ex).stream().forEach(msg -> sb.append(msg + "\n"));
     // delete last "\n"
     sb.deleteCharAt(sb.length() - 1);
-    Object fileInfoArg = getFileInfoString(fileInfo);
 
-    throw new FormulaEvaluationUnknownErrorException(fileInfoArg, cell, sb.toString())
-        .cause(ex);
-  }
-
-  private static Object getFileInfoString(String fileInfo) {
-    String infoNone = MSG_PREFIX + "FileInfoLabel.None.message";
-    return fileInfo == null ? Arg.message(infoNone) : fileInfo;
+    throw new FormulaEvaluationUnknownErrorException(cell, sb.toString()).cause(ex);
   }
 }

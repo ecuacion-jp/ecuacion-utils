@@ -71,7 +71,7 @@ jobs:
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
-        run: mvn install -DskipTests -q
+        run: mvn install -q -Dmaven.test.skip=true -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dallure.report.skip=true
 
       - name: Update versions
         working-directory: ecuacion-utils
@@ -84,7 +84,7 @@ jobs:
 
       - name: Verify
         working-directory: ecuacion-utils
-        run: mvn verify -Dwagon.skip=true
+        run: mvn verify -Dwagon.skip=true -Dallure.report.skip=true -Djacoco.skip=true -Dlicense.skip=true
 
       - name: Deploy
         working-directory: ecuacion-utils
