@@ -50,7 +50,7 @@ jobs:
 
       - name: Build ecuacion-lib
         working-directory: ecuacion-lib
-        run: mvn install -DskipTests -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true
+        run: mvn install -DskipTests -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true
 
       - name: Validate POM after version update
         working-directory: ecuacion-utils
