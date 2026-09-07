@@ -20,12 +20,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.fontbox.ttf.FontHeaders;
 import org.apache.fontbox.ttf.NamingTable;
 import org.apache.fontbox.ttf.TTFParser;
 import org.apache.fontbox.ttf.TrueTypeCollection;
@@ -49,8 +50,6 @@ public class SystemFontLocator {
   // Fonts are not expected to change during a JVM session.
   private static final Map<String, Optional<Path>> FONT_FILE_CACHE = new ConcurrentHashMap<>();
 
-  private enum NameMatchType { EXACT, BROAD, NONE }
-
   private SystemFontLocator() {}
 
   /**
@@ -59,7 +58,7 @@ public class SystemFontLocator {
    *
    * <p>Matching is attempted in two passes to ensure the most specific result:
    * <ol>
-   *   <li><b>Exact match</b>: a file that contains a font whose family name (nameId=1, 4, or 16)
+   *   <li><b>Exact match</b>: a font face whose family name (nameId=1, 4, or 16)
    *       equals {@code fontName} exactly. This prevents "Meiryo.ttf" (family="Meiryo") from
    *       masking "meiryo.ttc" (which contains "Meiryo UI") when searching for "Meiryo UI".</li>
    *   <li><b>Prefix/broad match</b>: the existing prefix heuristic, as a fallback when no
@@ -74,140 +73,140 @@ public class SystemFontLocator {
   }
 
   private static Optional<Path> findFontFileUncached(String fontName) {
-    // Single pass over all directories: collect exact and broad matches simultaneously.
-    // This avoids the double-walk that the original two-pass approach required.
-    // Cross-directory ranking is preserved so Medium weight beats Regular/Light globally.
+    String targetLower = fontName.toLowerCase(Locale.ENGLISH);
+    boolean targetIsBold = targetLower.endsWith(" bold");
+    String targetBase =
+        targetIsBold ? targetLower.substring(0, targetLower.length() - 5).trim() : targetLower;
+
+    // Look the name up against the pre-built face index (in memory, no I/O) instead of
+    // walking and re-parsing every font file for each distinct name queried.
     List<Path> exactMatches = new ArrayList<>();
     List<Path> broadMatches = new ArrayList<>();
+    for (FontFaceRecord face : getFontFaceIndex()) {
+      if (face.bold() != targetIsBold) {
+        continue;
+      }
+      if (face.exactNames().contains(targetBase)) {
+        exactMatches.add(face.file());
+      } else if (matchesBroadName(face.broadNames(), targetBase)) {
+        broadMatches.add(face.file());
+      }
+    }
+    List<Path> candidates = !exactMatches.isEmpty() ? exactMatches : broadMatches;
+    return candidates.stream().distinct()
+        .min(Comparator.comparingInt(p -> getRegularStyleScore(p, fontName)));
+  }
+
+  private static boolean matchesBroadName(Set<String> names, String targetBase) {
+    for (String name : names) {
+      if (name.equals(targetBase)
+          || targetBase.startsWith(name + " ")
+          || name.startsWith(targetBase + " ")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * One font face's name-matching data, extracted once when the font face index is built.
+   *
+   * @param file       the font file this face was read from (a {@code .ttc} may contribute
+   *                   several {@code FontFaceRecord}s, one per embedded face)
+   * @param exactNames lower-cased family names from nameId 1, 4, and 16 — used for exact-match
+   *                   lookups
+   * @param broadNames lower-cased family names from nameId 1 and 16 — used for prefix/broad
+   *                   lookups
+   * @param bold       whether nameId 2 (subfamily) contains "bold"
+   */
+  private record FontFaceRecord(
+      Path file, Set<String> exactNames, Set<String> broadNames, boolean bold) {}
+
+  // Process-lifetime cache of every font face's name data, built once on first use. Without
+  // it, each distinct font name looked up via findFontFile() would re-walk every system font
+  // directory and re-parse every font file found there, even though the set of installed
+  // fonts never changes during a JVM session — with the hundreds of files under a typical
+  // system font directory (e.g. C:\Windows\Fonts), that made every new distinct font name
+  // query cost tens of seconds. Fonts are not expected to change during a JVM session.
+  private static volatile @Nullable List<FontFaceRecord> fontFaceIndex;
+
+  private static List<FontFaceRecord> getFontFaceIndex() {
+    List<FontFaceRecord> index = fontFaceIndex;
+    if (index == null) {
+      synchronized (SystemFontLocator.class) {
+        index = fontFaceIndex;
+        if (index == null) {
+          index = buildFontFaceIndex();
+          fontFaceIndex = index;
+        }
+      }
+    }
+    return index;
+  }
+
+  private static List<FontFaceRecord> buildFontFaceIndex() {
+    List<FontFaceRecord> records = new ArrayList<>();
     for (Path dir : getSystemFontDirectories()) {
       if (!Files.isDirectory(dir)) {
         continue;
       }
       try (var stream = Files.walk(dir, 3)) {
-        stream.filter(SystemFontLocator::isFontFile).forEach(p -> {
-          NameMatchType type = classifyFontFile(p, fontName);
-          if (type == NameMatchType.EXACT) {
-            exactMatches.add(p);
-          } else if (type == NameMatchType.BROAD) {
-            broadMatches.add(p);
-          }
-        });
+        stream.filter(SystemFontLocator::isFontFile)
+            .forEach(p -> collectFontFaceRecords(p, records));
       } catch (IOException e) { // NOPMD - silently skip unreadable directories
       }
     }
-    List<Path> candidates = !exactMatches.isEmpty() ? exactMatches : broadMatches;
-    return candidates.stream()
-        .min(Comparator.comparingInt(p -> getRegularStyleScore(p, fontName)));
+    return records;
   }
 
-  /**
-   * Opens a font file once and classifies it as an exact match, broad match, or no match.
-   *
-   * <p>For ASCII font names, {@code parseTableHeaders} / {@code processAllFontHeaders} is used:
-   * it reads only the naming-table header entries (nameId 1, 2 in English), which is much faster
-   * than a full parse that loads glyph and cmap data. For non-ASCII names (e.g. "游ゴシック"),
-   * {@code parseTableHeaders} omits non-English records, so a full parse is required.</p>
-   */
-  private static NameMatchType classifyFontFile(Path fontFile, String targetName) {
-    try {
-      boolean isAscii = targetName.chars().allMatch(c -> c < 128);
-      if (isAscii) {
-        return classifyFontFileByHeaders(fontFile, targetName);
-      }
-      return classifyFontFileFullParse(fontFile, targetName);
-    } catch (IOException e) { // NOPMD
-      return NameMatchType.NONE;
-    }
-  }
-
-  /**
-   * Fast-path classification using {@code parseTableHeaders} / {@code processAllFontHeaders}.
-   * Reads only the English naming-table entries; suitable for ASCII font names only.
-   */
-  private static NameMatchType classifyFontFileByHeaders(Path fontFile, String targetName)
-      throws IOException {
-    String fileName = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
-    String targetLower = targetName.toLowerCase(Locale.ENGLISH);
-    boolean targetIsBold = targetLower.endsWith(" bold");
-    String targetBase =
-        targetIsBold ? targetLower.substring(0, targetLower.length() - 5).trim() : targetLower;
-    if (fileName.endsWith(".ttc")) {
-      NameMatchType[] result = {NameMatchType.NONE};
-      TrueTypeCollection.processAllFontHeaders(fontFile.toFile(), headers -> {
-        if (result[0] != NameMatchType.EXACT) {
-          NameMatchType m = matchFontHeaders(headers, targetBase, targetIsBold);
-          if (m == NameMatchType.EXACT) {
-            result[0] = NameMatchType.EXACT;
-          } else if (m == NameMatchType.BROAD && result[0] == NameMatchType.NONE) {
-            result[0] = NameMatchType.BROAD;
-          }
-        }
-      });
-      return result[0];
-    } else {
-      FontHeaders headers =
-          new TTFParser().parseTableHeaders(new RandomAccessReadBufferedFile(fontFile.toFile()));
-      return matchFontHeaders(headers, targetBase, targetIsBold);
-    }
-  }
-
-  private static NameMatchType matchFontHeaders(FontHeaders headers, String targetBase,
-      boolean targetIsBold) {
-    String subfam = headers.getFontSubFamily();
-    boolean isBold = subfam != null && subfam.toLowerCase(Locale.ENGLISH).contains("bold");
-    if (targetIsBold != isBold) {
-      return NameMatchType.NONE;
-    }
-    String family = headers.getFontFamily();
-    if (family == null || family.isEmpty()) {
-      return NameMatchType.NONE;
-    }
-    String familyLower = family.toLowerCase(Locale.ENGLISH);
-    if (familyLower.equals(targetBase)) {
-      return NameMatchType.EXACT;
-    }
-    if (targetBase.startsWith(familyLower + " ") || familyLower.startsWith(targetBase + " ")) {
-      return NameMatchType.BROAD;
-    }
-    return NameMatchType.NONE;
-  }
-
-  /**
-   * Full-parse classification. Needed for non-ASCII font names because
-   * {@code parseTableHeaders} only extracts English (languageId=0x0409/Unicode) name records.
-   */
-  private static NameMatchType classifyFontFileFullParse(Path fontFile, String targetName)
-      throws IOException {
+  private static void collectFontFaceRecords(Path fontFile, List<FontFaceRecord> out) {
     String lower = fontFile.getFileName().toString().toLowerCase(Locale.ENGLISH);
-    if (lower.endsWith(".ttc")) {
-      try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
-        NameMatchType[] result = {NameMatchType.NONE};
-        ttc.processAllFonts(ttf -> {
-          if (result[0] != NameMatchType.EXACT) {
-            if (matchesFontNameExact(ttf, targetName)) {
-              result[0] = NameMatchType.EXACT;
-            } else if (result[0] == NameMatchType.NONE && matchesFontName(ttf, targetName)) {
-              result[0] = NameMatchType.BROAD;
-            }
-          }
-        });
-        return result[0];
-      }
-    } else {
-      TrueTypeFont ttf =
-          new TTFParser().parse(new RandomAccessReadBufferedFile(fontFile.toFile()));
-      try {
-        if (matchesFontNameExact(ttf, targetName)) {
-          return NameMatchType.EXACT;
+    try {
+      if (lower.endsWith(".ttc")) {
+        try (TrueTypeCollection ttc = new TrueTypeCollection(fontFile.toFile())) {
+          ttc.processAllFonts(ttf -> out.add(toFontFaceRecord(fontFile, ttf)));
         }
-        if (matchesFontName(ttf, targetName)) {
-          return NameMatchType.BROAD;
+      } else {
+        TrueTypeFont ttf =
+            new TTFParser().parse(new RandomAccessReadBufferedFile(fontFile.toFile()));
+        try {
+          out.add(toFontFaceRecord(fontFile, ttf));
+        } finally {
+          ttf.close();
         }
-        return NameMatchType.NONE;
-      } finally {
-        ttf.close();
       }
+    } catch (IOException e) { // NOPMD - silently skip unreadable/corrupt font files
     }
+  }
+
+  private static FontFaceRecord toFontFaceRecord(Path file, TrueTypeFont ttf) {
+    Set<String> exactNames = new HashSet<>();
+    Set<String> broadNames = new HashSet<>();
+    boolean bold = false;
+    try {
+      NamingTable naming = ttf.getNaming();
+      if (naming != null) {
+        for (var record : naming.getNameRecords()) {
+          int nameId = record.getNameId();
+          String value = record.getString();
+          if (value == null) {
+            continue;
+          }
+          String valueLower = value.toLowerCase(Locale.ENGLISH);
+          if (nameId == 2 && valueLower.contains("bold")) {
+            bold = true;
+          }
+          if (nameId == 1 || nameId == 4 || nameId == 16) {
+            exactNames.add(valueLower);
+          }
+          if (nameId == 1 || nameId == 16) {
+            broadNames.add(valueLower);
+          }
+        }
+      }
+    } catch (IOException e) { // NOPMD - treat as a nameless face; it simply won't match
+    }
+    return new FontFaceRecord(file, exactNames, broadNames, bold);
   }
 
   /**
