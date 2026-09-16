@@ -24,54 +24,19 @@ jobs:
         with:
           path: ecuacion-utils
 
-      - uses: actions/checkout@v5
-        with:
-          repository: ecuacion-jp/ecuacion-lib
-          path: ecuacion-lib
-
-      - name: Resolve tag
+      - uses: ecuacion-jp/ecuacion-lib/.github/actions/resolve-tag@main
         id: tag
-        env:
-          # Pass via env to avoid shell injection from user-supplied input / ref names.
-          INPUT_TAG: ${{ github.event.inputs.tag }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "value=$INPUT_TAG" >> $GITHUB_OUTPUT
-          else
-            echo "value=$REF_NAME" >> $GITHUB_OUTPUT
-          fi
 
       - uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Import GPG key
-        # Third-party action pinned to a commit SHA (tags are mutable): v6.3.0
-        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
+      - uses: ecuacion-jp/ecuacion-lib/.github/actions/install-ecuacion-dependency@main
         with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-
-      - name: Configure Maven settings
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml << 'EOF'
-          <settings>
-            <servers>
-              <server>
-                <id>central</id>
-                <username>${env.MAVEN_CENTRAL_USERNAME}</username>
-                <password>${env.MAVEN_CENTRAL_PASSWORD}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-      - name: Build ecuacion-lib
-        working-directory: ecuacion-lib
-        run: mvn install -q -Dmaven.test.skip=true -Dcheckstyle.skip=true -Dspotbugs.skip=true -Dlicense.skip=true -Djacoco.skip=true -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dallure.report.skip=true
+          repository: ecuacion-jp/ecuacion-lib
+          path: ecuacion-lib
+          extra-mvn-args: -q
 
       - name: Update versions
         working-directory: ecuacion-utils
@@ -85,6 +50,13 @@ jobs:
       - name: Verify
         working-directory: ecuacion-utils
         run: mvn verify -Dwagon.skip=true -Dallure.report.skip=true -Djacoco.skip=true -Dlicense.skip=true
+
+      - uses: ecuacion-jp/ecuacion-lib/.github/actions/import-gpg-key@main
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+      - uses: ecuacion-jp/ecuacion-lib/.github/actions/configure-maven-central-settings@main
 
       - name: Deploy
         working-directory: ecuacion-utils
