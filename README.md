@@ -22,6 +22,36 @@ This library depends on `ecuacion-lib`. Major versions are compatible as follows
 | --- | --- |
 | 5.x | 16.x |
 
+## Supported Languages
+
+Messages (error messages of Excel and PDF operations) are provided in the following languages, the same as `ecuacion-lib`.
+The language is chosen from the `Locale` passed to `ecuacion-lib`.
+
+| Language | Locale | Language | Locale |
+| --- | --- | --- | --- |
+| English (default) | `en` | Japanese | `ja` |
+| Arabic | `ar` | Azerbaijani | `az` |
+| Bengali | `bn` | Chinese (Simplified) | `zh` |
+| Chinese (Traditional) | `zh_Hant` (also used for `zh_TW`, `zh_HK`, `zh_MO`) | Czech | `cs` |
+| Danish | `da` | Dutch | `nl` |
+| Filipino | `fil` | French | `fr` |
+| German | `de` | Gujarati | `gu` |
+| Hindi | `hi` | Hungarian | `hu` |
+| Indonesian | `id` | Italian | `it` |
+| Kannada | `kn` | Korean | `ko` |
+| Malay | `ms` | Malayalam | `ml` |
+| Marathi | `mr` | Mongolian | `mn` |
+| Persian | `fa` | Polish | `pl` |
+| Portuguese | `pt` | Romanian | `ro` |
+| Russian | `ru` | Slovak | `sk` |
+| Spanish | `es` | Tamil | `ta` |
+| Telugu | `te` | Thai | `th` |
+| Turkish | `tr` | Ukrainian | `uk` |
+| Vietnamese | `vi` | | |
+
+Translations other than English and Japanese are based on machine translation and may contain unnatural expressions.
+Corrections and new languages are welcome via pull requests. See [Contributing](#contributing).
+
 ## Versioning
 
 This project follows the spirit of [Semantic Versioning](https://semver.org/). Major version increments indicate breaking changes.
