@@ -51,8 +51,11 @@ jobs:
         working-directory: ecuacion-utils
         run: |
           mvn versions:set -DnewVersion=0.0.0-CI-TEST -DgenerateBackupPoms=false
-          mvn versions:update-parent -DgenerateBackupPoms=false
-          mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DgenerateBackupPoms=false
+          # -DallowPreReleases=true: since versions-maven-plugin 2.25, pre-release versions
+          # (such as 5.0.0-rc.N or X.Y.Z-beta.N) are no longer offered by default, which would
+          # leave the version at its SNAPSHOT value once the target becomes a pre-release.
+          mvn versions:update-parent -DallowPreReleases=true -DgenerateBackupPoms=false
+          mvn versions:update-properties -Dincludes=jp.ecuacion.lib -DallowPreReleases=true -DgenerateBackupPoms=false
           mvn validate
           git checkout -- .
 
