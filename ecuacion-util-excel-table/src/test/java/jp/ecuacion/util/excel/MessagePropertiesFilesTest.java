@@ -104,7 +104,7 @@ public class MessagePropertiesFilesTest {
   @DisplayName("message files are found")
   void filesFound() {
     assertThat(BUNDLES).containsKeys("messages_util_excel_table",
-        "messages_util_excel_report_to_pdf");
+        "messages_util_excel_report_to_pdf", "messages_util_pdf_common");
   }
 
   @Test

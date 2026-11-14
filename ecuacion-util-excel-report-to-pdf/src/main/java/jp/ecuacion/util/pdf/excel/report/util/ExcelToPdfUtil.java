@@ -22,17 +22,25 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import jp.ecuacion.lib.core.util.LocaleUtil;
-import jp.ecuacion.util.pdf.excel.report.exception.FontLoadFailedException;
-import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.common.exception.FileFormatNotSupportedException;
+import jp.ecuacion.util.pdf.common.exception.FilePasswordIncorrectException;
+import jp.ecuacion.util.pdf.common.exception.FilePasswordRequiredException;
+import jp.ecuacion.util.pdf.common.exception.FontLoadFailedException;
+import jp.ecuacion.util.pdf.common.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.common.exception.SystemFontNotFoundException;
+import jp.ecuacion.util.pdf.common.internal.FontManager;
+import jp.ecuacion.util.pdf.common.internal.SystemFontLocator;
 import jp.ecuacion.util.pdf.excel.report.exception.SheetNotExistException;
-import jp.ecuacion.util.pdf.excel.report.exception.SystemFontNotFoundException;
-import jp.ecuacion.util.pdf.excel.report.internal.FontManager;
 import jp.ecuacion.util.pdf.excel.report.internal.SheetRenderer;
-import jp.ecuacion.util.pdf.excel.report.internal.SystemFontLocator;
 import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
+import org.apache.poi.EmptyFileException;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ooxml.POIXMLException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -67,8 +75,8 @@ public class ExcelToPdfUtil {
    * @param outputPath path to the output PDF file
    * @param options parameters including font paths and optional passwords
    * @throws PdfGenerateException if the Excel file or the font environment prevents PDF
-   *     generation (e.g. a referenced sheet or font is missing, or a character cannot be
-   *     rendered)
+   *     generation (e.g. the file is not an Excel file or its password is wrong, a referenced
+   *     sheet or font is missing, or a character cannot be rendered)
    * @throws UncheckedIOException if a technical failure occurs while reading the Excel file or
    *     writing the PDF file
    */
@@ -148,7 +156,10 @@ public class ExcelToPdfUtil {
           if (regularTtf == null) {
             throw new FontLoadFailedException(defaultFontName, fontFile);
           }
-          var boldFontFile = SystemFontLocator.findFontFile(defaultFontName + " Bold");
+          // Like Excel, only the bold face of the same family is used (e.g. not "Yu Mincho
+          // Demibold" for "Yu Mincho", nor "Century Schoolbook Bold" for "Century"). Without
+          // it, bold text is the regular face emboldened.
+          var boldFontFile = SystemFontLocator.findExactFontFile(defaultFontName + " Bold");
           var boldTtf = boldFontFile.isPresent()
               ? SystemFontLocator.loadTrueTypeFont(boldFontFile.get(), defaultFontName + " Bold")
               : null;
@@ -170,6 +181,7 @@ public class ExcelToPdfUtil {
       // default (e.g. a CJK font used only for some cells) are resolved individually,
       // falling back to the default font above when a cell's font isn't found on the system.
       fontManager.enableSystemFontResolution(options.isUseSystemFonts());
+      fontManager.requireExactBoldFace(true);
 
       Locale dateLocale = options.getDateLocale() != null ? options.getDateLocale()
           : LocaleUtil.getFallbackLocale();
@@ -202,10 +214,44 @@ public class ExcelToPdfUtil {
     }
   }
 
+  /** The formats which can be converted, shown to the user when a file is not one of them. */
+  private static final String SUPPORTED_FORMATS = "xlsx, xlsm, xls";
+
+  /**
+   * Opens the Excel file, turning the failures caused by the file itself (its format and its
+   * password) into exceptions with messages for the user.
+   */
   private static Workbook openWorkbook(File file, @Nullable String password) throws IOException {
-    if (password != null) {
-      return WorkbookFactory.create(file, password, true);
+    if (file.isFile()) {
+      FileMagic magic;
+      try {
+        magic = FileMagic.valueOf(file);
+      } catch (EmptyFileException e) {
+        throw new FileFormatNotSupportedException(SUPPORTED_FORMATS);
+      }
+      if (magic != FileMagic.OOXML && magic != FileMagic.OLE2) {
+        throw new FileFormatNotSupportedException(SUPPORTED_FORMATS);
+      }
     }
-    return WorkbookFactory.create(file, null, true);
+    try {
+      return WorkbookFactory.create(file, password, true);
+    } catch (EncryptedDocumentException e) {
+      if (password == null) {
+        throw new FilePasswordRequiredException();
+      }
+      throw new FilePasswordIncorrectException();
+      
+    } catch (IllegalArgumentException | POIXMLException e) {
+      // e.g. a Word file, a legacy Word (.doc) file, a broken file, an empty file
+      // (EmptyFileException and POI's UnsupportedFileFormatException are IllegalArgumentException)
+      throw new FileFormatNotSupportedException(SUPPORTED_FORMATS);
+      
+    } catch (IOException e) {
+      // A zip file which is not an Office Open XML package (POI wraps the reason in it).
+      if (e.getCause() instanceof InvalidFormatException) {
+        throw new FileFormatNotSupportedException(SUPPORTED_FORMATS);
+      }
+      throw e;
+    }
   }
 }

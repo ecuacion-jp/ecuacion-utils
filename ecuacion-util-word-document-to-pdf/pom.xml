@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<!--
+
+    Copyright © 2012 ecuacion.jp (info@ecuacion.jp)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>ecuacion-util-word-document-to-pdf</artifactId>
+	<name>ecuacion-util-word-document-to-pdf</name>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>jp.ecuacion.util</groupId>
+		<artifactId>ecuacion-util-parent</artifactId>
+		<!-- 0.0.2-SNAPSHOT: see the comment in the parent pom.xml for why this is not 0.0.1-SNAPSHOT. -->
+		<version>0.0.2-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<dependencies>
+
+		<!-- jakarta ee : implementation -->
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.el</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- ecuacion-lib -->
+		<dependency>
+			<groupId>jp.ecuacion.lib</groupId>
+			<artifactId>ecuacion-lib-core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- ecuacion-util -->
+		<dependency>
+			<groupId>jp.ecuacion.util</groupId>
+			<artifactId>ecuacion-util-pdf-common</artifactId>
+		</dependency>
+
+		<!-- pdfbox -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>${org.apache.pdfbox.version}</version>
+		</dependency>
+
+		<!-- poi -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<!-- Imports version pins for the unversioned dependencies above (hibernate-validator,
+		jakarta.el). See ecuacion-lib-bom's own pom.xml (in the ecuacion-lib repository) for why
+		this is a BOM import here rather than a pin in ecuacion-lib-dependencies (an ancestor of
+		this module's <parent>). -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>jp.ecuacion.lib</groupId>
+				<artifactId>ecuacion-lib-bom</artifactId>
+				<version>${ecuacion-lib.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<resources>
+			<!-- version_ecuacion-utils.properties: @project.version@ is replaced with the build version. -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>version_ecuacion-utils.properties</include>
+				</includes>
+			</resource>
+			<!-- All other resources (messages_xxx.properties etc. use ${...} for EL expressions,
+				so they must not go through filtering). -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>version_ecuacion-utils.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<!-- The fonts for tests are kept only in ecuacion-util-pdf-common to avoid storing the
+				same binaries in more than one module. -->
+			<testResource>
+				<directory>../ecuacion-util-pdf-common/src/test/resources</directory>
+				<includes>
+					<include>fonts/**</include>
+				</includes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<!-- Use @xxx@ instead of the default ${xxx} to avoid conflicting with
+						the ${...} EL expression syntax used in ecuacion-lib properties files. -->
+					<useDefaultDelimiters>false</useDefaultDelimiters>
+					<delimiters>
+						<delimiter>@</delimiter>
+					</delimiters>
+					<propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

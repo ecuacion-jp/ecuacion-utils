@@ -9,7 +9,7 @@
 ```java
 PdfGenerateOptions options =
     PdfGenerateOptions.builderForExplicitFont(Path.of("/path/to/NotoSansJP-Regular.ttf"))
-    .boldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
+    .addBoldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
     .build();
 
 ExcelToPdfUtil.generate(
@@ -25,7 +25,7 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 
 ### Automatically Loaded Libraries
 
-(none)
+- `ecuacion-util-pdf-common`
 
 ### Manual Load Needed Libraries
 

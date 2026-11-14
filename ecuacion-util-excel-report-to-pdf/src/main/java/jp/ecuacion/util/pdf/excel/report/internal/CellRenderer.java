@@ -19,8 +19,10 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.util.pdf.common.internal.FontManager;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -168,6 +170,8 @@ class CellRenderer {
     float fontSize = poiFont.getFontHeightInPoints() * scaleFactor;
     String fontName = poiFont.getFontName();
     PDType0Font font = fontManager.getFont(fontName, bold);
+    // Bold without a bold face: the regular face is emboldened by stroking its outline.
+    final boolean emboldened = bold && font.equals(fontManager.getFont(fontName, false));
 
     Color textColor = Color.BLACK;
     if (poiFont instanceof XSSFFont xssfFont) {
@@ -259,8 +263,15 @@ class CellRenderer {
           calculateTextX(getHorizontalAlignment(cell, style), cell, x, width, textWidth,
               style.getIndention(), scaleFactor);
 
+      if (emboldened) {
+        cs.setStrokingColor(textColor);
+        cs.setLineWidth(effectiveFontSize / 36f);
+      }
       cs.beginText();
       cs.setNonStrokingColor(textColor);
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL_STROKE);
+      }
       if (italic) {
         // Italic uses a text matrix shear; font switching within the matrix is unsupported,
         // so render the whole line with the primary font (best effort for italic+fallback).
@@ -278,6 +289,9 @@ class CellRenderer {
           cs.setFont(run.font(), effectiveFontSize);
           cs.showText(run.text());
         }
+      }
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL);
       }
       cs.endText();
 

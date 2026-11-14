@@ -26,6 +26,7 @@ module jp.ecuacion.util.pdf.excel.report {
       with jp.ecuacion.util.pdf.excel.report.spi.impl.internal.MessagesUtilExcelReportToPdfProviderImpl;
 
   requires jp.ecuacion.lib.core;
+  requires transitive jp.ecuacion.util.pdf.common;
 
   requires transitive org.apache.poi.poi;
   requires org.apache.poi.ooxml;

@@ -50,6 +50,12 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- ecuacion-util -->
+		<dependency>
+			<groupId>jp.ecuacion.util</groupId>
+			<artifactId>ecuacion-util-pdf-common</artifactId>
+		</dependency>
+
 		<!-- pdfbox -->
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
@@ -105,6 +111,19 @@
 				</excludes>
 			</resource>
 		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<!-- The fonts for tests are kept only in ecuacion-util-pdf-common to avoid storing the
+				same binaries in more than one module. -->
+			<testResource>
+				<directory>../ecuacion-util-pdf-common/src/test/resources</directory>
+				<includes>
+					<include>fonts/**</include>
+				</includes>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
