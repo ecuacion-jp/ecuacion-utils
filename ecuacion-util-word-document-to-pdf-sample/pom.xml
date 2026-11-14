@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+
+    Copyright © 2012 ecuacion.jp (info@ecuacion.jp)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>jp.ecuacion.util</groupId>
+	<artifactId>ecuacion-util-word-document-to-pdf-sample</artifactId>
+	<version>0.0.2-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<maven.compiler.release>21</maven.compiler.release>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>9.1.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.el</artifactId>
+			<version>4.0.2</version>
+		</dependency>
+
+		<!-- ecuacion-lib -->
+		<dependency>
+			<groupId>jp.ecuacion.lib</groupId>
+			<artifactId>ecuacion-lib-core</artifactId>
+			<!-- ecuacion-util-word-document-to-pdf needs ecuacion-lib-core with
+				MessagesUtilPdfCommonProvider. Until the first release with it, the local SNAPSHOT
+				(mvn install of ecuacion-lib) is used. Put the latest release version after that. -->
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- ecuacion-util -->
+		<dependency>
+			<groupId>jp.ecuacion.util</groupId>
+			<artifactId>ecuacion-util-word-document-to-pdf</artifactId>
+			<!-- Not released yet: the local SNAPSHOT (mvn install of ecuacion-utils) is used.
+				Put the latest release version after the first release. -->
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
+
+		<!-- logging -->
+		<!-- log4j-to-slf4j: bridges Log4j 2 API calls (used internally by poi-ooxml) to SLF4J/Logback -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-to-slf4j</artifactId>
+			<version>2.26.0</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.5.34</version>
+		</dependency>
+
+	</dependencies>
+
+</project>

@@ -16,11 +16,10 @@
 package jp.ecuacion.util.pdf.excel.report.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("PdfGenerateException subclasses")
+@DisplayName("PdfGenerateException subclasses ※フォント関連は pdf-common の同名テスト参照")
 public class PdfGenerateExceptionTest {
 
   @Test
@@ -43,40 +42,5 @@ public class PdfGenerateExceptionTest {
         .isEqualTo("jp.ecuacion.util.pdf.excel.report.SheetHasNoPrintArea.message");
     assertThat(ex.getViolations().getBusinessViolations().get(0).getMessageArgs())
         .containsExactly("invoice");
-  }
-
-  @Test
-  @DisplayName("SystemFontNotFoundException stores messageId and messageArgs")
-  void systemFontNotFound() {
-    SystemFontNotFoundException ex = new SystemFontNotFoundException("Calibri");
-
-    assertThat(ex.getMessageId())
-        .isEqualTo("jp.ecuacion.util.pdf.excel.report.SystemFontNotFound.message");
-    assertThat(ex.getViolations().getBusinessViolations().get(0).getMessageArgs())
-        .containsExactly("Calibri");
-  }
-
-  @Test
-  @DisplayName("FontLoadFailedException stores messageId and messageArgs")
-  void fontLoadFailed() {
-    Path fontFile = Path.of("/fonts/Calibri.ttf");
-    FontLoadFailedException ex = new FontLoadFailedException("Calibri", fontFile);
-
-    assertThat(ex.getMessageId())
-        .isEqualTo("jp.ecuacion.util.pdf.excel.report.FontLoadFailed.message");
-    assertThat(ex.getViolations().getBusinessViolations().get(0).getMessageArgs())
-        .containsExactly("Calibri", fontFile);
-  }
-
-  @Test
-  @DisplayName("CharacterNotRenderableException stores messageId and messageArgs")
-  void characterNotRenderable() {
-    CharacterNotRenderableException ex =
-        new CharacterNotRenderableException("E000", "", "Calibri", "(none configured)");
-
-    assertThat(ex.getMessageId())
-        .isEqualTo("jp.ecuacion.util.pdf.excel.report.CharacterNotRenderable.message");
-    assertThat(ex.getViolations().getBusinessViolations().get(0).getMessageArgs())
-        .containsExactly("E000", "", "Calibri", "(none configured)");
   }
 }

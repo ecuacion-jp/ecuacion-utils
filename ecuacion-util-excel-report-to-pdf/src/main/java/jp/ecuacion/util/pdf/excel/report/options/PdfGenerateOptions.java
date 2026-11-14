@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@link #builderForSystemFonts()} — the font matching the workbook's default font is
  *       looked up from the OS font directories (including fonts installed by Microsoft Office).
  *       If no matching system font is found a {@link
- *       jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException} is thrown at
+ *       jp.ecuacion.util.pdf.common.exception.PdfGenerateException} is thrown at
  *       generation time, unless {@link Builder#addRegularFontPath(Path)} is also set as a
  *       fallback.</li>
  *   <li>{@link #builderForExplicitFont(Path)} — the given font file is always used, without any

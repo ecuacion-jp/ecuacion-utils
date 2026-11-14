@@ -9,12 +9,14 @@
 
 ## What is it?
 
-`ecuacion-utils` provides Java utilities for Excel and PDF manipulation built on Apache POI and Apache PDFBox.
+`ecuacion-utils` provides Java utilities for Excel, Word and PDF manipulation built on Apache POI and Apache PDFBox.
 
 **What's included:**
 
 - `ecuacion-util-excel-table` — Read/write Excel tables with header or free-format layouts (`List<List<String>>`, Bean mapping, POI Cell access)
 - `ecuacion-util-excel-report-to-pdf` — Generate PDF reports from Excel templates
+- `ecuacion-util-word-document-to-pdf` — Generate PDF files from Word documents such as contracts and terms of service
+- `ecuacion-util-pdf-common` — Font resolution and exceptions shared by the two modules above (loaded automatically)
 
 This library depends on `ecuacion-lib`. Major versions are compatible as follows:
 
