@@ -85,7 +85,7 @@ a message ID for i18n display to the end user.
 
 ### Manual Load Needed Libraries
 
-- (If you use validation features, any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation is needed. `org.hibernate.validator:hibernate-validator` and `org.glassfish.expressly:expressly` are recommended.)
+- (If you use validation features, any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation is needed. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
 - (any `org.slf4j:slf4j-api` compatible logging implementation. `ch.qos.logback:logback-classic` is recommended.)
 
 ## Documentation
