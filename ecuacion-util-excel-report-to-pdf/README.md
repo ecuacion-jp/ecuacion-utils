@@ -44,7 +44,7 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 
 ### Manual Load Needed Libraries
 
-- (If you use validation features, any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation is needed. `org.hibernate.validator:hibernate-validator` and `org.glassfish.expressly:expressly` are recommended.)
+- (If you use validation features, any `jakarta.validation:jakarta.validation-api` compatible Jakarta Validation implementation is needed. `org.hibernate.validator:hibernate-validator` and `org.glassfish:jakarta.el` are recommended.)
 - (If you use `MailUtil` (in `ecuacion-lib-core`), `jakarta.mail:jakarta.mail-api` and any compatible Jakarta Mail implementation are needed. `org.eclipse.angus:angus-mail` is recommended.)
 - (any `org.slf4j:slf4j-api` compatible logging implementation. `ch.qos.logback:logback-classic` is recommended.)
 
