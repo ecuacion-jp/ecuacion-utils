@@ -15,6 +15,8 @@
  */
 package jp.ecuacion.util.pdf.excel.report.exception;
 
+import jp.ecuacion.util.pdf.common.exception.PdfGenerateException;
+
 /**
  * Thrown when a sheet has neither a defined print area nor any data to infer one from.
  */

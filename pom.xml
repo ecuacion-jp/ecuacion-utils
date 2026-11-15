@@ -24,7 +24,7 @@
 	<!-- Using 0.0.2-SNAPSHOT instead of 0.0.1-SNAPSHOT to avoid a DuplicationOfParentVersion IDE warning:
 	     0.0.1-SNAPSHOT matches the version of the parent POM (ecuacion-lib-dependencies:0.0.1-SNAPSHOT). -->
 	<version>0.0.2-SNAPSHOT</version>
-	<description>OSS Java utility library providing Excel table read/write (Apache POI) and Excel-to-PDF report generation (Apache PDFBox).</description>
+	<description>OSS Java utility library providing Excel table read/write (Apache POI), and Excel-to-PDF report generation and Word-to-PDF document generation (Apache PDFBox).</description>
 	<url>https://github.com/ecuacion-jp/ecuacion-utils</url>
 	<packaging>pom</packaging>
 	<scm>
@@ -43,8 +43,10 @@
 	<properties>
 		<!-- Overrides the inherited property so that versions:update-properties can update it to the latest release at deploy time. -->
 		<ecuacion-lib.version>0.0.1-SNAPSHOT</ecuacion-lib.version>
-		<org.apache.poi.version>5.5.1</org.apache.poi.version>
+		<org.apache.poi.version>6.0.0</org.apache.poi.version>
 		<org.apache.pdfbox.version>3.0.8</org.apache.pdfbox.version>
+		<!-- Central Portal deployment name (defined in ecuacion-lib-parent). -->
+		<central-publishing.deploymentName>ecuacion-utils-${project.version}</central-publishing.deploymentName>
 	</properties>
 	
 	<dependencyManagement>
@@ -58,7 +60,17 @@
 			</dependency>
 			<dependency>
 				<groupId>jp.ecuacion.util</groupId>
+				<artifactId>ecuacion-util-pdf-common</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jp.ecuacion.util</groupId>
 				<artifactId>ecuacion-util-excel-report-to-pdf</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jp.ecuacion.util</groupId>
+				<artifactId>ecuacion-util-word-document-to-pdf</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -82,24 +94,9 @@
 	
 	<modules>
 		<module>ecuacion-util-excel-table</module>
+		<module>ecuacion-util-pdf-common</module>
 		<module>ecuacion-util-excel-report-to-pdf</module>
+		<module>ecuacion-util-word-document-to-pdf</module>
 	</modules>
 
-	<profiles>
-		<!-- ecuacion-repository profile is also used for builds, but fully inherited from ecuacion-lib, so no definition here. -->
-		<profile>
-			<id>maven-central</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.sonatype.central</groupId>
-						<artifactId>central-publishing-maven-plugin</artifactId>
-						<configuration>
-							<deploymentName>ecuacion-utils-${project.version}</deploymentName>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 </project>

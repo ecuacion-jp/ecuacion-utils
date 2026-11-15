@@ -1,26 +1,58 @@
 # ecuacion-utils
 
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://www.oracle.com/java/technologies/downloads/)
 [![Java CI](https://github.com/ecuacion-jp/ecuacion-utils/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ecuacion-jp/ecuacion-utils/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ecuacion-jp/ecuacion-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/ecuacion-jp/ecuacion-utils)
 [![GitHub Release](https://img.shields.io/github/v/release/ecuacion-jp/ecuacion-utils)](https://github.com/ecuacion-jp/ecuacion-utils/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/jp.ecuacion.util/ecuacion-util-excel-table.svg)](https://search.maven.org/artifact/jp.ecuacion.util/ecuacion-util-excel-table)
-[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://www.oracle.com/java/technologies/downloads/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## What is it?
 
-`ecuacion-utils` provides Java utilities for Excel and PDF manipulation built on Apache POI and Apache PDFBox.
+`ecuacion-utils` provides Java utilities for Excel, Word and PDF manipulation built on Apache POI and Apache PDFBox.
 
 **What's included:**
 
 - `ecuacion-util-excel-table` — Read/write Excel tables with header or free-format layouts (`List<List<String>>`, Bean mapping, POI Cell access)
 - `ecuacion-util-excel-report-to-pdf` — Generate PDF reports from Excel templates
+- `ecuacion-util-word-document-to-pdf` — Generate PDF files from Word documents such as contracts and terms of service
+- `ecuacion-util-pdf-common` — Font resolution and exceptions shared by the two modules above (loaded automatically)
 
 This library depends on `ecuacion-lib`. Major versions are compatible as follows:
 
 | ecuacion-utils | ecuacion-lib |
 | --- | --- |
 | 5.x | 16.x |
+
+## Supported Languages
+
+Messages (error messages of Excel and PDF operations) are provided in the following languages, the same as `ecuacion-lib`.
+The language is chosen from the `Locale` passed to `ecuacion-lib`.
+
+| Language | Locale | Language | Locale |
+| --- | --- | --- | --- |
+| English (default) | `en` | Japanese | `ja` |
+| Arabic | `ar` | Azerbaijani | `az` |
+| Bengali | `bn` | Chinese (Simplified) | `zh` |
+| Chinese (Traditional) | `zh_Hant` (also used for `zh_TW`, `zh_HK`, `zh_MO`) | Czech | `cs` |
+| Danish | `da` | Dutch | `nl` |
+| Filipino | `fil` | French | `fr` |
+| German | `de` | Gujarati | `gu` |
+| Hindi | `hi` | Hungarian | `hu` |
+| Indonesian | `id` | Italian | `it` |
+| Kannada | `kn` | Korean | `ko` |
+| Malay | `ms` | Malayalam | `ml` |
+| Marathi | `mr` | Mongolian | `mn` |
+| Persian | `fa` | Polish | `pl` |
+| Portuguese | `pt` | Romanian | `ro` |
+| Russian | `ru` | Slovak | `sk` |
+| Spanish | `es` | Tamil | `ta` |
+| Telugu | `te` | Thai | `th` |
+| Turkish | `tr` | Ukrainian | `uk` |
+| Vietnamese | `vi` | | |
+
+Translations other than English and Japanese are based on machine translation and may contain unnatural expressions.
+Corrections and new languages are welcome via pull requests. See [Contributing](#contributing).
 
 ## Versioning
 
@@ -32,8 +64,8 @@ This project follows the spirit of [Semantic Versioning](https://semver.org/). M
 
 ## Documentation
 
-- [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home) — Official reference documentation
-- javadoc - See the `Documentation` section of the `README` in each module
+- Official reference documentation - [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home)
+- javadoc - [javadoc.io](https://javadoc.io/doc/jp.ecuacion.util/)
 
 ## Installation
 

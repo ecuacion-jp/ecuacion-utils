@@ -46,8 +46,8 @@ That's all. Name the sheet, list the expected headers, and get a typed list back
 
 ## Documentation
 
-- [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home) — Official reference documentation
-- [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-table/latest/jp.ecuacion.util.excel/module-summary.html)
+- Official reference documentation - [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home)
+- javadoc - [javadoc.io](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-table/latest/jp.ecuacion.util.excel/module-summary.html)
 
 ## Sample Code
 

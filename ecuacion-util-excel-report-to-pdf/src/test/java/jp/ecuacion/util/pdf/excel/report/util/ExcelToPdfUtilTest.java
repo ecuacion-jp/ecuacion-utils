@@ -34,9 +34,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import javax.imageio.ImageIO;
-import jp.ecuacion.util.pdf.excel.report.exception.PdfGenerateException;
-import jp.ecuacion.util.pdf.excel.report.exception.SystemFontNotFoundException;
-import jp.ecuacion.util.pdf.excel.report.internal.SystemFontLocator;
+import jp.ecuacion.util.pdf.common.exception.PdfGenerateException;
+import jp.ecuacion.util.pdf.common.exception.SystemFontNotFoundException;
+import jp.ecuacion.util.pdf.common.internal.SystemFontLocator;
 import jp.ecuacion.util.pdf.excel.report.options.PdfGenerateOptions;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -2036,6 +2036,17 @@ public class ExcelToPdfUtilTest {
       assertThatThrownBy(() -> ExcelToPdfUtil.generate(excel, List.of("Sheet1"), pdf, TEST_OPTIONS))
           .isInstanceOf(RuntimeException.class)
           .hasMessageContaining("Reiwa");
+    }
+
+    @Test
+    @DisplayName("date format with a value outside Excel's date range renders the plain number")
+    void dateFormatOutOfRange(@TempDir Path tempDir) throws IOException, PdfGenerateException {
+      // negative serial
+      assertFmt(tempDir, "neg", -1.0, "yyyy/mm/dd", "-1");
+      // past 9999-12-31 (serial 2958465)
+      assertFmt(tempDir, "over", 2958466.0, "yyyy/mm/dd", "2958466");
+      // built-in date format ID 14 path
+      assertFmt(tempDir, "over14", 2958466.0, "m/d/yy", "2958466");
     }
 
     @Test

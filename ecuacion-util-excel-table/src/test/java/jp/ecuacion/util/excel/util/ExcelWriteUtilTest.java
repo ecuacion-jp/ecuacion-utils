@@ -32,6 +32,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCreationHelper;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -328,12 +329,43 @@ public class ExcelWriteUtilTest {
       @DisplayName("other exceptions → FormulaEvaluationUnknownErrorException"
           + " (caused by ClassCastException)")
       void otherException() throws Exception {
-        try (Workbook wb = ExcelReadUtil.openForRead(EXCEL_PATH)) {
-          Cell cell = wb.getSheet("evaluateFormulaTest").getRow(9).getCell(1);
+        // Previously triggered by a formula that made POI throw ClassCastException internally,
+        // but POI 6 returns an error value for it instead. To keep the test independent of
+        // POI's evaluation behavior, the exception is thrown from a stubbed workbook.
+        try (Workbook wb = workbookThrowingOnEvaluation(new ClassCastException("dummy"))) {
+          Cell cell = createFormulaCell(wb);
           assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
               .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
               .hasCauseInstanceOf(ClassCastException.class);
         }
+      }
+
+      @Test
+      @DisplayName("IllegalStateException not caused by WorkbookNotFoundException"
+          + " → FormulaEvaluationUnknownErrorException")
+      void illegalStateExceptionWithOtherCause() throws Exception {
+        try (Workbook wb = workbookThrowingOnEvaluation(new IllegalStateException("dummy",
+            new RuntimeException("dummy cause", new IllegalArgumentException("root"))))) {
+          Cell cell = createFormulaCell(wb);
+          assertThatThrownBy(() -> ExcelWriteUtil.evaluateFormula(cell))
+              .isInstanceOf(FormulaEvaluationUnknownErrorException.class)
+              .hasCauseInstanceOf(IllegalStateException.class);
+        }
+      }
+
+      private static Workbook workbookThrowingOnEvaluation(RuntimeException ex) {
+        return new XSSFWorkbook() {
+          @Override
+          public XSSFCreationHelper getCreationHelper() {
+            throw ex;
+          }
+        };
+      }
+
+      private static Cell createFormulaCell(Workbook wb) {
+        Cell cell = wb.createSheet("sheet").createRow(0).createCell(0);
+        cell.setCellFormula("1+1");
+        return cell;
       }
     }
 

@@ -24,9 +24,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import jp.ecuacion.util.pdf.common.internal.FontManager;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.jspecify.annotations.Nullable;
 
@@ -128,14 +130,26 @@ class HeaderFooterRenderer {
         currentX += fs;
         continue;
       }
+      // Bold without a bold face: the regular face is emboldened by stroking its outline.
+      final boolean emboldened = run.bold() && font.equals(fontManager.getFont(false));
+      if (emboldened) {
+        cs.setStrokingColor(run.color());
+        cs.setLineWidth(fs / 36f);
+      }
       cs.beginText();
       cs.setFont(font, fs);
       cs.setNonStrokingColor(run.color());
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL_STROKE);
+      }
       cs.newLineAtOffset(currentX, bl);
       try {
         cs.showText(run.text());
       } catch (Exception e) {
         // skip unrenderable text
+      }
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL);
       }
       cs.endText();
       float ascent = font.getFontDescriptor().getAscent() / 1000f * fs;

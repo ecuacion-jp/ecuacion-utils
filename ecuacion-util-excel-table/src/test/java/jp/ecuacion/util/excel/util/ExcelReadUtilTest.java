@@ -252,6 +252,30 @@ public class ExcelReadUtilTest {
               .isEqualTo("2000-01-23 12:34:56");
         }
       }
+
+      @ParameterizedTest(name = "[{index}] value={0} → {1}")
+      @MethodSource
+      @DisplayName("returns the plain number when the value is outside Excel's date range")
+      void outOfDateRange(double value, String expected) throws Exception {
+        try (Workbook wb = new XSSFWorkbook()) {
+          Cell cell = wb.createSheet().createRow(0).createCell(0);
+          cell.setCellValue(value);
+          CellStyle style = wb.createCellStyle();
+          style.setDataFormat(wb.createDataFormat().getFormat("yyyy/mm/dd"));
+          cell.setCellStyle(style);
+          assertThat(ExcelReadUtil.getStringFromCell(cell, null, null)).isEqualTo(expected);
+        }
+      }
+
+      // DataFormatter#createFormat(Cell) returns null for values outside the date range,
+      // so the value is returned via Double#toString without formatting.
+      static @Nullable Stream<@Nullable Arguments> outOfDateRange() {
+        return Stream.of(
+            // negative serial
+            Arguments.of(-1.0, "-1.0"),
+            // past 9999-12-31 (serial 2958465)
+            Arguments.of(2958466.0, "2958466.0"));
+      }
     }
 
     @Nested

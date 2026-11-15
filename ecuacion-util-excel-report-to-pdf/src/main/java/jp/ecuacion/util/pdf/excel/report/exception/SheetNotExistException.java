@@ -15,6 +15,8 @@
  */
 package jp.ecuacion.util.pdf.excel.report.exception;
 
+import jp.ecuacion.util.pdf.common.exception.PdfGenerateException;
+
 /**
  * Thrown when a sheet name passed to {@code ExcelToPdfUtil.generate()} does not exist in the
  * Excel file.

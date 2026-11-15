@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
+import jp.ecuacion.util.pdf.common.internal.FontManager;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -29,6 +30,7 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
@@ -468,14 +470,26 @@ class ShapeRenderer {
       final float descent = font.getFontDescriptor().getDescent() / 1000f * fontSize;
       curY -= ascent;
 
+      // Bold without a bold face: the regular face is emboldened by stroking its outline.
+      final boolean emboldened = bold && font.equals(fontManager.getFont(false));
+      if (emboldened) {
+        cs.setStrokingColor(textColor);
+        cs.setLineWidth(fontSize / 36f);
+      }
       cs.beginText();
       cs.setFont(font, fontSize);
       cs.setNonStrokingColor(textColor);
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL_STROKE);
+      }
       cs.newLineAtOffset(textX, curY);
       try {
         cs.showText(lineText);
       } catch (Exception e) {
         // Skip text that cannot be rendered with the current font
+      }
+      if (emboldened) {
+        cs.setRenderingMode(RenderingMode.FILL);
       }
       cs.endText();
 

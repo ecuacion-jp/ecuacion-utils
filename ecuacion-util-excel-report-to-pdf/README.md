@@ -9,7 +9,7 @@
 ```java
 PdfGenerateOptions options =
     PdfGenerateOptions.builderForExplicitFont(Path.of("/path/to/NotoSansJP-Regular.ttf"))
-    .boldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
+    .addBoldFontPath(Path.of("/path/to/NotoSansJP-Bold.ttf"))
     .build();
 
 ExcelToPdfUtil.generate(
@@ -25,7 +25,7 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 
 ### Automatically Loaded Libraries
 
-(none)
+- `ecuacion-util-pdf-common`
 
 ### Manual Load Needed Libraries
 
@@ -50,8 +50,8 @@ That's all. Point it at an Excel file, name the sheets, specify fonts, and get a
 
 ## Documentation
 
-- [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home) — Official reference documentation
-- [javadoc](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-report-to-pdf/latest/jp.ecuacion.util.pdf.excel.report/module-summary.html)
+- Official reference documentation - [ecuacion-references-utils](https://references.ecuacion.jp/ecuacion-references-utils/public/showMarkdown/page?id=home)
+- javadoc - [javadoc.io](https://javadoc.io/doc/jp.ecuacion.util/ecuacion-util-excel-report-to-pdf/latest/jp.ecuacion.util.pdf.excel.report/module-summary.html)
 
 ## Sample Code
 

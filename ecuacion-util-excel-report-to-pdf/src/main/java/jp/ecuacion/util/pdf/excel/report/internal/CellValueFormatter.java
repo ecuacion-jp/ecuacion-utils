@@ -66,6 +66,11 @@ class CellValueFormatter {
       String formatString = cell.getCellStyle().getDataFormatString();
       if (isLikelyDateFormat(formatString)) {
         double numVal = cell.getNumericCellValue();
+        // DateUtil returns null for serials outside Excel's date range
+        // (negative, or past 9999-12-31). Render them as plain numbers.
+        if (DateUtil.getLocalDateTime(numVal, false) == null) {
+          return dataFormatter.formatRawCellContents(numVal, 0, "General");
+        }
         String builtin = formatBuiltinDateValue(cell.getCellStyle().getDataFormat(), numVal);
         if (builtin != null) {
           return builtin;
