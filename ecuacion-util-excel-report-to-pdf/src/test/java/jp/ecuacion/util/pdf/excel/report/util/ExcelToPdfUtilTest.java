@@ -2039,6 +2039,17 @@ public class ExcelToPdfUtilTest {
     }
 
     @Test
+    @DisplayName("date format with a value outside Excel's date range renders the plain number")
+    void dateFormatOutOfRange(@TempDir Path tempDir) throws IOException, PdfGenerateException {
+      // negative serial
+      assertFmt(tempDir, "neg", -1.0, "yyyy/mm/dd", "-1");
+      // past 9999-12-31 (serial 2958465)
+      assertFmt(tempDir, "over", 2958466.0, "yyyy/mm/dd", "2958466");
+      // built-in date format ID 14 path
+      assertFmt(tempDir, "over14", 2958466.0, "m/d/yy", "2958466");
+    }
+
+    @Test
     @DisplayName("zero-valued formula cell with accounting format renders as dash not digit zero")
     void zeroFormulaWithAccountingZeroSection(@TempDir Path tempDir)
         throws IOException, PdfGenerateException {
