@@ -243,94 +243,106 @@ class CellValueFormatter {
 
     while (i < fmt.length()) {
       char c = fmt.charAt(i);
-      if (c == '"') {
-        int end = fmt.indexOf('"', i + 1);
-        if (end > i) {
-          result.append(fmt, i + 1, end);
-          i = end + 1;
-        } else {
-          i++;
-        }
-      } else if (c == '[') {
-        int end = fmt.indexOf(']', i);
-        i = (end > i) ? end + 1 : i + 1;
-      } else if (c == 'y' || c == 'Y') {
-        int n = countConsecutive(fmt, i, c);
-        result.append(n >= 4 ? String.format("%04d", date.getYear())
-            : String.format("%02d", date.getYear() % 100));
-        i += n;
-        lastWasHour = false;
-      } else if (c == 'g' || c == 'G') {
-        int n = countConsecutive(fmt, i, c);
-        result.append(eraName(date, n));
-        i += n;
-        lastWasHour = false;
-      } else if (c == 'e' || c == 'E') {
-        int n = countConsecutive(fmt, i, c);
-        result.append(eraYear(date, n));
-        i += n;
-        lastWasHour = false;
-      } else if (c == 'm' || c == 'M') {
-        int n = countConsecutive(fmt, i, c);
-        if (lastWasHour) {
-          result.append(
-              n >= 2 ? String.format("%02d", time.getMinute()) : String.valueOf(time.getMinute()));
-          lastWasHour = false;
-        } else if (n >= 4) {
-          result.append(date.getMonth().getDisplayName(TextStyle.FULL, locale));
-        } else if (n == 3) {
-          result.append(date.getMonth().getDisplayName(TextStyle.SHORT, locale));
-        } else {
-          result.append(n >= 2 ? String.format("%02d", date.getMonthValue())
-              : String.valueOf(date.getMonthValue()));
-        }
-        i += n;
-      } else if (c == 'd' || c == 'D') {
-        int n = countConsecutive(fmt, i, c);
-        if (n >= 4) {
-          result.append(date.getDayOfWeek().getDisplayName(TextStyle.FULL, locale));
-        } else if (n == 3) {
-          result.append(date.getDayOfWeek().getDisplayName(TextStyle.SHORT, locale));
-        } else {
-          result.append(n >= 2 ? String.format("%02d", date.getDayOfMonth())
-              : String.valueOf(date.getDayOfMonth()));
-        }
-        i += n;
-        lastWasHour = false;
-      } else if (c == 'h' || c == 'H') {
-        int n = countConsecutive(fmt, i, c);
-        result.append(n >= 2 ? String.format("%02d", hourVal) : String.valueOf(hourVal));
-        i += n;
-        lastWasHour = true;
-      } else if (c == 's' || c == 'S') {
-        int n = countConsecutive(fmt, i, c);
-        result.append(
-            n >= 2 ? String.format("%02d", time.getSecond()) : String.valueOf(time.getSecond()));
-        i += n;
-        lastWasHour = false;
-      } else if (c == 'a' || c == 'A') {
-        if (i + 4 < fmt.length() && fmt.substring(i, i + 5).equalsIgnoreCase("AM/PM")) {
-          result.append(time.getHour() < 12 ? "AM" : "PM");
-          i += 5;
-        } else if (i + 2 < fmt.length() && fmt.substring(i, i + 3).equalsIgnoreCase("A/P")) {
-          result.append(time.getHour() < 12 ? "A" : "P");
-          i += 3;
-        } else {
-          int n = countConsecutive(fmt, i, c);
-          if (n >= 3) {
-            int dow = date.getDayOfWeek().getValue() - 1;
-            String[] s = {"月", "火", "水", "木", "金", "土", "日"};
-            String[] l = {"月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"};
-            result.append(n >= 4 ? l[dow] : s[dow]);
-            i += n;
+      switch (c) {
+        case '"' -> {
+          int end = fmt.indexOf('"', i + 1);
+          if (end > i) {
+            result.append(fmt, i + 1, end);
+            i = end + 1;
           } else {
-            result.append(c);
             i++;
           }
         }
-      } else {
-        result.append(c);
-        i++;
+        case '[' -> {
+          int end = fmt.indexOf(']', i);
+          i = (end > i) ? end + 1 : i + 1;
+        }
+        case 'y', 'Y' -> {
+          int n = countConsecutive(fmt, i, c);
+          result.append(n >= 4 ? String.format("%04d", date.getYear())
+              : String.format("%02d", date.getYear() % 100));
+          i += n;
+          lastWasHour = false;
+        }
+        case 'g', 'G' -> {
+          int n = countConsecutive(fmt, i, c);
+          result.append(eraName(date, n));
+          i += n;
+          lastWasHour = false;
+        }
+        case 'e', 'E' -> {
+          int n = countConsecutive(fmt, i, c);
+          result.append(eraYear(date, n));
+          i += n;
+          lastWasHour = false;
+        }
+        case 'm', 'M' -> {
+          int n = countConsecutive(fmt, i, c);
+          if (lastWasHour) {
+            result.append(n >= 2 ? String.format("%02d", time.getMinute())
+                : String.valueOf(time.getMinute()));
+            lastWasHour = false;
+          } else if (n >= 4) {
+            result.append(date.getMonth().getDisplayName(TextStyle.FULL, locale));
+          } else if (n == 3) {
+            result.append(date.getMonth().getDisplayName(TextStyle.SHORT, locale));
+          } else {
+            result.append(n >= 2 ? String.format("%02d", date.getMonthValue())
+                : String.valueOf(date.getMonthValue()));
+          }
+          i += n;
+        }
+        case 'd', 'D' -> {
+          int n = countConsecutive(fmt, i, c);
+          if (n >= 4) {
+            result.append(date.getDayOfWeek().getDisplayName(TextStyle.FULL, locale));
+          } else if (n == 3) {
+            result.append(date.getDayOfWeek().getDisplayName(TextStyle.SHORT, locale));
+          } else {
+            result.append(n >= 2 ? String.format("%02d", date.getDayOfMonth())
+                : String.valueOf(date.getDayOfMonth()));
+          }
+          i += n;
+          lastWasHour = false;
+        }
+        case 'h', 'H' -> {
+          int n = countConsecutive(fmt, i, c);
+          result.append(n >= 2 ? String.format("%02d", hourVal) : String.valueOf(hourVal));
+          i += n;
+          lastWasHour = true;
+        }
+        case 's', 'S' -> {
+          int n = countConsecutive(fmt, i, c);
+          result.append(
+              n >= 2 ? String.format("%02d", time.getSecond()) : String.valueOf(time.getSecond()));
+          i += n;
+          lastWasHour = false;
+        }
+        case 'a', 'A' -> {
+          if (i + 4 < fmt.length() && fmt.substring(i, i + 5).equalsIgnoreCase("AM/PM")) {
+            result.append(time.getHour() < 12 ? "AM" : "PM");
+            i += 5;
+          } else if (i + 2 < fmt.length() && fmt.substring(i, i + 3).equalsIgnoreCase("A/P")) {
+            result.append(time.getHour() < 12 ? "A" : "P");
+            i += 3;
+          } else {
+            int n = countConsecutive(fmt, i, c);
+            if (n >= 3) {
+              int dow = date.getDayOfWeek().getValue() - 1;
+              String[] s = {"月", "火", "水", "木", "金", "土", "日"};
+              String[] l = {"月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"};
+              result.append(n >= 4 ? l[dow] : s[dow]);
+              i += n;
+            } else {
+              result.append(c);
+              i++;
+            }
+          }
+        }
+        default -> {
+          result.append(c);
+          i++;
+        }
       }
     }
     return result.toString();
